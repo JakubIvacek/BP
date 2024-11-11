@@ -10,7 +10,7 @@ import java.util
 object FileReader {
   def main(args: Array[String]): Unit = {
     // Specify the path to your input VCF file
-    val vcfFilePath = "C:\\Users\\ivace\\Downloads\\Lynch.1121.03.T.02.vcf"
+    val vcfFilePath = "Lynch.1121.03.T.02.vcf"
 
     try {
       // Create a VCFFileReader instance to read the VCF file
@@ -22,7 +22,7 @@ object FileReader {
         val dnaVariant = createDnaVariant(variant)
         variantList += dnaVariant
         if (count < 100) {
-          //println(dnaVariant.toString)
+          println(dnaVariant.toString)
         }
         count += 1
       }
