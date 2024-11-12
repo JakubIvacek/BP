@@ -1,5 +1,5 @@
 import htsjdk.variant.variantcontext.VariantContext
-
+import java.lang.Double.parseDouble
 // Class to Hold DNA Variants from VCF FILE
 class DnaVariant(
                   val contig: Int,
@@ -9,7 +9,7 @@ class DnaVariant(
                   val alleleFreq: Double,
                   val alleleSomatic: Boolean,
                   val varType: VariantType,
-                  val copyNum: Option[BigInt], //int
+                  val copyNum: Int,
                   val VQSR_score: Option[Float] //float
                 ){
   override def toString: String = s"DnaVariant(contig=$contig, position=$position, refAllele=$refAllele, altAllele=$altAllele, alleleFreq=$alleleFreq, alleleSomatic=$alleleSomatic, varType=$varType, copyNum=$copyNum, VQSR_score=$VQSR_score)"
@@ -20,29 +20,29 @@ object DnaVariant{
   def createDnaVariant(variant: VariantContext): DnaVariant = {
     val refAllele = variant.getReference.getBaseString
     val altAllele = variant.getAlternateAlleles.get(0).getBaseString
-    
+    val alleleFreq = getAlleleFreq(variant)
     new DnaVariant(
       contig = DnaVariant.getContigNumeric(variant),
       position = variant.getStart,
       refAllele = refAllele,
       altAllele = altAllele,
-      alleleFreq = getAlleleFreq(variant),
+      alleleFreq = alleleFreq,
       alleleSomatic = DnaVariant.isSomatic(variant),
       varType = DnaVariant.returnVariantType(refAllele, altAllele),
-      copyNum = None,
+      copyNum = (alleleFreq * 2).toInt,
       VQSR_score = None
     )
   }
   //Determine allele freq
   private def getAlleleFreq(variant: VariantContext): Double = {
-    val alleleFreqObj = variant.getAttribute("AF", "-1")
+    val alleleFreqObj = variant.getAttribute("AF", "0.0")
     val alleleFreq = alleleFreqObj.toString
-    var alleleFreqValue = -1.0
+    var alleleFreqValue = 0.0
     try {
-      alleleFreqValue = java.lang.Double.parseDouble(alleleFreq)
+      alleleFreqValue = parseDouble(alleleFreq)
     } catch {
       case e: NumberFormatException =>
-        if (alleleFreq.startsWith("[") && alleleFreq.endsWith("]")) {
+        if (alleleFreq.contains(",")) { // Handle multiple values separated by commas
           alleleFreqValue = cleanAlleleFreqMultiple(alleleFreq)
         }
     }
@@ -50,29 +50,7 @@ object DnaVariant{
   }
   private def cleanAlleleFreqMultiple(alleleFreq: String): Double = {
     val values = alleleFreq.substring(1, alleleFreq.length - 1).split(",").map(_.trim)
-    try {
-      // Try parsing the first value as a Double
-      val firstValue = values.headOption match {
-        case Some(v) =>
-          try {
-            Some(v.toDouble)
-          } catch {
-            case _: NumberFormatException => None
-          }
-        case None => None
-      }
-      firstValue match {
-        case Some(alleleFreqValue) =>
-          return alleleFreqValue
-        case None =>
-          println(s"Invalid number format for the first value in allele frequency: $alleleFreq")
-          return -1
-      }
-    } catch {
-      case _: Exception =>
-        println(s"Error processing allele frequency: $alleleFreq")
-        return -1
-    }
+    parseDouble(values.headOption.getOrElse("0.0"))
   }
   private def getContigNumeric(variant: VariantContext): Int = {
     val contig = if (variant.getContig.startsWith("chr")) {
@@ -80,8 +58,7 @@ object DnaVariant{
     } else {
       variant.getContig
     }
-
-    // Map the contig (chromosome) name to a numeric value
+    
     val contigValue = contig match {
       case "X" => 23
       case "Y" => 24

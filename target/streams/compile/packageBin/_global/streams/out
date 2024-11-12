@@ -1,1 +1,41 @@
-[0m[[0m[0mdebug[0m] [0m[0mJar uptodate: C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\untitled4_3-0.1.0-SNAPSHOT.jar[0m
+[0m[[0m[0mdebug[0m] [0m[0mPackaging C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\untitled4_3-0.1.0-SNAPSHOT.jar ...[0m
+[0m[[0m[0mdebug[0m] [0m[0mInput file mappings:[0m
+[0m[[0m[0mdebug[0m] [0m[0m	ConvertVcfToMaf$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\ConvertVcfToMaf$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	ConvertVcfToMaf.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\ConvertVcfToMaf.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	ConvertVcfToMaf.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\ConvertVcfToMaf.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DnaVariant$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\DnaVariant$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DnaVariant.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\DnaVariant.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	DnaVariant.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\DnaVariant.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	FileReaderVcf$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\FileReaderVcf$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	FileReaderVcf.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\FileReaderVcf.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	FileReaderVcf.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\FileReaderVcf.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	FileWriter$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\FileWriter$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	FileWriter.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\FileWriter.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	FileWriter.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\FileWriter.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	VariantType$$anon$1.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\VariantType$$anon$1.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	VariantType$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\VariantType$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	VariantType.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\VariantType.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	VariantType.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\VariantType.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	WriteToMaf$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\WriteToMaf$.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	WriteToMaf.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\WriteToMaf.class[0m
+[0m[[0m[0mdebug[0m] [0m[0m	WriteToMaf.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0m	  C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes\WriteToMaf.tasty[0m
+[0m[[0m[0mdebug[0m] [0m[0mDone packaging.[0m

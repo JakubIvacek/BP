@@ -3,9 +3,9 @@ import scala.collection.mutable.ListBuffer
 
 
 object WriteToMaf {
-  
+
   def writeMafFile(variants: ListBuffer[DnaVariant], outputPath: String): Unit = {
-    val mafHeaders = "Hugo_Symbol\tChromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2\tVariant_Classification\tVariant_Type\tAllele_Frequency"
+    val mafHeaders = "Hugo_Symbol\tChromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2\tVariant_Classification\tVariant_Type\tAllele_Frequency\tCopy_Num"
 
     val writer = new PrintWriter(new File(outputPath))
     writer.println(mafHeaders)
@@ -27,8 +27,9 @@ object WriteToMaf {
     val varClassification = classifyVariant(dnaVariant)
     val varType = dnaVariant.varType
     val alleleFreq = dnaVariant.alleleFreq
+    val copyNum = dnaVariant.copyNum
 
-    s"$hugoSymbol\t$chromosome\t$startPos\t$endPos\t$refAllele\t$tumorSeqAllele2\t$varClassification\t$varType\t$alleleFreq"
+    s"$hugoSymbol\t$chromosome\t$startPos\t$endPos\t$refAllele\t$tumorSeqAllele2\t$varClassification\t$varType\t$alleleFreq\t$copyNum"
   }
   //Get variant classification from type
   def classifyVariant(dnaVariant: DnaVariant): String = {

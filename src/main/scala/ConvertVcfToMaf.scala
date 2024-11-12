@@ -5,7 +5,7 @@ object ConvertVcfToMaf {
     val dnaVariants: ListBuffer[DnaVariant] = FileReaderVcf.read(inputFile)
     WriteToMaf.writeMafFile(dnaVariants, outputFile)
   }
-
+  //run command sbt "runMain ConvertVcfToMaf Lynch.1121.03.T.02.vcf output.maf"
   def main(args: Array[String]): Unit = {
     if (args.length != 2) {
       println("Not enough args Usage: ConvertVcfToMaf <inputFile> <outputFile>")
