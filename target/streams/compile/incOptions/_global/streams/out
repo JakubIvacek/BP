@@ -54,7 +54,6 @@
 [0m[[0m[0mdebug[0m] [0m[0m	FileWriter.tasty[0m
 [0m[[0m[0mdebug[0m] [0m[0m	ConvertVcfToMaf.tasty[0m
 [0m[[0m[0mdebug[0m] [0m[0mRegistering generated classes:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	FileWriter$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	DnaVariant.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	WriteToMaf$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	DnaVariant$.class[0m
@@ -65,9 +64,7 @@
 [0m[[0m[0mdebug[0m] [0m[0m	VariantType$$anon$1.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	VariantType$.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	WriteToMaf.class[0m
-[0m[[0m[0mdebug[0m] [0m[0m	FileWriter.class[0m
 [0m[[0m[0mdebug[0m] [0m[0m	ConvertVcfToMaf.class[0m
-[0m[[0m[0mdebug[0m] [0m[0m	FileWriter$.tasty[0m
 [0m[[0m[0mdebug[0m] [0m[0m	DnaVariant.tasty[0m
 [0m[[0m[0mdebug[0m] [0m[0m	WriteToMaf$.tasty[0m
 [0m[[0m[0mdebug[0m] [0m[0m	DnaVariant$.tasty[0m
@@ -78,6 +75,5 @@
 [0m[[0m[0mdebug[0m] [0m[0m	VariantType$$anon$1.tasty[0m
 [0m[[0m[0mdebug[0m] [0m[0m	VariantType$.tasty[0m
 [0m[[0m[0mdebug[0m] [0m[0m	WriteToMaf.tasty[0m
-[0m[[0m[0mdebug[0m] [0m[0m	FileWriter.tasty[0m
 [0m[[0m[0mdebug[0m] [0m[0m	ConvertVcfToMaf.tasty[0m
 [0m[[0m[0mdebug[0m] [0m[0mRemoving the temporary directory used for backing up class files: C:\Users\ivace\OneDrive\Documents\GitHub\BP\target\scala-3.3.4\classes.bak[0m
