@@ -1,0 +1,27 @@
+import htsjdk.variant.vcf.{VCFFileReader, VCFHeader}
+import htsjdk.variant.variantcontext.VariantContext
+import java.io.File
+import scala.collection.mutable.ListBuffer
+import java.util
+
+
+object FileReaderVcf {
+  //Read file return loaded DnaVariants
+  def read(inputFile: String): ListBuffer[DnaVariant] = {
+    val vcfFilePath = inputFile
+    var variantList: ListBuffer[DnaVariant] = ListBuffer()
+    try {
+      // Create a VCFFileReader instance to read the VCF file
+      val vcfReader = new VCFFileReader(new File(vcfFilePath), false)
+      vcfReader.iterator().forEachRemaining { variant =>
+        val dnaVariant = DnaVariant.createDnaVariant(variant)
+        variantList += dnaVariant
+      }
+
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while reading the VCF file: ${e.getMessage}")
+    }
+    variantList
+  }
+}
