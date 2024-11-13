@@ -35,22 +35,23 @@ object DnaVariant{
   }
   //Determine allele freq
   private def getAlleleFreq(variant: VariantContext): Double = {
-    val alleleFreqObj = variant.getAttribute("AF", "0.0")
-    val alleleFreq = alleleFreqObj.toString
-    var alleleFreqValue = 0.0
-    try {
-      alleleFreqValue = parseDouble(alleleFreq)
-    } catch {
-      case e: NumberFormatException =>
-        if (alleleFreq.contains(",")) { // Handle multiple values separated by commas
-          alleleFreqValue = cleanAlleleFreqMultiple(alleleFreq)
+    var altCount = 0
+    var totalDepth = 0
+
+    // Iterate over each genotype to sum AD
+    val genotypes = variant.getGenotypes.iterator()
+    while (genotypes.hasNext) {
+      val genotype = genotypes.next()
+      if (genotype.hasAD) {
+        val ad = genotype.getAD
+        if (ad != null && ad.length > 1) {
+          totalDepth += ad.sum
+          altCount += ad.tail.sum
         }
+      }
     }
-    alleleFreqValue
-  }
-  private def cleanAlleleFreqMultiple(alleleFreq: String): Double = {
-    val values = alleleFreq.substring(1, alleleFreq.length - 1).split(",").map(_.trim)
-    parseDouble(values.headOption.getOrElse("0.0"))
+    // Calculate AF if there is depth; otherwise, return -1.0 for invalid AF
+    if (totalDepth > 0) altCount.toDouble / totalDepth else -1.0
   }
   private def getContigNumeric(variant: VariantContext): Int = {
     val contig = if (variant.getContig.startsWith("chr")) {
