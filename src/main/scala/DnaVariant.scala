@@ -1,8 +1,9 @@
 import htsjdk.variant.variantcontext.VariantContext
 import java.lang.Double.parseDouble
+import scala.jdk.CollectionConverters._
 // Class to Hold DNA Variants from VCF FILE
 class DnaVariant(
-                  val contig: Int,
+                  val contig: String,
                   val position: BigInt,
                   val refAllele: String,
                   val altAllele: String,
@@ -10,28 +11,36 @@ class DnaVariant(
                   val alleleSomatic: Boolean,
                   val varType: VariantType,
                   val copyNum: Int,
-                  val VQSR_score: Option[Float] //float
+                  val VQSR_score: Double
                 ){
   override def toString: String = s"DnaVariant(contig=$contig, position=$position, refAllele=$refAllele, altAllele=$altAllele, alleleFreq=$alleleFreq, alleleSomatic=$alleleSomatic, varType=$varType, copyNum=$copyNum, VQSR_score=$VQSR_score)"
 }
 // Companion object with needed methods
 object DnaVariant{
   //create new variant
-  def createDnaVariant(variant: VariantContext): DnaVariant = {
+  def createDnaVariants(variant: VariantContext): List[DnaVariant] = {
     val refAllele = variant.getReference.getBaseString
-    val altAllele = variant.getAlternateAlleles.get(0).getBaseString
+    val altAlleles = variant.getAlternateAlleles.asScala 
     val alleleFreq = getAlleleFreq(variant)
-    new DnaVariant(
-      contig = DnaVariant.getContigNumeric(variant),
-      position = variant.getStart,
-      refAllele = refAllele,
-      altAllele = altAllele,
-      alleleFreq = alleleFreq,
-      alleleSomatic = DnaVariant.isSomatic(variant),
-      varType = DnaVariant.returnVariantType(refAllele, altAllele),
-      copyNum = (alleleFreq * 2).toInt,
-      VQSR_score = None
-    )
+    
+    val resultVariants = scala.collection.mutable.ListBuffer[DnaVariant]()
+
+    // Iterate over all alternate alleles and create a DnaVariant for each one
+    altAlleles.foreach { altAllele =>
+      resultVariants += new DnaVariant(
+        contig = variant.getContig,
+        position = variant.getStart,
+        refAllele = refAllele,
+        altAllele = altAllele.getBaseString,
+        alleleFreq = alleleFreq,
+        alleleSomatic = DnaVariant.isSomatic(variant),
+        varType = DnaVariant.returnVariantType(refAllele, altAllele.getBaseString),
+        copyNum = 0,
+        VQSR_score = BigDecimal(variant.getPhredScaledQual).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+      )
+    }
+    // Return the list as an immutable List
+    resultVariants.toList
   }
   //Determine allele freq
   private def getAlleleFreq(variant: VariantContext): Double = {
@@ -50,8 +59,10 @@ object DnaVariant{
         }
       }
     }
-    // Calculate AF if there is depth; otherwise, return -1.0 for invalid AF
-    if (totalDepth > 0) altCount.toDouble / totalDepth else -1.0
+    var freq: Double = -1.0
+    if (totalDepth > 0) freq = altCount.toDouble / totalDepth
+    val rounded = BigDecimal(freq).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+    rounded
   }
   private def getContigNumeric(variant: VariantContext): Int = {
     val contig = if (variant.getContig.startsWith("chr")) {

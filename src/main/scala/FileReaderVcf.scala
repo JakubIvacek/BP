@@ -14,10 +14,10 @@ object FileReaderVcf {
       // Create a VCFFileReader instance to read the VCF file
       val vcfReader = new VCFFileReader(new File(vcfFilePath), false)
       vcfReader.iterator().forEachRemaining { variant =>
-        val dnaVariant = DnaVariant.createDnaVariant(variant)
-        variantList += dnaVariant
+        val dnaVariants = DnaVariant.createDnaVariants(variant)
+        // Add all the DnaVariants to the variantList
+        variantList ++= dnaVariants
       }
-
     } catch {
       case e: Exception =>
         println(s"An error occurred while reading the VCF file: ${e.getMessage}")
