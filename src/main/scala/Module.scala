@@ -1,15 +1,14 @@
 import java.io.File
+import scala.util.boundary, boundary.break
 
-class Module(val name: String, var location: String, val installPath: String) {
-  
+class Module(val name: String, var location: String, var installPath: String) {
+
   if (!new File(location).exists()) {
     println(s"Warning: Location directory '$location' does not exist.")
   }
-  if (!new File(installPath).exists()) {
-    println(s"Warning: Install path directory '$installPath' does not exist.")
-  }
+
   installModuleData()
-  
+
   def displayDetails(): Unit = {
     println(s"Module Name: $name")
     println(s"Location: $location")
@@ -19,9 +18,11 @@ class Module(val name: String, var location: String, val installPath: String) {
   def installModuleData(): Unit = {
 
   }
+
   def checkNewVersion(): Unit = {
 
   }
+
   def removeModuleData(): Unit = {
     val directory = new File(location)
     if (directory.exists() && directory.isDirectory) {
@@ -35,9 +36,30 @@ class Module(val name: String, var location: String, val installPath: String) {
     }
   }
 
+  private def deleteDirectory(directory: File): Boolean = {
+    boundary {
+      val files = directory.listFiles()
+      if (files != null) {
+        files.foreach { file =>
+          if (!file.delete()) {
+            println(s"Failed to delete file: ${file.getAbsolutePath}")
+            boundary.break(false)
+          }
+        }
+      }
+      directory.delete()
+      true
+    }
+  }
+
   def updateInstallPath(newInstallPath: String): Unit = {
     installPath = newInstallPath
     println(s"Install path updated to: $installPath")
+  }
+
+  def updateLocation(newLocation: String): Unit = {
+    location = newLocation
+    println(s"Location path updated to: $location")
   }
 
   def moduleSize(): Long = {
@@ -56,18 +78,5 @@ class Module(val name: String, var location: String, val installPath: String) {
       val files = file.listFiles()
       if (files != null) files.map(calculateSize).sum else 0L
     }
-  }
-
-  private def deleteDirectory(directory: File): Boolean = {
-    val files = directory.listFiles()
-    if (files != null) {
-      files.foreach { file =>
-        if (!file.delete()) {
-          println(s"Failed to delete file: ${file.getAbsolutePath}")
-          return false
-        }
-      }
-    }
-    directory.delete()
   }
 }

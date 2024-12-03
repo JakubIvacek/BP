@@ -19,7 +19,6 @@ object ModuleManager {
     val module = findModule(name)
     module match {
       case Some(m) =>
-        println(s"Module '$name' found. Removing associated data...")
         m.removeModuleData()
         modules.remove(name)
         println(s"Module '$name' has been removed from the manager.")
