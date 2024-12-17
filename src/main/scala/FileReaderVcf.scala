@@ -1,9 +1,9 @@
-import htsjdk.variant.vcf.{VCFFileReader, VCFHeader}
 import htsjdk.variant.variantcontext.VariantContext
-import java.io.File
-import scala.collection.mutable.ListBuffer
-import java.util
+import htsjdk.variant.vcf.{VCFFileReader, VCFHeader}
 
+import java.io.File
+import java.util
+import scala.collection.mutable.ListBuffer
 
 object FileReaderVcf {
   //Read file return loaded DnaVariants

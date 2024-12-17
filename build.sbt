@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
     name := "untitled4",
     libraryDependencies += "com.github.samtools" % "htsjdk" % "2.24.1", // Add HTSJDK dependency
     libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.5.0",
-    libraryDependencies += "com.lihaoyi" %% "ujson" % "2.0.0"
-
+    libraryDependencies += "com.lihaoyi" %% "ujson" % "2.0.0" ,
+    libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.41.2.2"
 
 )

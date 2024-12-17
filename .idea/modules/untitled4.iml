@@ -29,5 +29,6 @@
     <orderEntry type="library" name="sbt: org.sharegov:mjson:1.4.1:jar" level="project" />
     <orderEntry type="library" name="sbt: org.tukaani:xz:1.8:jar" level="project" />
     <orderEntry type="library" name="sbt: org.xerial.snappy:snappy-java:1.1.7.3:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.xerial:sqlite-jdbc:3.41.2.2:jar" level="project" />
   </component>
 </module>
