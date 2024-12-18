@@ -5,7 +5,11 @@ import java.time.LocalDateTime
 
 object QueryModules {
 
-  // INSERT operation
+  /**
+   * Insert Module to Database
+   * @param connection Database connection
+   * @param module     Module to add
+   */
   def insertModule(connection: Connection, module: Module): Unit = {
     val insertQuery =
       """
@@ -19,7 +23,11 @@ object QueryModules {
     println(s"Module '${module.name}' inserted successfully!")
   }
 
-  // UPDATE operation: Update a module by ID
+  /**
+   * Insert Module to Database
+   * @param connection Database connection
+   * @param module     Module with updated information
+   */
   def updateModule(connection: Connection, module: Module): Unit = {
     val updateQuery =
       """
@@ -34,7 +42,10 @@ object QueryModules {
     println(s"Module with ID ${module.id.get} updated successfully!")
   }
 
-  // SELECT operation: Retrieve all modules
+  /**
+   * Retrieve all modules SELECT
+   * @param connection Database connection
+   */
   def getAllModules(connection: Connection): List[Module] = {
     val selectQuery = "SELECT * FROM modules;"
     val statement = connection.createStatement()
@@ -45,7 +56,12 @@ object QueryModules {
     modules
   }
 
-  // SELECT operation: Find modules by name
+  /**
+   * Retrieve by name modules SELECT
+   * @param connection Database connection
+   * @param moduleName Name of module to find
+   *                   
+   */
   def findByName(connection: Connection, moduleName: String): List[Module] = {
     val selectQuery =
       """
@@ -62,7 +78,35 @@ object QueryModules {
     modules
   }
 
-  // DELETE operation: Delete a module by ID
+  /**
+   * Retrieve by name and version modules SELECT
+   * @param connection Database connection
+   * @param moduleName Name of module to find
+   * @param version    Version of module to find
+   *                
+   */
+  def findByNameVersion(connection: Connection, moduleName: String, version: String): List[Module] = {
+    val selectQuery =
+      """
+        |SELECT * FROM modules WHERE name = ? AND version = ?;
+        |""".stripMargin
+
+    val preparedStatement: PreparedStatement = connection.prepareStatement(selectQuery)
+    preparedStatement.setString(1, moduleName)
+    preparedStatement.setString(2, version)
+    val resultSet: ResultSet = preparedStatement.executeQuery()
+    val modules = mapResultSetToModules(resultSet)
+
+    println(s"Modules with name and version'$moduleName' retrieved successfully!")
+    modules
+  }
+
+  /**
+   * DELETE operation: Delete a module by ID
+   *
+   * @param connection Database connection
+   * @param id         Id of module in database
+   */
   def deleteModuleById(connection: Connection, id: Int): Unit = {
     val deleteQuery = "DELETE FROM modules WHERE id = ?;"
     val preparedStatement: PreparedStatement = connection.prepareStatement(deleteQuery)
@@ -72,8 +116,13 @@ object QueryModules {
     println(s"Module with ID $id deleted successfully!")
   }
 
-  
-  // Helper method to set module parameters in a PreparedStatement
+  /**
+   * Helper method to set module parameters in a PreparedStatement
+   *
+   * @param preparedStatement Statement in which to insert data
+   * @param module            Module with all the data      
+   * @param includeId         So there is not much duplicate code and two functions can use similar code
+   */
   private def setModuleParameters(preparedStatement: PreparedStatement, module: Module, includeId: Boolean = false): Unit = {
     preparedStatement.setString(1, module.name)
     preparedStatement.setString(2, module.version)

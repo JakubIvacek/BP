@@ -13,7 +13,9 @@ case class Module(
                    downloadPath: Option[String]
                  )
 {
-  // Print method to display module details in a formatted way
+  /**
+   * Print information about module
+   */
   def print(): Unit = {
     println(s"\nModule [ID: ${id.getOrElse("N/A")}, Name: $name, Version: $version]")
     println(s"Created: ${created.getOrElse("N/A")}, Updated: ${updated.getOrElse("N/A")}")
