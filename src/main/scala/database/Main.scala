@@ -1,7 +1,5 @@
 package database
 
-package main
-
 import java.sql.{Connection, Timestamp}
 
 object Main {

@@ -21,6 +21,7 @@
     <orderEntry type="library" name="sbt: com.softwaremill.sttp.shared:core_3:1.3.2:jar" level="project" />
     <orderEntry type="library" name="sbt: com.softwaremill.sttp.shared:ws_3:1.3.2:jar" level="project" />
     <orderEntry type="library" name="sbt: commons-logging:commons-logging:1.1.1:jar" level="project" />
+    <orderEntry type="library" name="sbt: commons-net:commons-net:3.9.0:jar" level="project" />
     <orderEntry type="library" name="sbt: gov.nih.nlm.ncbi:ngs-java:2.9.0:jar" level="project" />
     <orderEntry type="library" name="sbt: org.apache.commons:commons-compress:1.19:jar" level="project" />
     <orderEntry type="library" name="sbt: org.apache.commons:commons-jexl:2.1.1:jar" level="project" />

@@ -1,9 +1,10 @@
-import scala.sys.process._
-import scala.util.{Try, Success, Failure}
+import database.DatabaseConnection
 
-import scala.sys.process._
-import scala.util.{Try, Success, Failure}
-import java.nio.file.{Paths, Files}
+import scala.sys.process.*
+import scala.util.{Failure, Success, Try}
+import scala.sys.process.*
+import scala.util.{Failure, Success, Try}
+import java.nio.file.{Files, Paths}
 
 object LiftOverVcf {
 
@@ -16,7 +17,7 @@ object LiftOverVcf {
       println(s"Input file does not exist: $inputFile")
       return None
     }
-    val newPath = s"liftovered/$inputFile"
+    val newPath = s"liftovered/$inputFile" 
     val rejectPath = s"rejected/$inputFile"
     val chainFilePath = if (hg38) chainFilePathHg38 else chainFilePathHg19
 

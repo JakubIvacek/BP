@@ -10,4 +10,5 @@ class GenCodeModule extends ModuleManager {
   override def moduleSize(): Unit = ???
 
   override def printInformation(): Unit = ???
+  
 }
