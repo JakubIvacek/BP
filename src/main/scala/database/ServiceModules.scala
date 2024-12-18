@@ -7,14 +7,15 @@ object ServiceModules {
   /**
    * Add module information to database.
    *
-   * @param name          module name (e.g., gencode)
-   * @param version       module version (e.g., 16).
-   * @param locationPath  location path on your device (e.g., "/users/keno/data/")
-   * @param downloadPath  ftp download path of server + directory (e.g., server:directory)
-   * @param overLift      Boolean value ( On - if overLift module add, Off - otherwise )
+   * @param name              module name (e.g., gencode)
+   * @param version           module version (e.g., 16).
+   * @param locationPath      location path on your device (e.g., "/users/keno/data/")
+   * @param downloadPath      ftp download path of server + directory (e.g., server:directory)
+   * @param overLift          Boolean value ( On - if overLift module add, Off - otherwise )
+   * @param versionReference  module genome reference version                 
    * 
    */
-  def addModuleToDatabase(name: String, version: String, locationPath: String, downloadPath: String, overLift: Boolean): Unit = {
+  def addModuleToDatabase(name: String, version: String, locationPath: String, downloadPath: String, overLift: Boolean, versionReference: String): Unit = {
     val connection = DatabaseConnection.getConnection
 
     try {
@@ -29,6 +30,7 @@ object ServiceModules {
         created = Some(Timestamp.from(Instant.now())), // Set the created timestamp to now
         updated = Some(Timestamp.from(Instant.now())), // Set the updated timestamp to now
         version = version,
+        versionReference = versionReference,
         overlift = overlift,
         locationPath = Some(locationPath),
         downloadPath = Some(downloadPath)

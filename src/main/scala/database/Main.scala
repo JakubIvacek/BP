@@ -15,6 +15,7 @@ object Main {
       created = None,
       updated = None,
       version = "v1.0.0",
+      versionReference = "hg38",
       overlift = None,
       locationPath = Some("/path/to/location"),
       downloadPath = Some("/path/to/download")

@@ -13,10 +13,9 @@ object QueryModules {
   def insertModule(connection: Connection, module: Module): Unit = {
     val insertQuery =
       """
-        |INSERT INTO modules (name, created, updated, version, overlift, location_path, download_path)
-        |VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?, ?);
+        |INSERT INTO modules (name, created, updated, version, versionReference, overlift, location_path, download_path)
+        |VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?);
         |""".stripMargin
-
     val preparedStatement: PreparedStatement = connection.prepareStatement(insertQuery)
     setModuleParameters(preparedStatement, module)
     preparedStatement.executeUpdate()
@@ -32,7 +31,7 @@ object QueryModules {
     val updateQuery =
       """
         |UPDATE modules
-        |SET name = ?, updated = CURRENT_TIMESTAMP, version = ?, overlift = ?, location_path = ?, download_path = ?
+        |SET name = ?, updated = CURRENT_TIMESTAMP, version = ?, versionReference = ?, overlift = ?, location_path = ?, download_path = ?
         |WHERE id = ?;
         |""".stripMargin
 
@@ -121,17 +120,18 @@ object QueryModules {
    *
    * @param preparedStatement Statement in which to insert data
    * @param module            Module with all the data      
-   * @param includeId         So there is not much duplicate code and two functions can use similar code
+   * @param includeId          So there is not much duplicate code and two functions can use similar code
    */
   private def setModuleParameters(preparedStatement: PreparedStatement, module: Module, includeId: Boolean = false): Unit = {
     preparedStatement.setString(1, module.name)
     preparedStatement.setString(2, module.version)
-    preparedStatement.setTimestamp(3, module.overlift.orNull)
-    preparedStatement.setString(4, module.locationPath.orNull)
-    preparedStatement.setString(5, module.downloadPath.orNull)
+    preparedStatement.setString(3, module.versionReference)
+    preparedStatement.setTimestamp(4, module.overlift.orNull)
+    preparedStatement.setString(5, module.locationPath.orNull)
+    preparedStatement.setString(6, module.downloadPath.orNull)
 
     if (includeId) {
-      preparedStatement.setInt(6, module.id.getOrElse(0))
+      preparedStatement.setInt(7, module.id.getOrElse(0))
     }
   }
 
@@ -146,6 +146,7 @@ object QueryModules {
         created = Option(resultSet.getTimestamp("created")),
         updated = Option(resultSet.getTimestamp("updated")),
         version = resultSet.getString("version"),
+        versionReference = resultSet.getString("versionReference"),
         overlift = Option(resultSet.getTimestamp("overlift")),
         locationPath = Option(resultSet.getString("location_path")),
         downloadPath = Option(resultSet.getString("download_path"))

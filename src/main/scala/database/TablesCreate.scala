@@ -15,6 +15,7 @@ object TablesCreate {
         |    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         |    updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         |    version TEXT NOT NULL,
+        |    versionReference TEXT NOT NULL,
         |    overlift TIMESTAMP,
         |    location_path TEXT,
         |    download_path TEXT
