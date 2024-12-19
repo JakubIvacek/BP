@@ -12,7 +12,7 @@ object DatabaseConnection {
   def getConnection: Connection = {
     if (connection == null || connection.isClosed) {
       connection = DriverManager.getConnection(url)
-      println("Connection to SQLite database established: " + url)
+      //println("Connection to SQLite database established: " + url)
     }
     connection
   }
@@ -23,7 +23,7 @@ object DatabaseConnection {
   def closeConnection(): Unit = {
     if (connection != null && !connection.isClosed) {
       connection.close()
-      println("Connection to SQLite database closed: " + url)
+      //println("Connection to SQLite database closed: " + url)
     }
   }
 }

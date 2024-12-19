@@ -1,9 +1,11 @@
 package module
 
 abstract class ModuleManager {
-    def downloadData(): Unit
-    def removeData(): Unit
-    def checkNewVersion(): Unit
-    def moduleSize(): Unit
-    def printInformation(): Unit
+    def downloadModule(localPath: String, release: String): Unit
+    def downloadModuleLatest(localPath: String): Unit
+    def removeModule(ModuleName: String, release: String, versionReference: String): Unit
+    def removeModuleById(ModuleId: Int): Unit
+    def printAllClassModules(): Unit
+    def printAllModules(): Unit
+    //def checkNewerVersion(): Unit
 }

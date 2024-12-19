@@ -40,4 +40,44 @@ object RepositoryManager {
     // Delete the current file or empty directory
     file.delete()
   }
+
+  /**
+   * Get the total size of a directory.
+   *
+   * @param dirPath The path of the directory for which the size is to be calculated.
+   * @return The size of the directory in bytes.
+   */
+  def getDirectorySize(dirPath: String): Long = {
+    val dir = new File(dirPath)
+
+    if (!dir.exists()) {
+      throw new IllegalArgumentException(s"Directory $dirPath does not exist.")
+    }
+
+    if (!dir.isDirectory) {
+      throw new IllegalArgumentException(s"$dirPath is not a directory.")
+    }
+
+    calculateSize(dir)
+  }
+
+  /**
+   * Recursive function to calculate size of directory
+   *
+   * @param file The path of file to check recursively
+   * @return The size of the directory in bytes.
+   */
+  def calculateSize(file: File): Long = {
+    if (file.isFile) {
+      file.length()
+    } else {
+      val children = file.listFiles()
+      if (children != null) {
+        children.map(calculateSize).sum
+      } else {
+        0L
+      }
+    }
+  }
+
 }

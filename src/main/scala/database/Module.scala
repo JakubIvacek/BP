@@ -1,6 +1,7 @@
 package database
 
 import java.sql.Timestamp
+import utils.RepositoryManager
 
 case class Module(
                    id: Option[Int],
@@ -22,6 +23,7 @@ case class Module(
     println(s"Created: ${created.getOrElse("N/A")}, Updated: ${updated.getOrElse("N/A")}")
     println(s"Overlift: ${overlift.getOrElse("N/A")}")
     println(s"Location Path: ${locationPath.getOrElse("N/A")}")
-    println(s"Download Path: ${downloadPath.getOrElse("N/A")}\n")
+    println(s"Download Path: ${downloadPath.getOrElse("N/A")}")
+    println(s"Local file size: ${RepositoryManager.getDirectorySize(locationPath.getOrElse("N/A"))} B \n")
   }
 }

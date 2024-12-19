@@ -46,8 +46,8 @@ object ServiceModules {
         println(s"An error occurred while adding the module: ${e.getMessage}")
         e.printStackTrace()
     } finally {
-      val allModules = RepositoryModules.getAllModules(connection)
-      println(s"Current modules in the database: $allModules")
+      //val allModules = RepositoryModules.getAllModules(connection)
+      //allModules.foreach(_.print())
       DatabaseConnection.closeConnection()
     }
   }
@@ -71,6 +71,32 @@ object ServiceModules {
         case None =>
           println(s"No module found with name '$name' and version '$version'. Nothing to retrieve.")
           None 
+      }
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while retrieving the module: ${e.getMessage}")
+        None
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+
+  /**
+   * Get specific module by Id
+   *
+   * @param id            module id
+   */
+  def getModuleFromDatabaseById(id: Int): Option[Module] = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      // Attempt to find the module in the repository
+      val maybeModule = RepositoryModules.findById(connection, id).headOption
+      maybeModule match {
+        case Some(module) =>
+          Some(module)
+        case None =>
+          println(s"No module found with id '$id'. Nothing to retrieve.")
+          None
       }
     } catch {
       case e: Exception =>
@@ -108,8 +134,67 @@ object ServiceModules {
       case e: Exception =>
         println(s"An error occurred while deleting the module: ${e.getMessage}")
     } finally {
-      val allModules = RepositoryModules.getAllModules(connection)
-      println(s"Current modules in the database: $allModules")
+      //val allModules = RepositoryModules.getAllModules(connection)
+      //allModules.foreach(_.print())
+      DatabaseConnection.closeConnection()
+    }
+  }
+
+  /**
+   * Delete module information from database by Id.
+   *
+   * @param id            module id
+   */
+  def deleteModuleFromDatabaseById(id: Int): Unit = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      val maybeModule = RepositoryModules.findById(connection, id).headOption
+
+      maybeModule match {
+        case Some(module) =>
+          RepositoryModules.deleteModuleById(connection, id)
+        case None =>
+          println(s"No module found with id $id. Nothing to delete.")
+      }
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while deleting the module: ${e.getMessage}")
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+  /**
+   * Get all modules with same name (e.g, gencode)
+   */
+  def getModulesByName(name: String): List[Module] = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      val modules = RepositoryModules.findByName(connection, name)
+      modules
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while getting the modules: ${e.getMessage}")
+        List()
+    } finally {
+
+        DatabaseConnection.closeConnection()
+    }
+  }
+
+  /**
+   * Get all modules
+   */
+  def getModules: List[Module] = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      val modules = RepositoryModules.getAllModules(connection)
+      modules
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while getting the modules: ${e.getMessage}")
+        List()
+    } finally {
+
       DatabaseConnection.closeConnection()
     }
   }

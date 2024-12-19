@@ -73,7 +73,27 @@ object RepositoryModules {
     val resultSet: ResultSet = preparedStatement.executeQuery()
     val modules = mapResultSetToModules(resultSet)
 
-    println(s"Modules with name '$moduleName' retrieved successfully!")
+    //println(s"Modules with name '$moduleName' retrieved successfully!")
+    modules
+  }
+
+  /**
+   * Retrieve by id modules SELECT
+   *
+   * @param connection Database connection
+   * @param id         Module id
+   *
+   */
+  def findById(connection: Connection, id: Int): List[Module] = {
+    val selectQuery =
+      """
+        |SELECT * FROM modules WHERE id = ?;
+        |""".stripMargin
+
+    val preparedStatement: PreparedStatement = connection.prepareStatement(selectQuery)
+    preparedStatement.setString(1, id.toString)
+    val resultSet: ResultSet = preparedStatement.executeQuery()
+    val modules = mapResultSetToModules(resultSet)
     modules
   }
 
