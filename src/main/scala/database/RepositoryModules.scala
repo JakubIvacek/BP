@@ -3,7 +3,7 @@ package database
 import java.sql.{Connection, PreparedStatement, ResultSet, Timestamp}
 import java.time.LocalDateTime
 
-object QueryModules {
+object RepositoryModules {
 
   /**
    * Insert Module to Database
@@ -80,19 +80,20 @@ object QueryModules {
   /**
    * Retrieve by name and version modules SELECT
    * @param connection Database connection
-   * @param moduleName Name of module to find
-   * @param version    Version of module to find
-   *                
+   * @param moduleName Name of module to find    (e.g., gencode)
+   * @param version    Version of module to find (e.g., 37)
+   * @param versionReference    Version of module dna reference to find (e.g., hg38)               
    */
-  def findByNameVersion(connection: Connection, moduleName: String, version: String): List[Module] = {
+  def findByNameVersion(connection: Connection, moduleName: String, version: String, versionReference: String): List[Module] = {
     val selectQuery =
       """
-        |SELECT * FROM modules WHERE name = ? AND version = ?;
+        |SELECT * FROM modules WHERE name = ? AND version = ? AND versionReference = ?;
         |""".stripMargin
 
     val preparedStatement: PreparedStatement = connection.prepareStatement(selectQuery)
     preparedStatement.setString(1, moduleName)
     preparedStatement.setString(2, version)
+    preparedStatement.setString(3, versionReference)
     val resultSet: ResultSet = preparedStatement.executeQuery()
     val modules = mapResultSetToModules(resultSet)
 

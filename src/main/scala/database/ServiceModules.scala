@@ -37,7 +37,7 @@ object ServiceModules {
       )
 
       // Insert the module into the database
-      QueryModules.insertModule(connection, module)
+      RepositoryModules.insertModule(connection, module)
       println(s"Module '$name' with version '$version' added successfully to database.")
 
 
@@ -46,29 +46,57 @@ object ServiceModules {
         println(s"An error occurred while adding the module: ${e.getMessage}")
         e.printStackTrace()
     } finally {
-      val allModules = QueryModules.getAllModules(connection)
+      val allModules = RepositoryModules.getAllModules(connection)
       println(s"Current modules in the database: $allModules")
       DatabaseConnection.closeConnection()
     }
   }
 
   /**
+   * Get specific module
+   *
+   * @param name             module name (e.g., gencode)
+   * @param version          module version (e.g., 16).
+   * @param versionReference module reference version (e.g., hg38).
+   * @return                 Option[Module] if found, otherwise None.
+   */
+  def getModuleFromDatabase(name: String, version: String, versionReference: String): Option[Module] = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      // Attempt to find the module in the repository
+      val maybeModule = RepositoryModules.findByNameVersion(connection, name, version, versionReference).headOption
+      maybeModule match {
+        case Some(module) =>
+          Some(module) 
+        case None =>
+          println(s"No module found with name '$name' and version '$version'. Nothing to retrieve.")
+          None 
+      }
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while retrieving the module: ${e.getMessage}")
+        None
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+  /**
    * Delete module information from database.
    *
    * @param name         module name (e.g., gencode)
    * @param version      module version (e.g., 16).
-   *
+   * @param versionReference      module reference version (e.g., hg38).
    */
-  def deleteModuleFromDatabase(name: String, version: String): Unit = {
+  def deleteModuleFromDatabase(name: String, version: String, versionReference: String): Unit = {
     val connection = DatabaseConnection.getConnection
     try {
-      val maybeModule = QueryModules.findByNameVersion(connection, name, version).headOption
+      val maybeModule = RepositoryModules.findByNameVersion(connection, name, version, versionReference).headOption
 
       maybeModule match {
         case Some(module) =>
           module.id match {
             case Some(id) =>
-              QueryModules.deleteModuleById(connection, id)
+              RepositoryModules.deleteModuleById(connection, id)
               println(s"Module with id $id, name '$name', and version '$version' deleted successfully.")
             case None =>
               println(s"Module found for name '$name' and version '$version', but ID is None.")
@@ -80,7 +108,7 @@ object ServiceModules {
       case e: Exception =>
         println(s"An error occurred while deleting the module: ${e.getMessage}")
     } finally {
-      val allModules = QueryModules.getAllModules(connection)
+      val allModules = RepositoryModules.getAllModules(connection)
       println(s"Current modules in the database: $allModules")
       DatabaseConnection.closeConnection()
     }

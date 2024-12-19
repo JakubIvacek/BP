@@ -3,14 +3,15 @@ package ftp
 import org.apache.commons.net.ftp.FTPClient
 
 import java.io.IOException
-import database.ServiceModules
+import database.{RepositoryModules, ServiceModules}
+import utils.RepositoryManager
 
 object FtpClientGencode {
 
   /**
    * Download Gencode annotation file hg38 for the latest release.
    *
-   * @param localPath The local directory where the file should be saved.
+   * @param localPath The local directory where the files should be saved.
    */
   def downloadLatestGencodeAnnotation(localPath: String): Unit = {
     val latestRelease = findLatestVersionGencode()
@@ -22,17 +23,16 @@ object FtpClientGencode {
     if (latestRelease.nonEmpty) {
       FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)
       FtpClient.downloadSpecificFile(finalLocalPath, referenceFile, server, directory)
-      //ServiceModules.addModuleToDatabase("gencode", latestRelease.stripPrefix("release_"), s"$localPath\\gencode\\hg38", directory, false)
-      //ServiceModules.deleteModuleFromDatabase("gencode", latestRelease.stripPrefix("release_"))
+      ServiceModules.addModuleToDatabase("gencode", latestRelease.stripPrefix("release_"),
+        s"$localPath\\gencode\\${latestRelease.stripPrefix("release_")}\\hg38", s"$server$directory", false, "hg38")
     } else {
       println("Could not determine the latest Gencode release.")
     }
   }
-
   /**
    * Download Gencode annotation file hg38 for the specific release.
    *
-   * @param localPath     The local directory where the file should be saved.
+   * @param localPath     The local directory where the files should be saved.
    * @param releaseNumber The release number
    */
   def downloadSpecificGencodeAnnotation(localPath: String, releaseNumber: Int): Unit = {
@@ -42,13 +42,22 @@ object FtpClientGencode {
     val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"
     val fileName = s"gencode.v${release.stripPrefix("release_")}.annotation.gff3.gz"
     if (release.nonEmpty) {
-      FtpClient.downloadSpecificFile(localPath + "\\gencode\\hg38", fileName, server, directory)
+      FtpClient.downloadSpecificFile(localPath + s"\\gencode\\$release\\hg38", fileName, server, directory)
 
     } else {
       println("Could not determine the latest Gencode release.")
     }
   }
-
+  def deleteSpecificGencodeAnnotation(name: String, release: String, versionReference: String): Unit = {
+    val module = ServiceModules.getModuleFromDatabase(name, release, versionReference)
+    module match {
+      case Some(module) =>
+        RepositoryManager.deleteRepository(module.locationPath.getOrElse("N/A")) //delete if location path present
+      case None =>
+        println("No module found with this information.")
+    }
+    ServiceModules.deleteModuleFromDatabase(name, release, versionReference) //delete from database
+  }
   /**
    * Find the latest Gencode release available on the FTP server.
    *

@@ -20,7 +20,7 @@ object Main {
       locationPath = Some("/path/to/location"),
       downloadPath = Some("/path/to/download")
     )
-    QueryModules.insertModule(DatabaseConnection.connection, newModule)
+    RepositoryModules.insertModule(DatabaseConnection.connection, newModule)
 
     // Example 2: Update the inserted module
     val updatedModule = newModule.copy(
@@ -28,15 +28,15 @@ object Main {
       name = "Updated Module1",
       version = "v1.1.0"
     )
-    QueryModules.updateModule(DatabaseConnection.connection, updatedModule)
+    RepositoryModules.updateModule(DatabaseConnection.connection, updatedModule)
 
     // Example 3: Retrieve and print all modules
-    val allModules = QueryModules.getAllModules(DatabaseConnection.connection)
+    val allModules = RepositoryModules.getAllModules(DatabaseConnection.connection)
     println("All Modules:")
     allModules.foreach(_.print())
 
     // Example 4: Find modules by name
-    val foundModules = QueryModules.findByName(DatabaseConnection.connection, "Updated Module1")
+    val foundModules = RepositoryModules.findByName(DatabaseConnection.connection, "Updated Module1")
     println("Modules with the name 'Updated Module1':")
     foundModules.foreach(_.print())
     TablesCreate.dropTableModules(DatabaseConnection.connection)
