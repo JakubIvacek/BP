@@ -3,8 +3,6 @@ package ftp
 import org.apache.commons.net.ftp.FTPClient
 
 import java.io.IOException
-import database.{RepositoryModules, ServiceModules}
-import utils.RepositoryManager
 
 object FtpClientGencode {
   /**
@@ -18,11 +16,8 @@ object FtpClientGencode {
     val directory = "/pub/databases/gencode/Gencode_human/"
 
     try {
-      // Connect to the FTP server
       ftpClient.connect(server)
       ftpClient.login("anonymous", "")
-
-      // Change to the target directory
       ftpClient.changeWorkingDirectory(directory)
 
       // List files/directories
@@ -50,7 +45,6 @@ object FtpClientGencode {
         println(s"Error: ${e.getMessage}")
         ""
     } finally {
-      // Close the connection
       if (ftpClient.isConnected) {
         ftpClient.logout()
         ftpClient.disconnect()

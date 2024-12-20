@@ -1,4 +1,6 @@
-package database
+package database.modules
+
+import database.DatabaseConnection
 
 import java.sql.Timestamp
 import java.time.Instant
@@ -20,15 +22,14 @@ object ServiceModules {
 
     try {
       //TablesCreate.createTableModules(DatabaseConnection.connection)
-      // Determine the value for overlift
       val overlift = if (overLift) Some(Timestamp.from(Instant.now())) else None
 
       // Create the new Module
       val module = Module(
-        id = None, // New modules don't have an ID yet
+        id = None, 
         name = name,
-        created = Some(Timestamp.from(Instant.now())), // Set the created timestamp to now
-        updated = Some(Timestamp.from(Instant.now())), // Set the updated timestamp to now
+        created = Some(Timestamp.from(Instant.now())),
+        updated = Some(Timestamp.from(Instant.now())),
         version = version,
         versionReference = versionReference,
         overlift = overlift,

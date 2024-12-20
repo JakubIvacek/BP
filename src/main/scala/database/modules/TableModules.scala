@@ -1,7 +1,8 @@
-package database
+package database.modules
+
 import java.sql.Connection
 
-object TablesCreate {
+object TableModules {
 
   /**
    * Add table Modules from database

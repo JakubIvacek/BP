@@ -1,13 +1,15 @@
 package database
 
+import database.modules.{Module, RepositoryModules, TableModules}
+
 import java.sql.{Connection, Timestamp}
 
-object Main {
+object Test {
 
   def main(args: Array[String]): Unit = {
     // Establish connection to the SQLite database
     DatabaseConnection.getConnection
-    TablesCreate.createTableModules(DatabaseConnection.connection)
+    TableModules.createTableModules(DatabaseConnection.connection)
     // Example 1: Insert a new module
     val newModule = Module(
       id = None,
@@ -39,7 +41,7 @@ object Main {
     val foundModules = RepositoryModules.findByName(DatabaseConnection.connection, "Updated Module1")
     println("Modules with the name 'Updated Module1':")
     foundModules.foreach(_.print())
-    TablesCreate.dropTableModules(DatabaseConnection.connection)
+    TableModules.dropTableModules(DatabaseConnection.connection)
     // Close the database connection
     DatabaseConnection.closeConnection()
   }

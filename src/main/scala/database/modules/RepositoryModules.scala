@@ -1,7 +1,6 @@
-package database
+package database.modules
 
-import java.sql.{Connection, PreparedStatement, ResultSet, Timestamp}
-import java.time.LocalDateTime
+import java.sql.{Connection, PreparedStatement, ResultSet}
 
 object RepositoryModules {
 
@@ -156,7 +155,12 @@ object RepositoryModules {
     }
   }
 
-  // Helper method to map ResultSet to List[Module]
+  /**
+   * Helper method to map ResultSet to List[Module]
+   *
+   * @param resultSet         Modules from db
+   * @return                  Modules mapped in List[Modules] 
+   */
   private def mapResultSetToModules(resultSet: ResultSet): List[Module] = {
     val modules = scala.collection.mutable.ListBuffer[Module]()
 

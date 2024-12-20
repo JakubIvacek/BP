@@ -1,7 +1,8 @@
-package database
+package database.modules
+
+import utils.RepositoryManager
 
 import java.sql.Timestamp
-import utils.RepositoryManager
 
 case class Module(
                    id: Option[Int],

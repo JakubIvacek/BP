@@ -1,9 +1,12 @@
 package module
 import ftp.{FtpClientGencode, FtpClient}
-import database.{ServiceModules, RepositoryModules}
+import database.modules.{RepositoryModules, ServiceModules}
 import utils.RepositoryManager
 
 object GenCodeModule extends ModuleManager {
+
+  private val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"  // name of reference file on ftp server
+  private val server = "ftp.ebi.ac.uk"                                // ftp server
   /**
    * Download Gencode annotation files hg38, specific release
    *
@@ -11,16 +14,19 @@ object GenCodeModule extends ModuleManager {
    * @param releaseNumber The release number
    */
   override def downloadModule(localPath: String, releaseNumber: String): Unit = {
-    val release = s"release_$releaseNumber"
+    val latestRelease = FtpClientGencode.findLatestVersionGencode()
+    var release = s"release_$releaseNumber"
+    // check if not higher release version entered (if yes download latest)
+    release = if releaseNumber > latestRelease.stripPrefix("release_") then latestRelease else release
+    val newReleaseNumber = if releaseNumber > latestRelease.stripPrefix("release_") then latestRelease.stripPrefix("release_") else releaseNumber
+    
     val directory = s"/pub/databases/gencode/Gencode_human/$release/"
-    val server = "ftp.ebi.ac.uk"
-    val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"
     val fileName = s"gencode.v${release.stripPrefix("release_")}.annotation.gff3.gz"
     val finalLocalPath = s"$localPath\\gencode\\$release\\hg38"
     if (release.nonEmpty) {
-      FtpClient.downloadSpecificFile(localPath + s"\\gencode\\$releaseNumber\\hg38", fileName, server, directory)
-      //FtpClient.downloadSpecificFile(finalLocalPath, referenceFile, server, directory)
-      ServiceModules.addModuleToDatabase("gencode", releaseNumber, s"$localPath\\gencode\\$releaseNumber\\hg38",
+      FtpClient.downloadSpecificFile(localPath + s"\\gencode\\$newReleaseNumber\\hg38", fileName, server, directory)
+      FtpClient.downloadSpecificFile(finalLocalPath, referenceFile, server, directory)
+      ServiceModules.addModuleToDatabase("gencode", newReleaseNumber, s"$localPath\\gencode\\$newReleaseNumber\\hg38",
         s"$server$directory", false, "hg38")
     } else {
       println("Could not determine the latest Gencode release.")
@@ -35,9 +41,7 @@ object GenCodeModule extends ModuleManager {
   override def downloadModuleLatest(localPath: String): Unit = {
     val latestRelease = FtpClientGencode.findLatestVersionGencode()
     val directory = s"/pub/databases/gencode/Gencode_human/$latestRelease/"
-    val server = "ftp.ebi.ac.uk"
     val fileName = s"gencode.v${latestRelease.stripPrefix("release_")}.annotation.gff3.gz"
-    val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"
     val finalLocalPath = s"$localPath\\gencode\\${latestRelease.stripPrefix("release_")}\\hg38"
     if (latestRelease.nonEmpty) {
       FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)

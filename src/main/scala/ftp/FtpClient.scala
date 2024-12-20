@@ -22,11 +22,8 @@ object FtpClient {
     val directory = directoryName
 
     try {
-      // Connect to the FTP server
       ftpClient.connect(server)
       ftpClient.login("anonymous", "")
-
-      // Change to the release directory
       ftpClient.changeWorkingDirectory(directory)
 
       // Check if the specific file exists
@@ -34,6 +31,7 @@ object FtpClient {
       if (files == null || !files.contains(fileName)) {
         throw new IOException(s"File not found: $fileName in directory: $directory")
       }
+      
       // Create the local directory if it doesn't exist
       val localDir = new java.io.File(localPath)
       if (!localDir.exists()) {
@@ -57,7 +55,6 @@ object FtpClient {
         println(s"Error: ${e.getMessage}")
         e.printStackTrace()
     } finally {
-      // Close the FTP connection
       if (ftpClient.isConnected) {
         ftpClient.logout()
         ftpClient.disconnect()
