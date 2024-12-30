@@ -1,10 +1,10 @@
+package utils
+
 import database.DatabaseConnection
 
-import scala.sys.process.*
-import scala.util.{Failure, Success, Try}
-import scala.sys.process.*
-import scala.util.{Failure, Success, Try}
 import java.nio.file.{Files, Paths}
+import scala.sys.process.*
+import scala.util.{Failure, Success, Try}
 
 object LiftOverVcf {
 
@@ -12,13 +12,13 @@ object LiftOverVcf {
   private val chainFilePathHg19 = "liftover.chains/hg19-chm13v2.over.chain"
   private val referencePath = "reference/t2t/chm13v2.0.fa"
 
-  def liftOverVcf(inputFile: String, hg38: Boolean): Option[String] = {
+  def liftOverVcf(inputFile: String, hg38: Boolean, outputPath: String): Option[String] = {
     if (!Files.exists(Paths.get(inputFile))) {
       println(s"Input file does not exist: $inputFile")
       return None
     }
-    val newPath = s"liftovered/$inputFile" 
-    val rejectPath = s"rejected/$inputFile"
+    val newPath = s"$outputPath/$inputFile"
+    val rejectPath = s"$outputPath/rejected-$inputFile"
     val chainFilePath = if (hg38) chainFilePathHg38 else chainFilePathHg19
 
     val gatkCommand = Seq(
@@ -44,5 +44,6 @@ object LiftOverVcf {
         println(s"Error executing LiftoverVcf: ${exception.getMessage}. Command: ${gatkCommand.mkString(" ")}")
         None
     }
+    // Este command na move refrernec file ???
   }
 }

@@ -25,7 +25,7 @@ object FtpClient {
       ftpClient.connect(server)
       ftpClient.login("anonymous", "")
       ftpClient.changeWorkingDirectory(directory)
-
+      ftpClient.enterLocalPassiveMode()
       // Check if the specific file exists
       val files = ftpClient.listNames()
       if (files == null || !files.contains(fileName)) {

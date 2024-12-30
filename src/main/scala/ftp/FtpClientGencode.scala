@@ -19,7 +19,7 @@ object FtpClientGencode {
       ftpClient.connect(server)
       ftpClient.login("anonymous", "")
       ftpClient.changeWorkingDirectory(directory)
-
+      ftpClient.enterLocalPassiveMode()
       // List files/directories
       val files = ftpClient.listNames()
       if (files == null || files.isEmpty) {

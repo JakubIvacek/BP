@@ -1,8 +1,7 @@
 package module
 import ftp.{FtpClientGencode, FtpClient}
 import database.modules.{RepositoryModules, ServiceModules}
-import utils.RepositoryManager
-
+import utils.{RepositoryManager, LiftOverVcf}
 object GenCodeModule extends ModuleManager {
 
   private val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"  // name of reference file on ftp server
@@ -22,12 +21,15 @@ object GenCodeModule extends ModuleManager {
     
     val directory = s"/pub/databases/gencode/Gencode_human/$release/"
     val fileName = s"gencode.v${release.stripPrefix("release_")}.annotation.gff3.gz"
-    val finalLocalPath = s"$localPath\\gencode\\$release\\hg38"
+    val finalLocalPath = s"$localPath\\gencode\\$newReleaseNumber\\hg38"
     if (release.nonEmpty) {
-      FtpClient.downloadSpecificFile(localPath + s"\\gencode\\$newReleaseNumber\\hg38", fileName, server, directory)
+      // Download module and save
+      FtpClient.downloadSpecificFile(s"$localPath\\gencode\\$newReleaseNumber\\hg38", fileName, server, directory)
       FtpClient.downloadSpecificFile(finalLocalPath, referenceFile, server, directory)
       ServiceModules.addModuleToDatabase("gencode", newReleaseNumber, s"$localPath\\gencode\\$newReleaseNumber\\hg38",
         s"$server$directory", false, "hg38")
+      // Overlift module to T2T and save
+      //overLiftToT2T(s"$localPath\\gencode\\$newReleaseNumber\\T2T", newReleaseNumber, server + directory, s"$localPath\\gencode\\$newReleaseNumber\\hg38\\$fileName")
     } else {
       println("Could not determine the latest Gencode release.")
     }
@@ -40,17 +42,25 @@ object GenCodeModule extends ModuleManager {
    */
   override def downloadModuleLatest(localPath: String): Unit = {
     val latestRelease = FtpClientGencode.findLatestVersionGencode()
-    val directory = s"/pub/databases/gencode/Gencode_human/$latestRelease/"
-    val fileName = s"gencode.v${latestRelease.stripPrefix("release_")}.annotation.gff3.gz"
-    val finalLocalPath = s"$localPath\\gencode\\${latestRelease.stripPrefix("release_")}\\hg38"
     if (latestRelease.nonEmpty) {
-      FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)
-      FtpClient.downloadSpecificFile(finalLocalPath, referenceFile, server, directory)
-      ServiceModules.addModuleToDatabase("gencode", latestRelease.stripPrefix("release_"),
-        s"$localPath\\gencode\\${latestRelease.stripPrefix("release_")}\\hg38", s"$server$directory", false, "hg38")
+      downloadModule(localPath, latestRelease.stripPrefix("release_"))
     } else {
       println("Could not determine the latest Gencode release.")
     }
+  }
+
+  /**
+   * overLiftToT2T to T2T reference version
+   *
+   * @param outputPath The local directory where the files should be saved.
+   * @param releaseNumber The release number of module (e.g., 34)
+   * @param downloadPath  The url path to ftp server
+   * @param filePath The path to file to overlift
+   */
+  override def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String): Unit = {
+    LiftOverVcf.liftOverVcf(filePath,true, outputPath)
+    ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath,
+      downloadPath, false, "T2T")
   }
 
   /**
@@ -65,10 +75,10 @@ object GenCodeModule extends ModuleManager {
     module match {
       case Some(module) =>
         RepositoryManager.deleteRepository(module.locationPath.getOrElse("N/A")) //delete if location path present
+        ServiceModules.deleteModuleFromDatabaseById(module.id.getOrElse(-1)) //delete from database
       case None =>
         println("No module found with this information.")
     }
-    ServiceModules.deleteModuleFromDatabase(name, release, versionReference) //delete from database
   }
 
   /**
