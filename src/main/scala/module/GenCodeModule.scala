@@ -18,18 +18,22 @@ object GenCodeModule extends ModuleManager {
     // check if not higher release version entered (if yes download latest)
     release = if releaseNumber > latestRelease.stripPrefix("release_") then latestRelease else release
     val newReleaseNumber = if releaseNumber > latestRelease.stripPrefix("release_") then latestRelease.stripPrefix("release_") else releaseNumber
-    
+
     val directory = s"/pub/databases/gencode/Gencode_human/$release/"
     val fileName = s"gencode.v${release.stripPrefix("release_")}.annotation.gff3.gz"
-    val finalLocalPath = s"$localPath\\gencode\\$newReleaseNumber\\hg38"
+    // LINUX PATH
+    //val finalLocalPath = if localPath == "" then s"gencode/$newReleaseNumber/hg38" else s"$localPath/gencode/$newReleaseNumber/hg38"
+    // WINDOWS PATH
+    val finalLocalPath = if localPath == "" then s"gencode\\$newReleaseNumber\\hg38" else s"$localPath\\gencode\\$newReleaseNumber\\hg38"
     if (release.nonEmpty) {
       // Download module and save
-      FtpClient.downloadSpecificFile(s"$localPath\\gencode\\$newReleaseNumber\\hg38", fileName, server, directory)
+      FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)
       FtpClient.downloadSpecificFile(finalLocalPath, referenceFile, server, directory)
-      ServiceModules.addModuleToDatabase("gencode", newReleaseNumber, s"$localPath\\gencode\\$newReleaseNumber\\hg38",
+      ServiceModules.addModuleToDatabase("gencode", newReleaseNumber, finalLocalPath,
         s"$server$directory", false, "hg38")
       // Overlift module to T2T and save
-      //overLiftToT2T(s"$localPath\\gencode\\$newReleaseNumber\\T2T", newReleaseNumber, server + directory, s"$localPath\\gencode\\$newReleaseNumber\\hg38\\$fileName")
+      // overLiftToT2T(s"$localPath\\gencode\\$newReleaseNumber\\T2T",
+      // newReleaseNumber, server + directory, s"$localPath\\gencode\\$newReleaseNumber\\hg38\\$fileName")
     } else {
       println("Could not determine the latest Gencode release.")
     }
