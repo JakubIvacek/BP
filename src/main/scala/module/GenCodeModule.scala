@@ -22,9 +22,9 @@ object GenCodeModule extends ModuleManager {
     val directory = s"/pub/databases/gencode/Gencode_human/$release/"
     val fileName = s"gencode.v${release.stripPrefix("release_")}.annotation.gff3.gz"
     // LINUX PATH
-    //val finalLocalPath = if localPath == "" then s"gencode/$newReleaseNumber/hg38" else s"$localPath/gencode/$newReleaseNumber/hg38"
+    val finalLocalPath = if localPath == "" then s"gencode/$newReleaseNumber/hg38" else s"$localPath/gencode/$newReleaseNumber/hg38"
     // WINDOWS PATH
-    val finalLocalPath = if localPath == "" then s"gencode\\$newReleaseNumber\\hg38" else s"$localPath\\gencode\\$newReleaseNumber\\hg38"
+    //val finalLocalPath = if localPath == "" then s"gencode\\$newReleaseNumber\\hg38" else s"$localPath\\gencode\\$newReleaseNumber\\hg38"
     if (release.nonEmpty) {
       // Download module and save
       FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)
@@ -32,8 +32,8 @@ object GenCodeModule extends ModuleManager {
       ServiceModules.addModuleToDatabase("gencode", newReleaseNumber, finalLocalPath,
         s"$server$directory", false, "hg38")
       // Overlift module to T2T and save
-      // overLiftToT2T(s"$localPath\\gencode\\$newReleaseNumber\\T2T",
-      // newReleaseNumber, server + directory, s"$localPath\\gencode\\$newReleaseNumber\\hg38\\$fileName")
+      val finalOverLiftPath = if localPath == "" then s"gencode/$newReleaseNumber/t2t" else s"$localPath/gencode/$newReleaseNumber/t2t"
+      overLiftToT2T(finalOverLiftPath, newReleaseNumber, server + directory, s"$finalLocalPath/$fileName", fileName)
     } else {
       println("Could not determine the latest Gencode release.")
     }
@@ -60,11 +60,13 @@ object GenCodeModule extends ModuleManager {
    * @param releaseNumber The release number of module (e.g., 34)
    * @param downloadPath  The url path to ftp server
    * @param filePath The path to file to overlift
+   * @param fileName The name of the file to overlift
    */
-  override def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String): Unit = {
-    LiftOverVcf.liftOverVcf(filePath,true, outputPath)
-    ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath,
-      downloadPath, false, "T2T")
+  override def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
+                             fileName: String): Unit = {
+    
+    //LiftOverVcf.liftOverVcf(filePath,true, outputPath, fileName)
+    //ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath, downloadPath, false, "T2T")
   }
 
   /**

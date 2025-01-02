@@ -13,8 +13,8 @@ object  ConvertVcfToMaf {
   def convertWithLiftOver(inputFile: String, outputFile: String, variantType: String): Unit = {
     //liftover file first
     val newPath = variantType match {
-      case "hg38" => LiftOverVcf.liftOverVcf(inputFile, true, "")
-      case "hg19" => LiftOverVcf.liftOverVcf(inputFile, false, "")
+      //case "hg38" => LiftOverVcf.liftOverVcf(inputFile, true, "")
+      //case "hg19" => LiftOverVcf.liftOverVcf(inputFile, false, "")
       case _ =>
         println(s"Unsupported variant type: $variantType")
         return

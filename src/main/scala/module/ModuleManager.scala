@@ -7,6 +7,6 @@ abstract class ModuleManager {
     def removeModuleById(ModuleId: Int): Unit
     def printAllClassModules(): Unit
     def printAllModules(): Unit
-    def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String): Unit
+    def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String, fileName: String): Unit
     //def checkNewerVersion(): Unit
 }

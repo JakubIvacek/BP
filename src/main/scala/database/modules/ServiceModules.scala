@@ -199,4 +199,13 @@ object ServiceModules {
       DatabaseConnection.closeConnection()
     }
   }
+
+  /**
+   * Main to create table for Modules
+   */
+  def main(args: Array[String]): Unit = {
+    DatabaseConnection.getConnection
+    TableModules.createTableModules(DatabaseConnection.connection)
+    DatabaseConnection.closeConnection()
+  }
 }
