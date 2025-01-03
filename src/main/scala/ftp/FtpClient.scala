@@ -1,6 +1,6 @@
 package ftp
 
-import org.apache.commons.net.ftp.FTPClient
+import org.apache.commons.net.ftp.{FTP, FTPClient}
 
 import java.io.{FileOutputStream, IOException}
 
@@ -26,6 +26,7 @@ object FtpClient {
       ftpClient.login("anonymous", "")
       ftpClient.changeWorkingDirectory(directory)
       ftpClient.enterLocalPassiveMode()
+      ftpClient.setFileType(FTP.BINARY_FILE_TYPE)
       // Check if the specific file exists
       val files = ftpClient.listNames()
       if (files == null || !files.contains(fileName)) {

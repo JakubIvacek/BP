@@ -11,7 +11,16 @@ object LiftOverVcf {
   private val chainFilePathHg38 = "liftover.chains/hg38-chm13v2.over.chain"
   private val chainFilePathHg19 = "liftover.chains/hg19-chm13v2.over.chain"
   private val referencePath = "reference/t2t/chm13v2.0.fa"
+  private val gatkPath = "/opt/gatk-4.4.0.0/gatk"
 
+  /**
+   * LiftOver Vcf using Gatk tool
+   *
+   * @param inputFile  path to input File    
+   * @param hg38       reference version hg38 or hg19 (e.g., TRUE IF hg38).
+   * @param outputPath path where to save overlifted file
+   * @param fileName   name of output file name
+   */
   def liftOverVcf(inputFile: String, hg38: Boolean, outputPath: String, fileName: String): Option[String] = {
     if (!Files.exists(Paths.get(inputFile))) {
       println(s"Input file does not exist: $inputFile")
@@ -28,7 +37,7 @@ object LiftOverVcf {
     val chainFilePath = if (hg38) chainFilePathHg38 else chainFilePathHg19
 
     val gatkCommand = Seq(
-      "/opt/gatk-4.4.0.0/gatk",
+      gatkPath,
       "LiftoverVcf",
       "-I", inputFile,
       "-O", newPath,

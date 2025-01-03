@@ -1,7 +1,7 @@
 package module
-import ftp.{FtpClientGencode, FtpClient}
+import ftp.{FtpClient, FtpClientGencode}
 import database.modules.{RepositoryModules, ServiceModules}
-import utils.{RepositoryManager, LiftOverVcf}
+import utils.{Gunzip, LiftOverGFF, LiftOverVcf, RepositoryManager}
 object GenCodeModule extends ModuleManager {
 
   private val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"  // name of reference file on ftp server
@@ -33,7 +33,7 @@ object GenCodeModule extends ModuleManager {
         s"$server$directory", false, "hg38")
       // Overlift module to T2T and save
       val finalOverLiftPath = if localPath == "" then s"gencode/$newReleaseNumber/t2t" else s"$localPath/gencode/$newReleaseNumber/t2t"
-      overLiftToT2T(finalOverLiftPath, newReleaseNumber, server + directory, s"$finalLocalPath/$fileName", fileName)
+      //overLiftToT2T(finalOverLiftPath, newReleaseNumber, server + directory, s"$finalLocalPath/$fileName", fileName)
     } else {
       println("Could not determine the latest Gencode release.")
     }
@@ -64,7 +64,8 @@ object GenCodeModule extends ModuleManager {
    */
   override def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
                              fileName: String): Unit = {
-    
+    //Gunzip.unzipFile(filePath)
+    //LiftOverGFF.liftOverGFF(filePath, s"$outputPath/$fileName")
     //LiftOverVcf.liftOverVcf(filePath,true, outputPath, fileName)
     //ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath, downloadPath, false, "T2T")
   }
