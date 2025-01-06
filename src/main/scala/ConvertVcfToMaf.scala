@@ -1,6 +1,6 @@
 
 import database.DatabaseConnection
-import utils.LiftOverVcf
+//import utils.LiftOverVcf
 
 import scala.collection.mutable.ListBuffer
 

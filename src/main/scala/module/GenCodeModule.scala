@@ -1,7 +1,7 @@
 package module
 import ftp.{FtpClient, FtpClientGencode}
 import database.modules.{RepositoryModules, ServiceModules}
-import utils.{Gunzip, LiftOverGFF, LiftOverVcf, RepositoryManager, FileStuff}
+import utils.{Gunzip, LiftOverTool, RepositoryManager, FileStuff}
 object GenCodeModule extends ModuleManager {
 
   private val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"  // name of reference file on ftp server
@@ -21,10 +21,10 @@ object GenCodeModule extends ModuleManager {
 
     val directory = s"/pub/databases/gencode/Gencode_human/$release/"
     val fileName = s"gencode.v${release.stripPrefix("release_")}.annotation.gff3.gz"
+    
     // LINUX PATH
     val finalLocalPath = if localPath == "" then s"gencode/$newReleaseNumber/hg38" else s"$localPath/gencode/$newReleaseNumber/hg38"
-    // WINDOWS PATH
-    //val finalLocalPath = if localPath == "" then s"gencode\\$newReleaseNumber\\hg38" else s"$localPath\\gencode\\$newReleaseNumber\\hg38"
+    
     if (release.nonEmpty) {
       // Download module and save
       FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)
@@ -66,11 +66,11 @@ object GenCodeModule extends ModuleManager {
                              fileName: String): Unit = {
     Gunzip.unzipFile(s"$filePath/$fileName")
     val outputFileName = fileName.stripSuffix(".gz")
-    LiftOverGFF.liftOverGFF(s"$filePath/$outputFileName", outputPath, outputFileName)
+    LiftOverTool.liftOverGFF(s"$filePath/$outputFileName", outputPath, outputFileName)
     Gunzip.zipFile(s"$filePath/$outputFileName")
     Gunzip.zipFile(s"$outputPath/$outputFileName")
     FileStuff.copyFile("reference/t2t/chm13v2.0.fa", s"$outputPath/chm13v2.0.fa")
-    ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath, downloadPath, false, "t2t")
+    ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath, downloadPath,  true, "t2t")
   }
 
   /**

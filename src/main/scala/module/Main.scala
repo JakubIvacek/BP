@@ -1,7 +1,6 @@
 package module
 import ftp.FtpClientGencode
 import module.GenCodeModule
-import utils.LiftOverVcf
 object Main {
   def main(args: Array[String]): Unit = {
     //GenCodeModule.downloadModuleLatest("C:\\Users\\ivace")
