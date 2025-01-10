@@ -27,8 +27,7 @@ object FtpClientGencode {
       }
 
       val releases = files.filter(file => file.startsWith("release_"))
-
-      // Extract numeric release numbers and find the newest
+      
       val releaseNumbers = releases.flatMap { release =>
         val numberPart = release.stripPrefix("release_").stripSuffix("/")
         if (numberPart.forall(_.isDigit)) Some(numberPart.toInt) else None

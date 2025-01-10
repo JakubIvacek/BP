@@ -1,6 +1,7 @@
 package module
 import ftp.FtpClientGencode
 import module.GenCodeModule
+import database.modules.ServiceModules
 object Main {
   def main(args: Array[String]): Unit = {
     //GenCodeModule.downloadModuleLatest("C:\\Users\\ivace")
@@ -9,6 +10,7 @@ object Main {
     //GenCodeModule.removeModuleById(17)
     //LiftOverVcf.liftOverVcf()
     //GenCodeModule.printAllClassModules()
+    ServiceModules.getNewestModulePath("hg38")
     //println(FtpClientGencode.findLatestVersionGencode())
   }
 }

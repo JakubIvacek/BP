@@ -201,6 +201,45 @@ object ServiceModules {
   }
 
   /**
+   * Get the path of the newest gencode module based on the versionReference.
+   *
+   * @param versionReference Module genome reference version (e.g., hg38).
+   * @return Option[String] Path to the newest gencode module or None if not found.
+   */
+  def getNewestModulePath(versionReference: String): Option[String] = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      // Retrieve all gencode modules with the specified versionReference
+      val modules = RepositoryModules.findByNameAndReference(connection, "gencode", versionReference)
+
+      // Find the module with the highest version number
+      val newestModule = modules.maxByOption(_.version.toInt)
+
+      newestModule match {
+        case Some(module) =>
+          module.locationPath match {
+            case Some(path) => {
+              val fileName = s"gencode.v${module.version}.annotation.gff3.gz"
+              Some(path + "/" + fileName)
+            }
+            case None =>
+              println(s"Newest module found but locationPath is not set.")
+              None
+          }
+        case None =>
+          println(s"No modules found for gencode with versionReference '$versionReference'.")
+          None
+      }
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while retrieving the newest gencode module: ${e.getMessage}")
+        None
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+
+  /**
    * Main to create table for Modules
    */
   def main(args: Array[String]): Unit = {

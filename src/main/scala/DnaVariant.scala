@@ -11,7 +11,10 @@ class DnaVariant(
                   val alleleSomatic: Boolean,
                   val varType: VariantType,
                   val copyNum: Int,
-                  val VQSR_score: Double
+                  val VQSR_score: Double,
+                  var geneID: String,
+                  var geneName: String,
+                  var geneType: String
                 ){
   override def toString: String = s"DnaVariant(contig=$contig, position=$position, refAllele=$refAllele, altAllele=$altAllele, alleleFreq=$alleleFreq, alleleSomatic=$alleleSomatic, varType=$varType, copyNum=$copyNum, VQSR_score=$VQSR_score)"
 }
@@ -36,7 +39,10 @@ object DnaVariant{
         alleleSomatic = DnaVariant.isSomatic(variant),
         varType = DnaVariant.returnVariantType(refAllele, altAllele.getBaseString),
         copyNum = 0,
-        VQSR_score = BigDecimal(variant.getPhredScaledQual).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+        VQSR_score = BigDecimal(variant.getPhredScaledQual).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble,
+        geneID = ".",
+        geneName = ".",
+        geneType =  "."
       )
     }
     // Return the list as an immutable List

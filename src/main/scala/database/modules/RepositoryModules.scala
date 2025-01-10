@@ -121,6 +121,30 @@ object RepositoryModules {
   }
 
   /**
+   * Retrieve modules by name and version reference.
+   *
+   * @param connection       Database connection
+   * @param moduleName       Name of the module to find (e.g., gencode)
+   * @param versionReference DNA reference version of the module to find (e.g., hg38)
+   * @return List[Module] List of matching modules
+   */
+  def findByNameAndReference(connection: Connection, moduleName: String, versionReference: String): List[Module] = {
+    val selectQuery =
+      """
+        |SELECT * FROM modules WHERE name = ? AND versionReference = ?;
+        |""".stripMargin
+
+    val preparedStatement: PreparedStatement = connection.prepareStatement(selectQuery)
+    preparedStatement.setString(1, moduleName)
+    preparedStatement.setString(2, versionReference)
+    val resultSet: ResultSet = preparedStatement.executeQuery()
+    val modules = mapResultSetToModules(resultSet)
+
+    println(s"Modules with name '$moduleName' and versionReference '$versionReference' retrieved successfully!")
+    modules
+  }
+
+  /**
    * DELETE operation: Delete a module by ID
    *
    * @param connection Database connection

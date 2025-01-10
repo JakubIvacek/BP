@@ -36,7 +36,6 @@ object LiftOverTool {
       "gff",
       chainFilePathHg38,
       inputPath,
-      referencePath,
       s"$outputPath/$filename"
     )
 
@@ -59,6 +58,7 @@ object LiftOverTool {
    *
    * @param inputFile  path to input VCF file
    * @param outputPath path where to save overlifted file
+   * @param outputFileName name of overlifted file
    */
   def liftOverVcf(inputFile: String, outputPath: String, outputFileName: String): Option[String] = {
     if (!Files.exists(Paths.get(inputFile))) {

@@ -5,7 +5,8 @@ import scala.collection.mutable.ListBuffer
 object WriteToMaf {
 
   def writeMafFile(variants: ListBuffer[DnaVariant], outputPath: String): Unit = {
-    val mafHeaders = "Hugo_Symbol\tChromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2\tVSQR_Score\tVariant_Classification\tVariant_Type\tAllele_Frequency\tCopy_Num"
+    val mafHeaders = "Hugo_Symbol\tEntrez_Gene_Id\tChromosome\tStart_Position\tEnd_Position\tReference_Allele\tTumor_Seq_Allele2" +
+        "\tVSQR_Score\tVariant_Classification\tVariant_Type\tAllele_Frequency\tCopy_Num\tGene_Type"
 
     val writer = new PrintWriter(new File(outputPath))
     writer.println(mafHeaders)
@@ -18,7 +19,8 @@ object WriteToMaf {
     writer.close()
   }
   def createMafEntry(dnaVariant: DnaVariant): String = {
-    val hugoSymbol = "unknown"
+    val hugoSymbol = dnaVariant.geneName
+    val entrezGeneId = dnaVariant.geneID
     val chromosome = dnaVariant.contig
     val startPos = dnaVariant.position
     val endPos = dnaVariant.position
@@ -29,8 +31,9 @@ object WriteToMaf {
     val alleleFreq = dnaVariant.alleleFreq
     val copyNum = dnaVariant.copyNum
     val vqsrScore = dnaVariant.VQSR_score
+    val geneType = dnaVariant.geneType
 
-    s"$hugoSymbol\t$chromosome\t$startPos\t$endPos\t$refAllele\t$tumorSeqAllele2\t$vqsrScore\t$varClassification\t$varType\t$alleleFreq\t$copyNum"
+    s"$hugoSymbol\t$entrezGeneId\t$chromosome\t$startPos\t$endPos\t$refAllele\t$tumorSeqAllele2\t$vqsrScore\t$varClassification\t$varType\t$alleleFreq\t$copyNum\t$geneType"
   }
   //Get variant classification from type
   def classifyVariant(dnaVariant: DnaVariant): String = {

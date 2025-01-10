@@ -1,5 +1,5 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
-
+javaOptions += "-Xmx8G"
 ThisBuild / scalaVersion := "3.3.4"
 
 lazy val root = (project in file("."))
@@ -9,6 +9,7 @@ lazy val root = (project in file("."))
     libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.5.0",
     libraryDependencies += "com.lihaoyi" %% "ujson" % "2.0.0" ,
     libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.41.2.2",
-    libraryDependencies += "commons-net" % "commons-net" % "3.9.0"
+    libraryDependencies += "commons-net" % "commons-net" % "3.9.0",
 
-)
+
+  )

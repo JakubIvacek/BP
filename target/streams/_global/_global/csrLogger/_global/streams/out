@@ -1,12 +1,4 @@
-[info] downloading https://repo1.maven.org/maven2/commons-net/commons-net/3.9.0/commons-net-3.9.0.pom
-[info] downloaded https://repo1.maven.org/maven2/commons-net/commons-net/3.9.0/commons-net-3.9.0.pom
-[info] downloading https://repo1.maven.org/maven2/org/apache/commons/commons-parent/54/commons-parent-54.pom
-[info] downloaded https://repo1.maven.org/maven2/org/apache/commons/commons-parent/54/commons-parent-54.pom
-[info] downloading https://repo1.maven.org/maven2/org/apache/apache/27/apache-27.pom
-[info] downloaded https://repo1.maven.org/maven2/org/apache/apache/27/apache-27.pom
-[info] downloading https://repo1.maven.org/maven2/org/junit/junit-bom/5.9.0/junit-bom-5.9.0.pom
-[info] downloaded https://repo1.maven.org/maven2/org/junit/junit-bom/5.9.0/junit-bom-5.9.0.pom
-[info] downloading https://repo1.maven.org/maven2/commons-net/commons-net/3.9.0/commons-net-3.9.0.jar
-[info] downloaded https://repo1.maven.org/maven2/commons-net/commons-net/3.9.0/commons-net-3.9.0.jar
-[info] downloading https://repo1.maven.org/maven2/commons-net/commons-net/3.9.0/commons-net-3.9.0-sources.jar
-[info] downloaded https://repo1.maven.org/maven2/commons-net/commons-net/3.9.0/commons-net-3.9.0-sources.jar
+[info] downloading https://repo1.maven.org/maven2/com/github/ajoie/gff3_3/0.1.0/gff3_3-0.1.0.pom
+[info] downloaded https://repo1.maven.org/maven2/com/github/ajoie/gff3_3/0.1.0/gff3_3-0.1.0.pom
+[info] downloading https://repo1.maven.org/maven2/com/github/ajoie/gff3_3/0.1.0/gff3_3-0.1.0.pom.sha1
+[info] downloaded https://repo1.maven.org/maven2/com/github/ajoie/gff3_3/0.1.0/gff3_3-0.1.0.pom.sha1
