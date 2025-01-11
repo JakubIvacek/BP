@@ -29,8 +29,8 @@ object GenCodeModule extends ModuleManager {
     
     // LINUX PATH
     val finalLocalPath = if localPath == "" then s"gencode/$newReleaseNumber/hg38" else s"$localPath/gencode/$newReleaseNumber/hg38"
-    
-    if (release.nonEmpty) {
+    val versionInstalledCheck = ServiceModules.getModuleFromDatabase("gencode", newReleaseNumber, "hg38") // check if this not already installed
+    if (release.nonEmpty && versionInstalledCheck.isEmpty) {
       // Download module and save
       FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)
       FtpClient.downloadSpecificFile(finalLocalPath, referenceFile, server, directory)
@@ -130,7 +130,7 @@ object GenCodeModule extends ModuleManager {
       new Runnable {
         override def run(): Unit = {
           println("Task GenCode executed at: " + java.time.LocalDateTime.now())
-          val newest = ServiceModules.getNewestModuleVersionGenCode
+          val newest = ServiceModules.getNewestModuleVersion("gencode")
           val ftpNewest = FtpClientGencode.findLatestVersionGencode().stripPrefix("release_")
           if (ftpNewest.toInt > newest.toInt) {
             downloadModuleLatest("")

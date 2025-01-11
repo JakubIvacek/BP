@@ -240,16 +240,16 @@ object ServiceModules {
   }
 
   /**
-   * Get the number of newest gencode module
+   * Get the version of newest module
    *
-   * @param versionReference Module genome reference version (e.g., hg38).
+   * @param moduleName Module name
    * @return Option[String] Newst module version
    */
-  def getNewestModuleVersionGenCode: String = {
+  def getNewestModuleVersion(moduleName: String): String = {
     val connection = DatabaseConnection.getConnection
     try {
       // Retrieve all gencode modules with the specified versionReference
-      val modules = RepositoryModules.findByName(connection, "gencode")
+      val modules = RepositoryModules.findByName(connection, moduleName)
 
       // Find the module with the highest version number
       modules.maxByOption(_.version.toInt).map(_.version).getOrElse("0")
