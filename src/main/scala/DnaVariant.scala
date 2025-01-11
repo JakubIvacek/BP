@@ -14,9 +14,15 @@ class DnaVariant(
                   val VQSR_score: Double,
                   var geneID: String,
                   var geneName: String,
-                  var geneType: String
+                  var geneType: String,
+                  var NCBIBuild: String,
+                  var transID: String,
+                  var transName: String,
+                  var exonID: String,
+                  var exonNum: String,
+                  var transType: String,
+                  var level: String,
                 ){
-  override def toString: String = s"DnaVariant(contig=$contig, position=$position, refAllele=$refAllele, altAllele=$altAllele, alleleFreq=$alleleFreq, alleleSomatic=$alleleSomatic, varType=$varType, copyNum=$copyNum, VQSR_score=$VQSR_score)"
 }
 // Companion object with needed methods
 object DnaVariant{
@@ -42,7 +48,14 @@ object DnaVariant{
         VQSR_score = BigDecimal(variant.getPhredScaledQual).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble,
         geneID = ".",
         geneName = ".",
-        geneType =  "."
+        geneType =  ".",
+        NCBIBuild = ".",
+        transID = ".",
+        transName =  ".",
+        transType =  ".",
+        level =  ".",
+        exonNum =  ".",
+        exonID =  ".",
       )
     }
     // Return the list as an immutable List

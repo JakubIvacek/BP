@@ -76,7 +76,7 @@ object GFFReader {
 
     // Return the list of entries (converted to an immutable List)
     if (entries.nonEmpty){
-      entries.toList
+      entries.take(30).toList
     }else{
       closestUpstream.orElse(closestDownstream).toList
     }

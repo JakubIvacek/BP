@@ -206,7 +206,7 @@ object ServiceModules {
    * @param versionReference Module genome reference version (e.g., hg38).
    * @return Option[String] Path to the newest gencode module or None if not found.
    */
-  def getNewestModulePath(versionReference: String): Option[String] = {
+  def getNewestModulePathGenCode(versionReference: String): Option[String] = {
     val connection = DatabaseConnection.getConnection
     try {
       // Retrieve all gencode modules with the specified versionReference

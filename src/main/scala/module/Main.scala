@@ -10,7 +10,7 @@ object Main {
     //GenCodeModule.removeModuleById(17)
     //LiftOverVcf.liftOverVcf()
     //GenCodeModule.printAllClassModules()
-    ServiceModules.getNewestModulePath("hg38")
+    //ServiceModules.getNewestModulePathGenCode("hg38")
     //println(FtpClientGencode.findLatestVersionGencode())
   }
 }
