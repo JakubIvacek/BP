@@ -240,11 +240,42 @@ object ServiceModules {
   }
 
   /**
-   * Main to create table for Modules
+   * Get the number of newest gencode module
+   *
+   * @param versionReference Module genome reference version (e.g., hg38).
+   * @return Option[String] Newst module version
    */
-  def main(args: Array[String]): Unit = {
+  def getNewestModuleVersionGenCode: String = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      // Retrieve all gencode modules with the specified versionReference
+      val modules = RepositoryModules.findByName(connection, "gencode")
+
+      // Find the module with the highest version number
+      modules.maxByOption(_.version.toInt).map(_.version).getOrElse("0")
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while retrieving the newest gencode module: ${e.getMessage}")
+        "0"
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+  /**
+   * Create tables to create table for Modules
+   */
+  def createTables(): Unit = {
     DatabaseConnection.getConnection
     TableModules.createTableModules(DatabaseConnection.connection)
+    DatabaseConnection.closeConnection()
+  }
+
+  /**
+   * Drop tables to create drop for Modules
+   */
+  def dropTables(): Unit = {
+    DatabaseConnection.getConnection
+    TableModules.dropTableModules(DatabaseConnection.connection)
     DatabaseConnection.closeConnection()
   }
 }

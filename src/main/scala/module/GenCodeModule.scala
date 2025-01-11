@@ -1,4 +1,7 @@
 package module
+
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
+import scala.concurrent.duration._
 import ftp.{FtpClient, FtpClientGencode}
 import database.modules.{RepositoryModules, ServiceModules}
 import utils.{Gunzip, LiftOverTool, RepositoryManager, FileStuff}
@@ -6,6 +9,8 @@ object GenCodeModule extends ModuleManager {
 
   private val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"  // name of reference file on ftp server
   private val server = "ftp.ebi.ac.uk"                                // ftp server
+  private var scheduler: Option[ScheduledExecutorService] = None
+
   /**
    * Download Gencode annotation files hg38, specific release
    *
@@ -105,6 +110,55 @@ object GenCodeModule extends ModuleManager {
         println("No module found with this information.")
     }
     ServiceModules.deleteModuleFromDatabaseById(id) //delete from database
+  }
+
+  /**
+   * Start weekly check for new version and auto download
+   */
+  def weeklyScheduleStart(): Unit = {
+    if (scheduler.isDefined) {
+      println("Scheduler GenCode is already running.")
+      return
+    }
+
+    // Create a single-threaded scheduled executor
+    val executor = Executors.newSingleThreadScheduledExecutor()
+    scheduler = Some(executor)
+
+    // Schedule the task
+    executor.scheduleAtFixedRate(
+      new Runnable {
+        override def run(): Unit = {
+          println("Task GenCode executed at: " + java.time.LocalDateTime.now())
+          val newest = ServiceModules.getNewestModuleVersionGenCode
+          val ftpNewest = FtpClientGencode.findLatestVersionGencode().stripPrefix("release_")
+          if (ftpNewest.toInt > newest.toInt) {
+            downloadModuleLatest("")
+          }
+        }
+      },
+      0,
+      7,
+      TimeUnit.DAYS
+    )
+    println("Weekly scheduler GenCode started.")
+  }
+
+  /**
+   * Stop the weekly scheduler auto new version download
+   */
+  def stopWeeklySchedule(): Unit = {
+    scheduler match {
+      case Some(executor) =>
+        executor.shutdown()
+        if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
+          executor.shutdownNow()
+        }
+        scheduler = None
+        println("Weekly scheduler GenCode stopped.")
+      case None =>
+        println("Scheduler GenCode is not running.")
+    }
   }
 
   /**
