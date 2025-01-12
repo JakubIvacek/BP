@@ -6,7 +6,7 @@ object Annotation {
     for (variant <- dnaVariants) {
       //println("start")
       //val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
-      var overlappingEntries: List[GffEntry] = GFFReader.parseMatchGff3File("gencode.v47.primary_assembly.annotation.gff3", variant.position.toInt, variant.contig)
+      var overlappingEntries: List[GffEntry] = GFFReader.parseMatchGff3File("gencode.v47.annotation.gff3", variant.position.toInt, variant.contig)
       println(overlappingEntries.length)
       // Combine attributes from overlapping entries
       variant.geneID = overlappingEntries.flatMap(_.attributes.get("gene_id"))

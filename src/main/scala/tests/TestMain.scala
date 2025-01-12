@@ -10,7 +10,7 @@ object TestMain {
     ServiceModules.createTables()
     var continue = true
     while (continue) {
-      println("GEnter: \nE (exit) \nD (download module) \nP (print modules) \nR (remove module)")
+      println("Enter: \nE (exit) \nD (download module) \nP (print modules) \nR (remove module)")
       var input = StdIn.readLine().trim.toLowerCase
       input match {
         case "e" =>

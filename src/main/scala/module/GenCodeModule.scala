@@ -40,7 +40,7 @@ object GenCodeModule extends ModuleManager {
       val finalOverLiftPath = if localPath == "" then s"gencode/$newReleaseNumber/t2t" else s"$localPath/gencode/$newReleaseNumber/t2t"
       overLiftToT2T(finalOverLiftPath, newReleaseNumber, server + directory, finalLocalPath, fileName)
     } else {
-      println("Could not determine the latest Gencode release.")
+      println("Could not determine the latest Gencode release or version installed already.")
     }
   }
 
@@ -120,8 +120,7 @@ object GenCodeModule extends ModuleManager {
       println("Scheduler GenCode is already running.")
       return
     }
-
-    // Create a single-threaded scheduled executor
+    
     val executor = Executors.newSingleThreadScheduledExecutor()
     scheduler = Some(executor)
 
