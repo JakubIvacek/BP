@@ -1,10 +1,45 @@
 import scala.io.Source
 import scala.util.Try
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
+
+class IntervalTree {
+  private val tree = mutable.Map[String, mutable.TreeSet[GffEntry]]()
+
+  implicit val ordering: Ordering[GffEntry] = Ordering.by(_.start)
+
+  def insert(entry: GffEntry): Unit = {
+    tree.getOrElseUpdate(entry.contig, mutable.TreeSet[GffEntry]()).add(entry)
+  }
+
+  def search(contig: String, position: Int): List[GffEntry] = {
+    tree.get(contig) match {
+      case Some(entries) =>
+        entries.filter(entry => entry.start <= position && entry.end >= position).toList
+      case None => List()
+    }
+  }
+
+  def findClosestUpstream(contig: String, position: Int): Option[GffEntry] = {
+    tree.get(contig) match {
+      case Some(entries) =>
+        entries.filter(_.end < position).maxByOption(_.end)
+      case None => None
+    }
+  }
+
+  def findClosestDownstream(contig: String, position: Int): Option[GffEntry] = {
+    tree.get(contig) match {
+      case Some(entries) =>
+        entries.filter(_.start > position).minByOption(_.start)
+      case None => None
+    }
+  }
+}
 
 object GFFReaders {
   var contingSaved = ""
-  var entries = List[GffEntry]()
+  var intervalTree = new IntervalTree()
 
   def parseAttributes(attributeString: String): Map[String, String] = {
     attributeString.split(";").map { attr =>
@@ -12,7 +47,7 @@ object GFFReaders {
       if (keyValue.length == 2) keyValue(0) -> keyValue(1) else keyValue(0) -> ""
     }.toMap
   }
-  // Method to parse and match a single line of GFF3 into a GffEntry
+
   def parseLine(line: String, conting: String): Option[GffEntry] = {
     val fields = line.split("\t")
 
@@ -27,23 +62,21 @@ object GFFReaders {
       }else None
     }
   }
-  // Method to parse the entire GFF3 file and return a List of GffEntry objects
-  def parseGff3File(filename: String, contig: String): List[GffEntry] = {
+
+  def parseGff3File(filename: String, contig: String): Unit = {
     val source = Source.fromFile(filename)
 
-    // Process the file line by line and collect entries into a new list
-    val newEntries = source.getLines()
-      .filterNot(_.startsWith("#")) // Skip comment lines
-      .flatMap { line =>
-        parseLine(line, contig) // Parse each line and collect the entries
-      }.toList
+    var newIntervalTree = new IntervalTree()
 
-    // Update the global entries with the new entries
-    entries = newEntries // Accumulate new entries
-    contingSaved = contig // Save the current contig
+    source.getLines()
+      .filterNot(_.startsWith("#"))
+      .flatMap(line => parseLine(line, contig))
+      .foreach(newIntervalTree.insert)
 
-    source.close() // Always close the file
-    newEntries // Return the newly parsed entries
+    intervalTree = newIntervalTree
+    contingSaved = contig
+
+    source.close()
   }
   
   def matchGffEntries(entries: List[GffEntry], dnaVariant: DnaVariant): List[GffEntry] = {
@@ -97,12 +130,14 @@ object GFFReaders {
       val normalizedContig = variant.contig.trim.toLowerCase
       val normalizedSaved = GFFReaders.contingSaved.trim.toLowerCase
       val Entries = if (normalizedContig == normalizedSaved) {
-        GFFReaders.entries
+        GFFReaders.intervalTree
       } else {
         println(variant.contig)
         GFFReaders.parseGff3File("gencode.v47.annotation.gff3", variant.contig)
       }
-      val overlappingEntries = GFFReaders.matchGffEntries(Entries, variant).take(30)
+      var overlappingEntries = GFFReaders.intervalTree.search(variant.contig, variant.position.toInt)
+      if (overlappingEntries.isEmpty) overlappingEntries ++= GFFReaders.intervalTree.findClosestUpstream(variant.contig, variant.position.toInt)
+        ++ GFFReaders.intervalTree.findClosestDownstream(variant.contig, variant.position.toInt)
       //println(overlappingEntries.length)
       // Combine attributes from overlapping entries
       variant.geneID = overlappingEntries.flatMap(_.attributes.get("gene_id"))
