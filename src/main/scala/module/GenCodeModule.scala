@@ -5,38 +5,53 @@ import scala.concurrent.duration._
 import ftp.{FtpClient, FtpClientGencode}
 import database.modules.{RepositoryModules, ServiceModules}
 import utils.{Gunzip, LiftOverTool, RepositoryManager, FileStuff}
+
+/**
+ * Gencode module
+ * This module is responsible for managing Gencode annotation files and their associated operations.
+ * It provides functionalities to download, manage, and remove Gencode annotation files for hg38 and T2T references.
+ *
+ * Features:
+ * 1. Download specific Gencode annotation releases or the latest release.
+ * 2. Overlift annotation files from hg38 to T2T reference versions.
+ * 3. Remove Gencode modules by ID or by specific information.
+ * 4. Print saved module information for Gencode or all modules.
+ */
 object GenCodeModule extends ModuleManager {
 
-  private val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"  // name of reference file on ftp server
-  private val server = "ftp.ebi.ac.uk"                                // ftp server
+  private val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"  // Name of the reference file on the FTP server
+  private val server = "ftp.ebi.ac.uk"                                // FTP server hosting the Gencode files
   private var scheduler: Option[ScheduledExecutorService] = None
 
   /**
-   * Download Gencode annotation files hg38, specific release
+   * Downloads a specific release of Gencode annotation files for hg38.
    *
-   * @param localPath The local directory where the files should be saved.ň
-   * @param releaseNumber The release number
+   * @param localPath      The local directory where the files should be saved.
+   * @param releaseNumber  The Gencode release number (e.g., "39").
    */
   override def downloadModule(localPath: String, releaseNumber: String): Unit = {
     val latestRelease = FtpClientGencode.findLatestVersionGencode()
     var release = s"release_$releaseNumber"
-    // check if not higher release version entered (if yes download latest)
+
+    // If a release higher than the latest is entered, default to the latest release
     release = if releaseNumber > latestRelease.stripPrefix("release_") then latestRelease else release
     val newReleaseNumber = if releaseNumber > latestRelease.stripPrefix("release_") then latestRelease.stripPrefix("release_") else releaseNumber
 
     val directory = s"/pub/databases/gencode/Gencode_human/$release/"
     val fileName = s"gencode.v${release.stripPrefix("release_")}.annotation.gff3.gz"
-    
-    // LINUX PATH
+
+    // Construct the local path for saving the files
     val finalLocalPath = if localPath == "" then s"gencode/$newReleaseNumber/hg38" else s"$localPath/gencode/$newReleaseNumber/hg38"
-    val versionInstalledCheck = ServiceModules.getModuleFromDatabase("gencode", newReleaseNumber, "hg38") // check if this not already installed
+
+    // Check if this not already installed
+    val versionInstalledCheck = ServiceModules.getModuleFromDatabase("gencode", newReleaseNumber, "hg38")
     if (release.nonEmpty && versionInstalledCheck.isEmpty) {
       // Download module and save
       FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)
       FtpClient.downloadSpecificFile(finalLocalPath, referenceFile, server, directory)
-      ServiceModules.addModuleToDatabase("gencode", newReleaseNumber, finalLocalPath,
-        s"$server$directory", false, "hg38")
-      // Overlift module to T2T and save
+      //Add to database
+      ServiceModules.addModuleToDatabase("gencode", newReleaseNumber, finalLocalPath, s"$server$directory", false, "hg38")
+      // Overlift module to T2T
       val finalOverLiftPath = if localPath == "" then s"gencode/$newReleaseNumber/t2t" else s"$localPath/gencode/$newReleaseNumber/t2t"
       overLiftToT2T(finalOverLiftPath, newReleaseNumber, server + directory, finalLocalPath, fileName)
     } else {
@@ -45,9 +60,9 @@ object GenCodeModule extends ModuleManager {
   }
 
   /**
-   * Download Gencode annotation files hg38, latest release
+   * Downloads the latest release of Gencode annotation files for hg38.
    *
-   * @param localPath The local directory where the files should be saved.
+   * @param localPath  The local directory where the files should be saved.
    */
   override def downloadModuleLatest(localPath: String): Unit = {
     val latestRelease = FtpClientGencode.findLatestVersionGencode()
@@ -59,13 +74,13 @@ object GenCodeModule extends ModuleManager {
   }
 
   /**
-   * overLiftToT2T to T2T reference version
+   * Overlifts Gencode annotation files from hg38 to the T2T reference version.
    *
-   * @param outputPath The local directory where the files should be saved.
-   * @param releaseNumber The release number of module (e.g., 34)
-   * @param downloadPath  The url path to ftp server
-   * @param filePath The path to file to overlift
-   * @param fileName The name of the file to overlift
+   * @param outputPath    The local directory where the files should be saved.
+   * @param releaseNumber The Gencode release number.
+   * @param downloadPath  The URL path to the FTP server.
+   * @param filePath      The path to the input file to be overlifted.
+   * @param fileName      The name of the file to be overlifted.
    */
   override def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
                              fileName: String): Unit = {
@@ -79,11 +94,11 @@ object GenCodeModule extends ModuleManager {
   }
 
   /**
-   * Remove Gencode module files by information
+   * Removes a Gencode module by its name, release, and reference version.
    *
-   * @param name              Module name
-   * @param release           Module release
-   * @param versionReference  Module reference version
+   * @param name             Module name (e.g., "gencode").
+   * @param release          Release number (e.g., "34").
+   * @param versionReference Reference version (e.g., "hg38").
    */
   override def removeModule(name: String, release: String, versionReference: String): Unit = {
     val module = ServiceModules.getModuleFromDatabase(name, release, versionReference)
@@ -97,9 +112,9 @@ object GenCodeModule extends ModuleManager {
   }
 
   /**
-   * Remove Gencode module files by id
+   * Removes a Gencode module by its unique ID.
    *
-   * @param id             Module id
+   * @param id  The module ID.
    */
   override def removeModuleById(id: Int): Unit = {
     val module = ServiceModules.getModuleFromDatabaseById(id)
@@ -113,6 +128,33 @@ object GenCodeModule extends ModuleManager {
   }
 
   /**
+   * Prints information about all installed Gencode modules.
+   */
+  override def printAllClassModules(): Unit = {
+    val modules = ServiceModules.getModulesByName("gencode")
+    if (modules.isEmpty){
+      println("No gencode modules installed")
+    }else{
+      println("GENCODE MODULES -")
+      modules.foreach(_.print())
+    }
+  }
+
+  /**
+   * Prints information about all installed modules.
+   */
+  override def printAllModules(): Unit = {
+    val modules = ServiceModules.getModules 
+    if (modules.isEmpty) {
+      println("No modules installed")
+    } else {
+      println("ALL MODULES -")
+      modules.foreach(_.print())
+    }
+  }
+
+
+  /**
    * Start weekly check for new version and auto download
    */
   def weeklyScheduleStart(): Unit = {
@@ -120,7 +162,7 @@ object GenCodeModule extends ModuleManager {
       println("Scheduler GenCode is already running.")
       return
     }
-    
+
     val executor = Executors.newSingleThreadScheduledExecutor()
     scheduler = Some(executor)
 
@@ -157,32 +199,6 @@ object GenCodeModule extends ModuleManager {
         println("Weekly scheduler GenCode stopped.")
       case None =>
         println("Scheduler GenCode is not running.")
-    }
-  }
-
-  /**
-   * Print all saved gencode modules information
-   */
-  override def printAllClassModules(): Unit = {
-    val modules = ServiceModules.getModulesByName("gencode")
-    if (modules.isEmpty){
-      println("No gencode modules installed")
-    }else{
-      println("GENCODE MODULES -")
-      modules.foreach(_.print())
-    }
-  }
-
-  /**
-   * Print all saved modules information
-   */
-  override def printAllModules(): Unit = {
-    val modules = ServiceModules.getModules 
-    if (modules.isEmpty) {
-      println("No modules installed")
-    } else {
-      println("ALL MODULES -")
-      modules.foreach(_.print())
     }
   }
 }
