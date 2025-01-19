@@ -1,7 +1,10 @@
 package anotation
 
-import data.{DnaVariant, GffEntry}
-import files.{WriteToMaf, GFFReader, FileReaderVcf}
+import data.VariantType.Other
+import data.{DnaVariant, GffEntry, VariantType}
+import files.{FileReaderVcf, GFFReader, WriteToMaf}
+import hgvs.HGVSCoding
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
@@ -22,6 +25,7 @@ object Annotation {
     // Read the VCF file and extract DNA variants
     val dnaVariants: ListBuffer[DnaVariant] = FileReaderVcf.read(inputFile)
 
+    //val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
     // Load the GFF3 file containing Gencode annotations if not already loaded.
     if (!GFFReader.isLoaded) GFFReader.preloadGff3File("gencode.v47.annotation.gff3")
 
@@ -52,7 +56,6 @@ object Annotation {
    * @param referenceGenome The reference genome to use for annotation.
    */
   def annotateVariantGencode(variant: DnaVariant, referenceGenome: String): Unit = {
-    //val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
 
     val intervalTree = GFFReader.getIntervalTree(variant.contig)
 
@@ -76,8 +79,38 @@ object Annotation {
     variant.exonNum = getAttribute(overlappingEntries, "exon_number")
     variant.level = getAttribute(overlappingEntries, "level")
     variant.NCBIBuild = referenceGenome
+    //set var type
+    variant.varType = returnVariantType(variant.refAllele, variant.altAllele, overlappingEntries)
+    //based on var type add hgvs annotation dna/rna/protein
+    HGVSCoding.variantAddHGVS(variant, overlappingEntries)
+    
   }
 
+  private def returnVariantType(refAllele: String, altAllele: String, entries: Seq[GffEntry]): VariantType = {
+    if(refAllele.isEmpty || altAllele.isEmpty) {
+      return VariantType.Other
+    }
+    if (refAllele.length == altAllele.length && refAllele != altAllele) {
+      return VariantType.SNP
+    }
+    // Check DUP
+    //CHECK RPT
+    //CHECK INV
+    //CHECK ALLELES
+    //CHECK EXT
+    //CHECK FS
+
+    if (refAllele.length > altAllele.length) {
+      return VariantType.DEL
+    }
+    if (refAllele.length < altAllele.length) {
+      return VariantType.INS
+    }
+    if (refAllele != altAllele) {
+      return VariantType.INDEL
+    }
+    VariantType.Other
+  }
   /**
    * Retrieve a specific attribute value from the list of overlapping GFF entries.
    *

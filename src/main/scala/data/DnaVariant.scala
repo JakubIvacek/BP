@@ -27,6 +27,11 @@ import scala.jdk.CollectionConverters.*
  * @param exonID The exon ID associated with the variant
  * @param exonNum The exon number associated with the variant
  * @param level The annotation level of the variant
+ *
+ * ---- HGVS ANNOTATION
+ * @param HGVSDNA hgvs coding dna level
+ * @param HGVSProtein hgvs coding protein level
+ * @param HGVSRNA hgvs coding rna level
  */
 class DnaVariant(
                   val contig: String,
@@ -35,7 +40,7 @@ class DnaVariant(
                   val altAllele: String,
                   val alleleFreq: Double,
                   val alleleSomatic: Boolean,
-                  val varType: VariantType,
+                  var varType: VariantType,
                   val VQSR_score: Double,
                   var geneID: String,
                   var geneName: String,
@@ -47,6 +52,9 @@ class DnaVariant(
                   var exonNum: String,
                   var transType: String,
                   var level: String,
+                  var HGVSDNA: String,
+                  var HGVSRNA: String,
+                  var HGVSProtein: String
                 ){
 }
 
@@ -88,6 +96,9 @@ object DnaVariant{
         level =  ".",
         exonNum =  ".",
         exonID =  ".",
+        HGVSDNA = ".",
+        HGVSRNA = ".",
+        HGVSProtein = "."
       )
     }
     // Return the list as an immutable List
@@ -129,12 +140,29 @@ object DnaVariant{
    * @return (SNP or Indel).
    */
   private def returnVariantType(refAllele: String, altAllele: String): VariantType = {
-    val variantType = if (refAllele.length == altAllele.length) {
-      VariantType.SNP
-    } else {
-      VariantType.Indel
+    if (refAllele.isEmpty || altAllele.isEmpty) {
+      return VariantType.Other 
     }
-    variantType
+    if (refAllele.length == altAllele.length && refAllele != altAllele) {
+      return VariantType.SNP
+    }
+    // Check DUP
+    //CHECK RPT
+    //CHECK INV
+    //CHECK ALLELES
+    //CHECK EXT
+    //CHECK FS
+    
+    if (refAllele.length > altAllele.length) {
+      return VariantType.DEL
+    }
+    if (refAllele.length < altAllele.length) {
+      return VariantType.INS
+    }
+    if (refAllele != altAllele) {
+      return VariantType.INDEL
+    }
+    VariantType.Other
   }
 
   /**

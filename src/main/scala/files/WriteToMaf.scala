@@ -20,7 +20,8 @@ object WriteToMaf {
   def writeMafFile(variants: ListBuffer[DnaVariant], outputPath: String): Unit = {
     //create write header
     val mafHeaders = "Hugo_Symbol\tChrom\tStart_Pos\tEnd_Pos\tNCBI_Build\tRef_Allele\tTumor_Seq_Allele2" +
-        "\tVSQR_Score\tVariant_Classification\tVariant_Type\tAllele_Freq\tGene_Type__Gencode\tEntrez_Gene_Id__Gencode\tTranscript_id__Gencode" +
+        "\tVSQR_Score\tVariant_Classification\tVariant_Type\tAllele_Freq\tGene_Type__Gencode\tHGVS_DNA\tHGVS_RNA\tHGVS_Protein" + 
+      "\tEntrez_Gene_Id__Gencode\tTranscript_id__Gencode" +
         "\tTranscript_name__Gencode\tExon_id__Gencode\tExon_number__Gencode\tTranscript_type__Gencode\tLevel__Gencode"
     val writer = new PrintWriter(new File(outputPath))
     writer.println(mafHeaders)
@@ -54,6 +55,9 @@ object WriteToMaf {
       dnaVariant.varType,
       dnaVariant.alleleFreq,
       dnaVariant.geneType,
+      dnaVariant.HGVSDNA,
+      dnaVariant.HGVSRNA,
+      dnaVariant.HGVSProtein,
       dnaVariant.geneID,
       dnaVariant.transID,
       dnaVariant.transName,
@@ -74,9 +78,37 @@ object WriteToMaf {
    */
   def classifyVariant(dnaVariant: DnaVariant): String = {
     dnaVariant.varType match {
-      case VariantType.SNP => "Missense_Mutation"
-      case VariantType.Indel => "Frameshift_Indel"
-      case VariantType.Other => "Unknown"
+      case VariantType.SNP =>
+        "Missense_Mutation"
+      case VariantType.INS =>
+        if ((dnaVariant.altAllele.length - dnaVariant.refAllele.length) % 3 == 0)
+          "Inframe_Insertion"
+        else
+          "Frameshift_Insertion"
+      case VariantType.DEL =>
+        if ((dnaVariant.refAllele.length - dnaVariant.altAllele.length) % 3 == 0)
+          "Inframe_Deletion"
+        else
+          "Frameshift_Deletion"
+      case VariantType.INDEL =>
+        if ((dnaVariant.altAllele.length - dnaVariant.refAllele.length) % 3 == 0)
+          "Inframe_Indel"
+        else
+          "Frameshift_Indel"
+      case VariantType.RPT =>
+        "Repeat_Variant"
+      case VariantType.INV =>
+        "Inversion_Variant"
+      case VariantType.ALLELES =>
+        "Allelic_Variant"
+      case VariantType.EXT =>
+        "External_Variant"
+      case VariantType.FS =>
+        "Frameshift_Variant"
+      case VariantType.DUP =>
+        "Duplication_Variant"
+      case VariantType.Other =>
+        "Unknown"
     }
   }
 }

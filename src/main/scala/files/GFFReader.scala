@@ -31,12 +31,14 @@ object GFFReader {
           val contig = fields(0)
           val start = Try(fields(3).toInt).getOrElse(0)
           val end = Try(fields(4).toInt).getOrElse(0)
+          val name = fields(2)
+          val strandPlus = if fields(6) == "+" then true else false
           val attributes = fields(8).split(";").map { attr =>
             val keyValue = attr.split("=")
             if (keyValue.length == 2) keyValue(0) -> keyValue(1) else keyValue(0) -> ""
           }.toMap
 
-          Some(contig, GffEntry(contig, start, end, attributes))
+          Some(contig, GffEntry(contig, start, end, strandPlus, name, attributes))
         }
       }
       .foreach { case (contig, entry) =>
