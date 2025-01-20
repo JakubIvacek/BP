@@ -1,5 +1,6 @@
 package hgvs
 import data.{GffEntry, DnaVariant}
+import files.{GFFReader,FastaReader}
 /**
  * SNP variant HGVS
  * DNA-level HGVS
@@ -9,51 +10,59 @@ import data.{GffEntry, DnaVariant}
 object HGVSSnp {
   /**
    * Generates protein-level HGVS annotation for SNPs (Experimentally Ascertained).
+   * sequence_identifier ":" coordinate_type "." aa_position alternate_base
    * Example: NP_003997.1:p.Trp24Cys
    */
-  def generateProteinHgvsSNP(variant: DnaVariant, cds: GffEntry): String = {
-    // Calculate the protein position from genomic coordinates
-    val proteinPosition = Utils.calculateProteinPosition(variant.position, cds)
-
-    // Get the reference and alternate amino acids (strand-sensitive)
-    val refAminoAcid = CodonAmino.codonToAminoAcid(variant.refAllele)
-    val altAminoAcid = CodonAmino.codonToAminoAcid(variant.altAllele)
-
-    // Construct the HGVS string for experimentally ascertained mutation
-    s"${cds.attributes("protein_id")}:p.${proteinPosition}${altAminoAcid}"
-  }
-
-  /**
-   * Generate protein-level HGVS annotation (Predicted mutation).
-   * Example: NP_003997.1:p.(Trp24Cys)
-   */
   def generateProteinHgvsPredictedSNP(variant: DnaVariant, cds: GffEntry): String = {
-    // Calculate the protein position from genomic coordinates
-    val proteinPosition = Utils.calculateProteinPosition(variant.position, cds)
+    val cdsSequence = FastaReader.getSequence(
+      variant.NCBIBuild,
+      cds.contig,
+      cds.start,
+      cds.end,
+      cds.strandPlus
+    )
 
-    // Get the reference and alternate amino acids (strand-sensitive)
-    val refAminoAcid = CodonAmino.codonToAminoAcid(variant.refAllele)
-    val altAminoAcid = CodonAmino.codonToAminoAcid(variant.altAllele)
+    // Calculate the codon position in the CDS
+    val codonPosition = Utils.calculateCodonPosition(variant.position.toInt, cds)
 
-    // Construct the HGVS string for predicted mutation
-    s"${cds.attributes("protein_id")}:p.(${proteinPosition}${altAminoAcid})"
+    // Get the original codon containing the SNP
+    val originalCodon = Utils.getCodonAtPosition(codonPosition, cds, cdsSequence)
+
+    // Replace the affected nucleotide in the codon
+    val codonIndex = (variant.position - cds.start) % 3
+    val modifiedCodon = originalCodon.updated(codonIndex.toInt, if (cds.strandPlus) variant.altAllele.head else Utils.reverseComplement(variant.altAllele).head)
+
+    // Translate the codons into amino acids
+    val refAminoAcid = CodonAmino.codonToAminoAcid(originalCodon)
+    val altAminoAcid = CodonAmino.codonToAminoAcid(modifiedCodon)
+
+    // Calculate the protein position from the codon position
+    val proteinPosition = Utils.calculateProteinPosition(codonPosition, cds)
+
+    // Construct the HGVS string
+    s"${cds.attributes("protein_id")}:p.${refAminoAcid}${proteinPosition}${altAminoAcid}"
   }
-
+  
   /**
    * Generates RNA-level HGVS annotation for SNPs.
    * sequence_identifier ":r." position reference_nucleotide ">" new_nucleotide
    * NM_004006.3:r.123c>g
    */
-  def generateRnaHgvsSNP(variant: DnaVariant, transcript: GffEntry): String = {
-    // Extract required attributes
-    val transcriptId = transcript.attributes.getOrElse("transcript_id", "UNKNOWN_TRANSCRIPT")
-
-    val rnaPosition = Utils.calculateTranscriptPosition(variant.position, transcript)
+  def generateRnaHgvsSNP(variant: DnaVariant, entry: GffEntry): String = {
+    val transcriptId = entry.attributes("transcript_id")
+    val rnaPosition = Utils.calculateTranscriptPosition(variant.position, entry)
 
     // Handle strand correction for alleles
-    val refAllele = if (transcript.strandPlus) variant.refAllele.toLowerCase  else Utils.reverseComplement(variant.refAllele).toLowerCase
-    val altAllele = if (transcript.strandPlus) variant.altAllele.toLowerCase  else Utils.reverseComplement(variant.altAllele).toLowerCase
-
+    val refAllele = if (entry.strandPlus) {
+      variant.refAllele.toLowerCase.replace("t", "u")
+    } else {
+      Utils.reverseComplement(variant.refAllele).toLowerCase.replace("t", "u")
+    }
+    val altAllele = if (entry.strandPlus) {
+      variant.altAllele.toLowerCase.replace("t", "u")
+    } else {
+      Utils.reverseComplement(variant.altAllele).toLowerCase.replace("t", "u")
+    }
     // Construct RNA HGVS annotation
     s"$transcriptId:r.${rnaPosition}${refAllele}>${altAllele}"
   }
@@ -72,15 +81,19 @@ object HGVSSnp {
    * sequence_identifier "(" transcript_identifier "):c." transcript_position reference_sequence ">" alternate_sequence
    * NG_012232.1(NM_004006.2):c.93+1G>T
    */
-  def generateTranscriptHgvsSNP(variant: DnaVariant, transcript: GffEntry): String = {
-    // Calculate transcript-relative position
-    val transcriptPosition = Utils.calculateTranscriptPosition(variant.position, transcript)
+  def generateDnaTransHgvsSNP(variant: DnaVariant, entry: GffEntry, exon: Option[GffEntry]): String = {
 
+    val transcriptPosition = exon match {
+      case Some(exon) =>
+        Utils.calculateTranscriptPosition(variant.position, exon)
+      case None =>
+        Utils.getTranscriptPosition(variant, variant.contig, entry.attributes("transcript_id"))
+    }
     // Handle strand correction for alleles
-    val refAllele = if (transcript.strandPlus) variant.refAllele else Utils.reverseComplement(variant.refAllele)
-    val altAllele = if (transcript.strandPlus) variant.altAllele else Utils.reverseComplement(variant.altAllele)
+    val refAllele = if (entry.strandPlus) variant.refAllele else Utils.reverseComplement(variant.refAllele)
+    val altAllele = if (entry.strandPlus) variant.altAllele else Utils.reverseComplement(variant.altAllele)
 
     // Construct HGVS annotation
-    s"${transcript.attributes("gene_id")}(${transcript.attributes("transcript_id")}):c.${transcriptPosition}${refAllele}>${altAllele}"
+    s"${entry.attributes("gene_id")}(${entry.attributes("transcript_id")}):c.${transcriptPosition}${refAllele}>${altAllele}"
   }
 }

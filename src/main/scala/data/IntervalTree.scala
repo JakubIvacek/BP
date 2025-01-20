@@ -37,4 +37,16 @@ class IntervalTree {
       case None => None
     }
   }
+
+  // New function to get all exons for a specific transcript_id
+  def getExonsForTranscriptId(contig: String, transcriptId: String): List[GffEntry] = {
+    tree.get(contig) match {
+      case Some(entries) =>
+        // Filter for exon entries matching the specified transcript_id
+        entries.filter(entry =>
+          entry.attributes.get("transcript_id").contains(transcriptId) && entry.name == "exon"
+        ).toList
+      case None => List()
+    }
+  }
 }
