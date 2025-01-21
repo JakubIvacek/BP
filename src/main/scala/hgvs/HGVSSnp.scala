@@ -21,15 +21,24 @@ object HGVSSnp {
       cds.end,
       cds.strandPlus
     )
+    // Ensure CDS sequence is valid
+    if (cdsSequence.isEmpty || variant.position < cds.start || variant.position > cds.end) {
+      return s"${cds.attributes("protein_id")}:p.?"
+    }
 
     // Calculate the codon position in the CDS
     val codonPosition = Utils.calculateCodonPosition(variant.position.toInt, cds)
 
     // Get the original codon containing the SNP
     val originalCodon = Utils.getCodonAtPosition(codonPosition, cds, cdsSequence)
-
+    if (originalCodon == "NNN") {
+      return s"${cds.attributes("protein_id")}:p.?"
+    }
     // Replace the affected nucleotide in the codon
-    val codonIndex = (variant.position - cds.start) % 3
+    val codonIndex = ((variant.position - cds.start) % 3).toInt
+    if (codonIndex < 0 || codonIndex >= originalCodon.length) {
+      return s"${cds.attributes.getOrElse("protein_id", "unknown_protein")}:p.?"
+    }
     val modifiedCodon = originalCodon.updated(codonIndex.toInt, if (cds.strandPlus) variant.altAllele.head else Utils.reverseComplement(variant.altAllele).head)
 
     // Translate the codons into amino acids
@@ -40,7 +49,7 @@ object HGVSSnp {
     val proteinPosition = Utils.calculateProteinPosition(codonPosition, cds)
 
     // Construct the HGVS string
-    s"${cds.attributes("protein_id")}:p.${refAminoAcid}${proteinPosition}${altAminoAcid}"
+    s"${cds.attributes("protein_id")}:p.(${refAminoAcid}${proteinPosition}${altAminoAcid})"
   }
   
   /**
@@ -48,9 +57,14 @@ object HGVSSnp {
    * sequence_identifier ":r." position reference_nucleotide ">" new_nucleotide
    * NM_004006.3:r.123c>g
    */
-  def generateRnaHgvsSNP(variant: DnaVariant, entry: GffEntry): String = {
+  def generateRnaHgvsSNP(variant: DnaVariant, entry: GffEntry, exon: Option[GffEntry]): String = {
     val transcriptId = entry.attributes("transcript_id")
-    val rnaPosition = Utils.calculateTranscriptPosition(variant.position, entry)
+    val rnaPosition = exon match {
+      case Some(exon) =>
+        Utils.calculateTranscriptPosition(variant.position, exon)  // Use the exon position if available
+      case None =>
+        Utils.getTranscriptPosition(variant, variant.contig, transcriptId)  // default calculation
+    }
 
     // Handle strand correction for alleles
     val refAllele = if (entry.strandPlus) {

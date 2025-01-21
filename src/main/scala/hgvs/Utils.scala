@@ -53,10 +53,13 @@ object Utils {
   def calculateProteinPosition(genomicPos: BigInt, cds: GffEntry): Int = {
     // Calculate the relative position within the CDS (1-based index)
     val relativePos = (genomicPos - cds.start + 1).toInt
+
+    // Ensure the position is within the CDS boundaries
     if (relativePos <= 0 || relativePos > cds.end - cds.start + 1) {
       throw new IllegalArgumentException("Genomic position is out of bounds for the CDS region")
     }
-    // Determine the protein position: each codon is 3 bases
+
+    // Determine the protein position: each codon consists of 3 bases
     val proteinPosition = (relativePos - 1) / 3 + 1
 
     proteinPosition
@@ -73,8 +76,23 @@ object Utils {
   }
 
   /**
+   * Helper method to find exon pair surrounding the variant
+   */
+  def findExonPairForVariant(variant: DnaVariant, exons: Seq[GffEntry]): Option[(GffEntry, GffEntry)] = {
+    exons.sliding(2).collectFirst {
+      case Seq(exon1, exon2) if variant.position > exon1.end && variant.position < exon2.start =>
+        (exon1, exon2)
+    }
+  }
+
+  /**
    * Returns the transcript-relative position of the variant.
    * This checks whether the variant is in an intron, or UTR region.
+   * @return The transcript-relative position as a string, or "?" if the position cannot be determined.
+   *         - Returns numerical position for exonic locations.
+   *         - "pos-off" "pos+off" for intronic variants
+   *         - "-X" for 5' UTR.
+   *         - "*X" for 3' UTR.
    */
   def getTranscriptPosition(variant: DnaVariant, contig: String, transcriptId: String): String = {
     val transExons = GFFReader.getIntervalTree(contig).getExonsForTranscriptId(contig, transcriptId)
@@ -90,22 +108,22 @@ object Utils {
       if (isStrandPlus) {
         // UTR handling for positive strand
         if (variant.position < exon.start) {
-          val offset = exon.start - variant.position
-          s"${exon.start}-${offset}" // 5' UTR region
-        } else if (variant.position > exon.end) {
-          val offset = variant.position - exon.end
-          s"${exon.end}+${offset}" // 3' UTR region
+          val offset = sortedExons.head.start - variant.position
+          s"-${offset}" // UTR 5 before first exon
+        } else if (variant.position > sortedExons.last.end) {
+          val offset = variant.position - sortedExons.last.end
+          s"*${offset}" // UTR  3 after last exon
         } else {
           (variant.position - exon.start + 1).toString // Inside exon
         }
       } else {
         // UTR handling for negative strand
         if (variant.position > exon.end) {
-          val offset = variant.position - exon.end
-          s"${exon.end}+${offset}" // 5' UTR region
-        } else if (variant.position < exon.start) {
-          val offset = exon.start - variant.position
-          s"${exon.start}-${offset}" // 3' UTR region
+          val offset = variant.position - sortedExons.last.end
+          s"*${offset}" // UTR after last exon
+        } else if (variant.position < sortedExons.head.start) {
+          val offset = sortedExons.head.start - variant.position
+          s"-${offset}" // UTR before first exon
         } else {
           (exon.end - variant.position + 1).toString // Inside exon
         }
@@ -130,10 +148,10 @@ object Utils {
           // Handling for 5' and 3' UTR on positive strand
           if (variant.position < sortedExons.head.start) {
             val offset = sortedExons.head.start - variant.position
-            s"${sortedExons.head.start}-${offset}" // UTR before first exon
+            s"-${offset}" // UTR 5 before first exon
           } else if (variant.position > sortedExons.last.end) {
             val offset = variant.position - sortedExons.last.end
-            s"${sortedExons.last.end}+${offset}" // UTR after last exon
+            s"*${offset}" // UTR  3 after last exon
           } else {
             "?"
           }
@@ -141,10 +159,10 @@ object Utils {
           // Handling for 5' and 3' UTR on negative strand
           if (variant.position > sortedExons.last.end) {
             val offset = variant.position - sortedExons.last.end
-            s"${sortedExons.last.end}+${offset}" // UTR after last exon
+            s"*${offset}" // UTR after last exon
           } else if (variant.position < sortedExons.head.start) {
             val offset = sortedExons.head.start - variant.position
-            s"${sortedExons.head.start}-${offset}" // UTR before first exon
+            s"-${offset}" // UTR before first exon
           } else {
             "?"
           }

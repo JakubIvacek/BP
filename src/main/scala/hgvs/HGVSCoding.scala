@@ -36,7 +36,7 @@ object HGVSCoding {
     relevantEntry match {
       case Some(entry) =>
         variant.HGVSDNA = HGVSSnp.generateDnaTransHgvsSNP(variant, entry, exon) //Add DNA-level c.
-        variant.HGVSRNA = HGVSSnp.generateRnaHgvsSNP(variant, entry) //Add RNA-level HGVS r.
+        variant.HGVSRNA = HGVSSnp.generateRnaHgvsSNP(variant, entry, exon) //Add RNA-level HGVS r.
       case None =>
         variant.HGVSDNA = HGVSSnp.generateDnaHgvsSNP(variant) //Add DNA-level g.
     }
@@ -56,10 +56,11 @@ object HGVSCoding {
     //val relevantEntry = entries.find(e => e.attributes.contains("transcript_id"))
     val relevantEntry = entries.find(e => e.name == "transcript")
     val cdsEntry = entries.find(e => e.name == "CDS")
-    variant.HGVSDNA = HGVSDel.generateDelHgvsDNA(variant)     //Add DNA-level HGVS g.
+    val exon = entries.find(e => e.name == "exon")
+    variant.HGVSDNA = HGVSDel.generateDelHgvsDNA(variant, relevantEntry, exon)     
     relevantEntry match {
       case Some(entry) =>
-        variant.HGVSRNA = HGVSDel.generateDelHgvsRNA(variant, entry)     //Add RNA-level HGVS r.
+        variant.HGVSRNA = HGVSDel.generateDelHgvsRNA(variant, entry, exon)     //Add RNA-level HGVS r.
       case None =>
     }
     //Add Protein-level HGVS p.
@@ -76,12 +77,13 @@ object HGVSCoding {
    * Protein-level HGVS
    */
   private def variantINSHGVS(variant: DnaVariant, entries: Seq[GffEntry]): Unit = {
-    val relevantEntry = entries.find(e => e.attributes.contains("transcript_id"))
+    val relevantEntry = entries.find(e => e.name == "transcript")
     val cdsEntry = entries.find(e => e.name == "CDS")
-    variant.HGVSDNA = HGVSIns.generateInsHgvsDNA(variant)
+    val exon = entries.find(e => e.name == "exon")
+    variant.HGVSDNA = HGVSIns.generateInsHgvsDNA(variant, relevantEntry, exon)  //Add DNA-level HGVS g. c.
     relevantEntry match {
       case Some(entry) =>
-        variant.HGVSRNA = HGVSIns.generateInsHgvsRNA(variant, entry)
+        variant.HGVSRNA = HGVSIns.generateInsHgvsRNA(variant, entry, exon)  //Add RNA-level HGVS r.
       case None =>
     }
     //Add Protein-level HGVS p.
@@ -98,9 +100,20 @@ object HGVSCoding {
    * Protein-level HGVS
    */
   private def variantDELINSHGVS(variant: DnaVariant, entries: Seq[GffEntry]): Unit = {
-    val relevantEntry = entries.find(e => e.attributes.contains("transcript_id"))
+    val relevantEntry = entries.find(e => e.name == "transcript")
     val cdsEntry = entries.find(e => e.name == "CDS")
-    
+    val exon = entries.find(e => e.name == "exon")
+    variant.HGVSDNA = HGVSDelins.generateDelinsHgvsDNA(variant, relevantEntry, exon)  //Add DNA-level HGVS g. c.
+    relevantEntry match {
+      case Some(entry) =>
+        variant.HGVSRNA = HGVSDelins.generateDelinsHgvsRNA(variant, entry, exon)  //Add RNA-level HGVS r.
+      case None =>
+    }
+    //Add Protein-level HGVS p.
+    cdsEntry match {
+      case Some(cds) => variant.HGVSProtein = HGVSDelins.generateDelinsHgvsProtein(variant, cds)
+      case _ =>
+    }
   }
 
   /**
@@ -108,10 +121,32 @@ object HGVSCoding {
    * DNA-level HGVS only
    */
   private def variantOtherHGVS(variant: DnaVariant, entries: Seq[GffEntry]): Unit = {
-    val dnaHgvs = if (variant.refAllele.length == 1) {
-      s"${variant.contig}:g.${variant.position}="
-    } else {
-      s"${variant.contig}:g.${variant.position}_${variant.position + variant.refAllele.length - 1}="
+    val relevantEntry = entries.find(e => e.name == "transcript")
+    val cdsEntry = entries.find(e => e.name == "CDS")
+    val exon = entries.find(e => e.name == "exon")
+    val dnaHgvs = relevantEntry match {
+      case Some(entry) =>
+        val rnaPosition = exon match {
+          case Some(exon) => Utils.calculateTranscriptPosition(variant.position, exon)
+          case None => Utils.getTranscriptPosition(variant, variant.contig, entry.attributes("transcript_id"))
+        }
+        if (variant.refAllele.length == 1) {
+          s"${entry.attributes("transcript_id")}:c.${rnaPosition}="
+        } else {
+          val rnaPositionEnd = exon match {
+            case Some(exon) => Utils.calculateTranscriptPosition(variant.position + variant.refAllele.length - 1, exon)
+            case None =>
+              val adjustedPosition = if (entry.strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+              Utils.getTranscriptPosition(variant.copy(position = adjustedPosition), variant.contig, entry.attributes("transcript_id"))
+          }
+          s"${entry.attributes("transcript_id")}:c.${rnaPosition}_${rnaPositionEnd}="
+        }
+      case None =>
+        if (variant.refAllele.length == 1) {
+          s"${variant.contig}:g.${variant.position}="
+        } else {
+          s"${variant.contig}:g.${variant.position}_${variant.position + variant.refAllele.length - 1}="
+        }
     }
     variant.HGVSDNA = dnaHgvs
     variant.HGVSRNA = "."

@@ -33,7 +33,7 @@ import scala.jdk.CollectionConverters.*
  * @param HGVSProtein hgvs coding protein level
  * @param HGVSRNA hgvs coding rna level
  */
-class DnaVariant(
+case class DnaVariant(
                   val contig: String,
                   val position: BigInt,
                   val refAllele: String,
