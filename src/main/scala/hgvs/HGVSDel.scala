@@ -18,24 +18,27 @@ object HGVSDel {
   def generateDelHgvsDNA(variant: DnaVariant, transcript: Option[GffEntry], exon: Option[GffEntry]): String = {
     transcript match{
       case Some(transcript) =>
-        val transcriptPosition = exon match {
-          case Some(exon) =>
-            Utils.calculateTranscriptPosition(variant.position, exon)
-          case None =>
-            Utils.getTranscriptPosition(variant, variant.contig, transcript.attributes("transcript_id"))
+        // c. notation
+        val rnaPositionStart = exon match {
+          case Some(exon) => Utils.calculateTranscriptPosition(variant.position, exon)
+          case None => Utils.getTranscriptPosition(variant, variant.contig, transcript.attributes("transcript_id"))
         }
-        // Apply the 3' rule for multiple nucleotides in the reference allele
-        if (variant.refAllele.length > 1) {
-          val positionEnd = if (transcript.strandPlus) {
-            variant.position + variant.refAllele.length - 1
-          } else {
-            variant.position - (variant.refAllele.length - 1)
-          }
-          s"${transcript.attributes("transcript_id")}:c.${positionEnd}del"  // Use the 3' end position
+        if (variant.refAllele.length == 1) {
+          s"${transcript.attributes("transcript_id")}:c.${rnaPositionStart}del"
         } else {
-          s"${transcript.attributes("transcript_id")}:c.${transcriptPosition}del"
+
+          val rnaPositionEnd = exon match {
+            case Some(exon) =>
+              val adjustedPosition = if (transcript.strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+              Utils.calculateTranscriptPosition(adjustedPosition, exon)
+            case None =>
+              val adjustedPosition = if (transcript.strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+              Utils.getTranscriptPosition(variant.copy(position = adjustedPosition), variant.contig, transcript.attributes("transcript_id"))
+          }
+          s"${transcript.attributes("transcript_id")}:c.${rnaPositionStart}_${rnaPositionEnd}del"
         }
       case None =>
+        // g. notation
         if (variant.refAllele.length == 1) {
           s"${variant.contig}:g.${variant.position}del"
         } else {
@@ -53,21 +56,22 @@ object HGVSDel {
    *  NM_004006.3:r.123_127del
    */
   def generateDelHgvsRNA(variant: DnaVariant, transcript: GffEntry, exon: Option[GffEntry]): String = {
-
+    // Calculate RNA start position from exon or transcript information
     val rnaPositionStart = exon match {
       case Some(exon) => Utils.calculateTranscriptPosition(variant.position, exon)
       case None => Utils.getTranscriptPosition(variant, variant.contig, transcript.attributes("transcript_id"))
     }
-
-    val rnaPositionEnd = exon match {
-      case Some(exon) => Utils.calculateTranscriptPosition(variant.position + variant.refAllele.length - 1, exon)
-      case None =>
-        val adjustedPosition = if (transcript.strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
-        Utils.getTranscriptPosition(variant.copy(position = adjustedPosition), variant.contig, transcript.attributes("transcript_id"))
-    }
     if (variant.refAllele.length == 1) {
       s"${transcript.attributes("transcript_id")}:r.${rnaPositionStart}del"
     } else {
+      val rnaPositionEnd = exon match {
+        case Some(exon) =>
+          val adjustedPosition = if (transcript.strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+          Utils.calculateTranscriptPosition(adjustedPosition, exon)
+        case None =>
+          val adjustedPosition = if (transcript.strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+          Utils.getTranscriptPosition(variant.copy(position = adjustedPosition), variant.contig, transcript.attributes("transcript_id"))
+      }
       s"${transcript.attributes("transcript_id")}:r.${rnaPositionStart}_${rnaPositionEnd}del"
     }
   }
@@ -92,8 +96,9 @@ object HGVSDel {
     }
     // Calculate the codon positions in the CDS for start and end of the deletion
     val codonPositionStart = Utils.calculateCodonPosition(variant.position.toInt, cds)
-    val codonPositionEnd = Utils.calculateCodonPosition((variant.position + variant.refAllele.length - 1).toInt, cds)
-
+    val endPosition = if (cds.strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+    val codonPositionEnd = Utils.calculateCodonPosition(endPosition.toInt, cds)
+    
     // Get the original codons containing the deletion
     val originalCodonStart = Utils.getCodonAtPosition(codonPositionStart, cds, cdsSequence)
     val originalCodonEnd = Utils.getCodonAtPosition(codonPositionEnd, cds, cdsSequence)

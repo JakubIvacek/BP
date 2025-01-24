@@ -91,7 +91,9 @@ object HGVSIns {
     }
     // Calculate the codon position in the CDS where the insertion occurs
     val codonPositionStart = Utils.calculateCodonPosition(variant.position.toInt, cds)
-    val codonPositionEnd = Utils.calculateCodonPosition(variant.position.toInt + variant.refAllele.length - 1, cds)
+    val endPosition = if (cds.strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+    val codonPositionEnd = Utils.calculateCodonPosition(endPosition.toInt, cds)
+    
     // Get the codons adjacent to the insertion site
     val leftCodon = Utils.getCodonAtPosition(codonPositionStart - 1, cds, cdsSequence)
     val rightCodon = Utils.getCodonAtPosition(codonPositionEnd, cds, cdsSequence)

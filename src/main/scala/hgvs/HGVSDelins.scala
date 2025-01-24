@@ -90,7 +90,8 @@ object HGVSDelins {
     }
     // Calculate the codon position in the CDS where the delins occurs
     val codonPositionStart = Utils.calculateCodonPosition(variant.position.toInt, cds)
-    val codonPositionEnd = Utils.calculateCodonPosition(variant.position.toInt + variant.refAllele.length - 1, cds)
+    val endPosition = if (cds.strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+    val codonPositionEnd = Utils.calculateCodonPosition(endPosition.toInt, cds)
 
     // Get the codons adjacent to the deletion insertion site
     val leftCodon = Utils.getCodonAtPosition(codonPositionStart - 1, cds, cdsSequence)
@@ -112,9 +113,8 @@ object HGVSDelins {
       variant.altAllele +
       cdsSequence.substring(insertionStart)
 
-    // Extract the inserted amino acids
     val insertedCdsSegment = variant.altAllele + cdsSequence.substring(insertionStart, insertionStart + (3 - variant.altAllele.length % 3))
-    val insertedAminoAcids = insertedCdsSegment.grouped(3).map(CodonAmino.codonToAminoAcid).mkString
+    val insertedAminoAcids = CodonAmino.translateDnaToProtein(insertedCdsSegment)
 
     // Construct the protein-level HGVS annotation
     if (codonPositionStart == codonPositionEnd) {

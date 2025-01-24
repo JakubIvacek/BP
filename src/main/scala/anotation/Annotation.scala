@@ -2,8 +2,8 @@ package anotation
 
 import data.VariantType.Other
 import data.{DnaVariant, GffEntry, VariantType}
-import files.{FileReaderVcf, GFFReader, WriteToMaf}
-import hgvs.HGVSCoding
+import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf}
+import hgvs.{HGVSCoding, Utils, CodonAmino}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -61,7 +61,7 @@ object Annotation {
 
     // Search for overlapping entries
     val overlappingEntries: Seq[GffEntry] = {
-      val entries = intervalTree.search(variant.contig, variant.position.toInt).take(25)
+      val entries = intervalTree.search(variant.contig, variant.position.toInt)
       if (entries.nonEmpty) entries
       else {
         (intervalTree.findClosestUpstream(variant.contig, variant.position.toInt).toSeq ++
@@ -80,37 +80,16 @@ object Annotation {
     variant.level = getAttribute(overlappingEntries, "level")
     variant.NCBIBuild = referenceGenome
     //set var type
-    variant.varType = returnVariantType(variant.refAllele, variant.altAllele, overlappingEntries)
-    //based on var type add hgvs annotation dna/rna/protein
+    variant.varType = VariantTypeAnnotation.returnVariantTypeDnaRna(variant.refAllele, variant.altAllele)
+    val proteinEntryOpt = overlappingEntries.find(entry => entry.attributes.contains("protein_id"))
+    if (proteinEntryOpt.isDefined) {
+      val proteinEntry = proteinEntryOpt.get
+      variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, proteinEntry)
+    }
     HGVSCoding.variantAddHGVS(variant, overlappingEntries)
     
   }
-
-  private def returnVariantType(refAllele: String, altAllele: String, entries: Seq[GffEntry]): VariantType = {
-    if(refAllele.isEmpty || altAllele.isEmpty) {
-      return VariantType.Other
-    }
-    if (refAllele.length == altAllele.length && refAllele != altAllele) {
-      return VariantType.SNP
-    }
-    // Check DUP
-    //CHECK RPT
-    //CHECK INV
-    //CHECK ALLELES
-    //CHECK EXT
-    //CHECK FS
-
-    if (refAllele.length > altAllele.length) {
-      return VariantType.DEL
-    }
-    if (refAllele.length < altAllele.length) {
-      return VariantType.INS
-    }
-    if (refAllele != altAllele) {
-      return VariantType.INDEL
-    }
-    VariantType.Other
-  }
+  
   /**
    * Retrieve a specific attribute value from the list of overlapping GFF entries.
    *

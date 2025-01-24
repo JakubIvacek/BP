@@ -6,7 +6,7 @@ import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
 object TestMain {
-  def main(args: Array[String]): Unit = {
+  def main(): Unit = {//args: Array[String]
     ServiceModules.createTables()
     var continue = true
     while (continue) {

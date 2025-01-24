@@ -1,6 +1,8 @@
 package data
 
+import data.VariantType.Other
 import htsjdk.variant.variantcontext.VariantContext
+
 import scala.jdk.CollectionConverters.*
 
 /**
@@ -41,6 +43,7 @@ case class DnaVariant(
                   val alleleFreq: Double,
                   val alleleSomatic: Boolean,
                   var varType: VariantType,
+                  var proteinVarType: VariantType,   
                   val VQSR_score: Double,
                   var geneID: String,
                   var geneName: String,
@@ -84,7 +87,7 @@ object DnaVariant{
         altAllele = altAllele.getBaseString,
         alleleFreq = alleleFreq,
         alleleSomatic = DnaVariant.isSomatic(variant),
-        varType = DnaVariant.returnVariantType(refAllele, altAllele.getBaseString),
+        varType = VariantType.Other,
         VQSR_score = BigDecimal(variant.getPhredScaledQual).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble,
         geneID = ".",
         geneName = ".",
@@ -98,7 +101,8 @@ object DnaVariant{
         exonID =  ".",
         HGVSDNA = ".",
         HGVSRNA = ".",
-        HGVSProtein = "."
+        HGVSProtein = ".",
+        proteinVarType = VariantType.Other
       )
     }
     // Return the list as an immutable List

@@ -13,18 +13,23 @@ object CodonAmino {
    * Map contains all the standard 64 codons, including the stop codons (TAA, TAG, TGA) represented by "*".
    */
   val codonToAminoAcid: Map[String, String] = Map(
-    "ATA" -> "I", "ATC" -> "I", "ATT" -> "I", "ATG" -> "M", "ACA" -> "T", "ACC" -> "T",
-    "ACG" -> "T", "ACT" -> "T", "AAC" -> "N", "AAT" -> "N", "AAA" -> "K", "AAG" -> "K",
-    "AGC" -> "S", "AGT" -> "S", "AGA" -> "R", "AGG" -> "R", "CTA" -> "L", "CTC" -> "L",
-    "CTG" -> "L", "CTT" -> "L", "CCA" -> "P", "CCC" -> "P", "CCG" -> "P", "CCT" -> "P",
-    "CAC" -> "H", "CAT" -> "H", "CAA" -> "Q", "CAG" -> "Q", "CGA" -> "R", "CGC" -> "R",
-    "CGG" -> "R", "CGT" -> "R", "GTA" -> "V", "GTC" -> "V", "GTG" -> "V", "GTT" -> "V",
-    "GCA" -> "A", "GCC" -> "A", "GCG" -> "A", "GCT" -> "A", "GAC" -> "D", "GAT" -> "D",
-    "GAA" -> "E", "GAG" -> "E", "GGA" -> "G", "GGC" -> "G", "GGG" -> "G", "GGT" -> "G",
-    "TCA" -> "S", "TCC" -> "S", "TCG" -> "S", "TCT" -> "S", "TTC" -> "F", "TTT" -> "F",
-    "TTA" -> "L", "TTG" -> "L", "TAC" -> "Y", "TAT" -> "Y", "TAA" -> "*", "TAG" -> "*",
-    "TGC" -> "C", "TGT" -> "C", "TGA" -> "*", "TGG" -> "W", "CTA" -> "L", "CTC" -> "L",
-    "CTG" -> "L", "CTT" -> "L"
+    "ATA" -> "Ile", "ATC" -> "Ile", "ATT" -> "Ile", "ATG" -> "Met",
+    "ACA" -> "Thr", "ACC" -> "Thr", "ACG" -> "Thr", "ACT" -> "Thr",
+    "AAC" -> "Asn", "AAT" -> "Asn", "AAA" -> "Lys", "AAG" -> "Lys",
+    "AGC" -> "Ser", "AGT" -> "Ser", "AGA" -> "Arg", "AGG" -> "Arg",
+    "CTA" -> "Leu", "CTC" -> "Leu", "CTG" -> "Leu", "CTT" -> "Leu",
+    "CCA" -> "Pro", "CCC" -> "Pro", "CCG" -> "Pro", "CCT" -> "Pro",
+    "CAC" -> "His", "CAT" -> "His", "CAA" -> "Gln", "CAG" -> "Gln",
+    "CGA" -> "Arg", "CGC" -> "Arg", "CGG" -> "Arg", "CGT" -> "Arg",
+    "GTA" -> "Val", "GTC" -> "Val", "GTG" -> "Val", "GTT" -> "Val",
+    "GCA" -> "Ala", "GCC" -> "Ala", "GCG" -> "Ala", "GCT" -> "Ala",
+    "GAC" -> "Asp", "GAT" -> "Asp", "GAA" -> "Glu", "GAG" -> "Glu",
+    "GGA" -> "Gly", "GGC" -> "Gly", "GGG" -> "Gly", "GGT" -> "Gly",
+    "TCA" -> "Ser", "TCC" -> "Ser", "TCG" -> "Ser", "TCT" -> "Ser",
+    "TTC" -> "Phe", "TTT" -> "Phe", "TTA" -> "Leu", "TTG" -> "Leu",
+    "TAC" -> "Tyr", "TAT" -> "Tyr", "TAA" -> "Stop", "TAG" -> "Stop",
+    "TGC" -> "Cys", "TGT" -> "Cys", "TGA" -> "Stop", "TGG" -> "Trp",
+    "CTA" -> "Leu", "CTC" -> "Leu", "CTG" -> "Leu", "CTT" -> "Leu"
   )
 
   /**

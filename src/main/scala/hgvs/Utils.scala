@@ -56,7 +56,7 @@ object Utils {
 
     // Ensure the position is within the CDS boundaries
     if (relativePos <= 0 || relativePos > cds.end - cds.start + 1) {
-      throw new IllegalArgumentException("Genomic position is out of bounds for the CDS region")
+      return 0
     }
 
     // Determine the protein position: each codon consists of 3 bases

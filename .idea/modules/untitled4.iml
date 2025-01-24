@@ -25,6 +25,7 @@
     <orderEntry type="library" name="sbt: gov.nih.nlm.ncbi:ngs-java:2.9.0:jar" level="project" />
     <orderEntry type="library" name="sbt: org.apache.commons:commons-compress:1.19:jar" level="project" />
     <orderEntry type="library" name="sbt: org.apache.commons:commons-jexl:2.1.1:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.rogach:scallop_3:4.1.0:jar" level="project" />
     <orderEntry type="library" name="sbt: org.scala-lang:scala-library:2.13.14:jar" level="project" />
     <orderEntry type="library" name="sbt: org.scala-lang:scala3-library_3:3.3.4:jar" level="project" />
     <orderEntry type="library" name="sbt: org.sharegov:mjson:1.4.1:jar" level="project" />

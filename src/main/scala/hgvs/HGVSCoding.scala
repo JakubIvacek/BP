@@ -11,15 +11,34 @@ import data.{DnaVariant, GffEntry, VariantType}
  */
 object HGVSCoding {
   def variantAddHGVS(variant: DnaVariant, entries: Seq[GffEntry]): Unit = {
+      // ADD DNA/RNA LEVEL NOTATION
       variant.varType match{
         case VariantType.SNP => variantSNPHGVS(variant, entries)
         case VariantType.DEL => variantDELHGVS(variant, entries)
         case VariantType.INS => variantINSHGVS(variant, entries)
         case VariantType.INDEL => variantDELINSHGVS(variant, entries)
-        // AJ OSTATNE POTOM DUP, INV, RPT, ALLELES, EXT, FS
+        case VariantType.DUP => variantDUPSHGVS(variant, entries)
+        case VariantType.INV => variantINVSHGVS(variant, entries)
+        case VariantType.RPT =>
         case VariantType.Other => variantOtherHGVS(variant, entries)
         case _ =>
-    }
+      }
+      // ADD PROTEIN LEVEL NOTATION
+      val protEntry = entries.find(entry => entry.attributes.contains("protein_id"))
+      if (protEntry.isDefined) {
+        val proteinEntry = protEntry.get
+        variant.proteinVarType match {
+          case VariantType.SNP => variantSNPHGVSProtein(variant, proteinEntry)
+          case VariantType.DEL => variantSNPHGVSProtein(variant, proteinEntry)
+          case VariantType.INS => variantSNPHGVSProtein(variant, proteinEntry)
+          case VariantType.INDEL => variantSNPHGVSProtein(variant, proteinEntry)
+          case VariantType.DUP => variantDUPHGVSProtein(variant, proteinEntry)
+          case VariantType.EXT =>
+          case VariantType.RPT =>
+          case VariantType.FS =>
+          case _ =>
+        }
+      }
   }
 
   /**
@@ -40,11 +59,14 @@ object HGVSCoding {
       case None =>
         variant.HGVSDNA = HGVSSnp.generateDnaHgvsSNP(variant) //Add DNA-level g.
     }
-    //Add Protein-level HGVS
-    cdsEntry match {
-      case Some(cds) => variant.HGVSProtein = HGVSSnp.generateProteinHgvsPredictedSNP(variant, cds)
-      case _ =>
-    }
+  }
+
+  /**
+   * SNP variant HGVS annotation add
+   * Protein-level HGVS
+   */
+  private def variantSNPHGVSProtein(variant: DnaVariant, cds: GffEntry): Unit = {
+    variant.HGVSProtein = HGVSSnp.generateProteinHgvsPredictedSNP(variant, cds)
   }
   /**
    * DEL variant HGVS annotation add
@@ -63,13 +85,15 @@ object HGVSCoding {
         variant.HGVSRNA = HGVSDel.generateDelHgvsRNA(variant, entry, exon)     //Add RNA-level HGVS r.
       case None =>
     }
-    //Add Protein-level HGVS p.
-    cdsEntry match {
-      case Some(cds) => variant.HGVSProtein = HGVSDel.generateDelHgvsProtein(variant, cds)
-      case _ =>
-    }
   }
 
+  /**
+   * DEL variant HGVS annotation add
+   * Protein-level HGVS
+   */
+  private def variantDELHGVSProtein(variant: DnaVariant, cds: GffEntry): Unit = {
+    variant.HGVSProtein = HGVSDel.generateDelHgvsProtein(variant, cds)
+  }
   /**
    * INS variant HGVS annotation add
    * DNA-level HGVS
@@ -86,13 +110,15 @@ object HGVSCoding {
         variant.HGVSRNA = HGVSIns.generateInsHgvsRNA(variant, entry, exon)  //Add RNA-level HGVS r.
       case None =>
     }
-    //Add Protein-level HGVS p.
-    cdsEntry match {
-      case Some(cds) => variant.HGVSProtein = HGVSIns.generateInsHgvsProtein(variant, cds)
-      case _ =>
-    }
   }
 
+  /**
+   * INS variant HGVS annotation add
+   * Protein-level HGVS
+   */
+  private def variantINSHGVSProtein(variant: DnaVariant, cds: GffEntry): Unit = {
+    variant.HGVSProtein = HGVSIns.generateInsHgvsProtein(variant, cds)
+  }
   /**
    * DELINS variant HGVS annotation add
    * DNA-level HGVS
@@ -109,11 +135,55 @@ object HGVSCoding {
         variant.HGVSRNA = HGVSDelins.generateDelinsHgvsRNA(variant, entry, exon)  //Add RNA-level HGVS r.
       case None =>
     }
-    //Add Protein-level HGVS p.
-    cdsEntry match {
-      case Some(cds) => variant.HGVSProtein = HGVSDelins.generateDelinsHgvsProtein(variant, cds)
-      case _ =>
+  }
+  /**
+   * DELINS variant HGVS annotation add
+   * Protein-level HGVS
+   */
+  private def variantDELINSHGVSProtein(variant: DnaVariant, cds: GffEntry): Unit = {
+    variant.HGVSProtein = HGVSIns.generateInsHgvsProtein(variant, cds)
+  }
+
+  /**
+   * INV variant HGVS annotation add
+   * DNA-level HGVS
+   * RNA-level HGVS
+   */
+  private def variantINVSHGVS(variant: DnaVariant, entries: Seq[GffEntry]): Unit = {
+    val relevantEntry = entries.find(e => e.name == "transcript")
+    val cdsEntry = entries.find(e => e.name == "CDS")
+    val exon = entries.find(e => e.name == "exon")
+    variant.HGVSDNA = HGVSInv.generateInvHgvsDNA(variant, relevantEntry, exon) //Add DNA-level HGVS g. c.
+    relevantEntry match {
+      case Some(entry) =>
+        variant.HGVSRNA = HGVSInv.generateInvHgvsRNA(variant, entry, exon) //Add RNA-level HGVS r.
+      case None =>
     }
+  }
+
+  /**
+   * DUP variant HGVS annotation add
+   * DNA-level HGVS
+   * RNA-level HGVS
+   */
+  private def variantDUPSHGVS(variant: DnaVariant, entries: Seq[GffEntry]): Unit = {
+    val relevantEntry = entries.find(e => e.name == "transcript")
+    val cdsEntry = entries.find(e => e.name == "CDS")
+    val exon = entries.find(e => e.name == "exon")
+    variant.HGVSDNA = HGVSDup.generateDupHgvsDNA(variant, relevantEntry, exon) //Add DNA-level HGVS g. c.
+    relevantEntry match {
+      case Some(entry) =>
+        variant.HGVSRNA = HGVSDup.generateDUPHgvsRNA(variant, entry, exon) //Add RNA-level HGVS r.
+      case None =>
+    }
+  }
+
+  /**
+   * DUP variant HGVS annotation add
+   * Protein-level HGVS
+   */
+  private def variantDUPHGVSProtein(variant: DnaVariant, cds: GffEntry): Unit = {
+    variant.HGVSProtein = HGVSDup.generateDupHgvsProtein(variant, cds)
   }
 
   /**
