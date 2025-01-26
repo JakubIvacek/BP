@@ -3,7 +3,7 @@ package anotation
 import data.VariantType.Other
 import data.{DnaVariant, GffEntry, VariantType}
 import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf}
-import hgvs.{HGVSCoding, Utils, CodonAmino}
+import hgvs2.HGVS
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -87,7 +87,7 @@ object Annotation {
       val proteinEntry = proteinEntryOpt.get
       variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, proteinEntry)
     }
-    HGVSCoding.variantAddHGVS(variant, overlappingEntries)
+    HGVS.variantAddHGVS(variant, overlappingEntries)
     
   }
   
