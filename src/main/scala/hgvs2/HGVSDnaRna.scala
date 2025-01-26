@@ -38,7 +38,7 @@ object HGVSDnaRna {
     }
   }
 
-  def getTranscriptPosition(variant: DnaVariant, exon: Option[GffEntry], transcriptId: String): String = {
+  def getTranscriptPosition(variant: DnaVariant, exon: Option[GffEntry], transcriptId: String, strandPlus: Boolean): String = {
     variant.varType match {
       case SNP => Utils.calculateTranscriptPosition(variant, variant.position.toInt, exon, transcriptId) //pos
       case DEL | DUP | INDEL | Other => //start_end or pos
@@ -46,8 +46,8 @@ object HGVSDnaRna {
         if (variant.refAllele.length == 1) {
           s"${start}"
         } else {
-          val newPos = variant.position + variant.refAllele.length - 1
-          val end = Utils.calculateTranscriptPosition(variant, newPos.toInt, exon, transcriptId)
+          val adjustedPosition = if (strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+          val end = Utils.calculateTranscriptPosition(variant, adjustedPosition.toInt, exon, transcriptId)
           s"${start}_${end}"
         }
       case INS =>
@@ -56,8 +56,8 @@ object HGVSDnaRna {
         s"${start}_${end}"
       case INV | RPT =>
         val start = Utils.calculateTranscriptPosition(variant, variant.position.toInt, exon, transcriptId) //start_end
-        val newPos = variant.position + variant.refAllele.length - 1
-        val end = Utils.calculateTranscriptPosition(variant, newPos.toInt, exon, transcriptId)
+        val adjustedPosition = if (strandPlus) {variant.position + variant.refAllele.length - 1} else {variant.position - variant.refAllele.length + 1}
+        val end = Utils.calculateTranscriptPosition(variant, adjustedPosition.toInt, exon, transcriptId)
         s"${start}_${end}"
       case _ => ""
     }

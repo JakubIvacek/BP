@@ -40,7 +40,7 @@ object HGVS {
     val transId = transcript.attributes("transcript_id")
     val geneId = transcript.attributes("gene_id")
     val seq = HGVSDnaRna.getSeq(variant)
-    val pos = HGVSDnaRna.getTranscriptPosition(variant, entries.find(_.name == "exon"), transId)
+    val pos = HGVSDnaRna.getTranscriptPosition(variant, entries.find(_.name == "exon"), transId, transcript.strandPlus)
     val pastPosPart = getPastPositionPart(variant.varType)
     val coordinateType = if entries.exists(_.attributes.contains("protein_id")) then "c" else "n"
 
@@ -55,7 +55,7 @@ object HGVS {
     // transId : r . position/range ppp? sequence
     val transId = transcript.attributes("transcript_id")
     val seq = HGVSDnaRna.getSeq(variant).toLowerCase.replace("t", "u")
-    val pos = HGVSDnaRna.getTranscriptPosition(variant, entries.find(_.name == "exon"), transId)
+    val pos = HGVSDnaRna.getTranscriptPosition(variant, entries.find(_.name == "exon"), transId, transcript.strandPlus)
     val pastPosPart = getPastPositionPart(variant.varType)
     val hgvs = s"${transId}:r.${pos}$pastPosPart$seq"
 
