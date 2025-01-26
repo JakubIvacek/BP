@@ -81,6 +81,7 @@ object Annotation {
     variant.NCBIBuild = referenceGenome
     //set var type
     variant.varType = VariantTypeAnnotation.returnVariantTypeDnaRna(variant.refAllele, variant.altAllele)
+    // check if maped to coding region so protein level annotation
     val proteinEntryOpt = overlappingEntries.find(entry => entry.attributes.contains("protein_id"))
     if (proteinEntryOpt.isDefined) {
       val proteinEntry = proteinEntryOpt.get

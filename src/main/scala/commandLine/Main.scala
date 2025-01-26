@@ -1,13 +1,12 @@
 package commandLine
 
-import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.io.PrintWriter
 
 import module.GenCodeModule
 import org.rogach.scallop.*
 
-// sbt "run -d gencode -p /path/save"               DOWNLOAD LATEST
-// sbt "run -d gencode -p /path/save" -v 43         DOWNLOAD VERSION
+// sbt "run -d gencode -p /path/save (optional path if saves to .log file)"        DOWNLOAD LATEST
+// sbt "run -d gencode -p /path/save" -v 43  (optional path if saves to .log file) DOWNLOAD VERSION
 // sbt "run -r 1"                                   REMOVE ID
 // sbt "run -i gencode"                             PRINT INFO
 // sbt "run -f filename -rv version -p /path/save"   ANNOTATION not connceted yet
@@ -21,14 +20,13 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val help = opt[Boolean]("h", noshort = true, descr = "Show help message")
   val filename = opt[String]("f", required = false, descr = "Filename for annotation (Lynch.vcf)")
   val referenceVersion = opt[String]("rv", required = false, descr = "Reference version for annotation (hg38, t2t)")
-  val path = opt[String]("p", required = false, descr = "File path for download (/path/dir)")
+  val path = opt[String]("p", required = false, descr = "File path for download (/path/dir) (optional path saves to .log file)")
 
   // Call verify after defining all options
   verify()
 }
 
 object Main {
-  val logFilePath = "config.log"
 
   def main(args: Array[String]): Unit = {
     // Ensure args are passed from the command line
@@ -42,37 +40,48 @@ object Main {
     if (conf.help()) {
       conf.printHelp()
     } else {
+      // sbt run -d name  no -p tries to retrieve from .log file
       if (conf.download.isDefined) {
-
+        val path = PathSaver.getPath
+        path match{
+          case Some(path) => downloadModuleLatest(conf.download(), path)
+          case None =>  println("No path found enter command with -p dir/save")
+        }
       }
+      // sbt run -d name -v version no -p tries to retrieve from .log file
       if (conf.download.isDefined && conf.version.isDefined) {
-
+        val path = PathSaver.getPath
+        path match {
+          case Some(path) => downloadModule(conf.download(), path, conf.version())
+          case None => println("No path found enter command with -p dir/save")
+        }
       }
+      // sbt run -d name -p path
       if (conf.download.isDefined && conf.path.isDefined) {
         println(s"Download latest module: ${conf.download()} with path: ${conf.path()}")
         downloadModuleLatest(conf.download(), conf.path())
       }
+      // sbt run -d name -v version -p path
       if (conf.download.isDefined && conf.path.isDefined && conf.version.isDefined) {
         //add path to log file if not added
         println(s"Download latest module: ${conf.download()} with path: ${conf.path()} version : ${conf.version()}")
         downloadModule(conf.download(), conf.path(), conf.version())
       }
+      // sbt run -r id
       if (conf.remove.isDefined) {
         println(s"Remove module with ID: ${conf.remove()}")
         GenCodeModule.removeModuleById(conf.remove())
       }
+      //sbt run -i name
       if (conf.info.isDefined) {
         println(s"Print: ${conf.info()}")
         printInformation(conf.info())
       }
-
-      // Check if filename and referenceVersion options are provided
+      // sbt run -f filename -rv referenceVersion -p path
       if (conf.filename.isDefined && conf.referenceVersion.isDefined && conf.path.isDefined) {
         val file = conf.filename()
         val version = conf.referenceVersion()
         println(s"Annotate with file: $file and reference version: $version path to save: ${conf.path()}")
-      } else {
-        println("Please provide both filename and reference version for annotation and path to save.")
       }
     }
   }
@@ -105,35 +114,6 @@ object Main {
     // GNOMAD ... ADD DALSIE
     else {
       println("Wrong module name Try again (Gencode, ...)")
-    }
-  }
-
-  /** Gets the path either from user input or the log file */
-  def getPath: String = {
-    if (Files.exists(Paths.get(logFilePath))) {
-      val defaultPath = Files.readAllLines(Paths.get(logFilePath)).get(0)
-      println(s"Using default path from log file: $defaultPath")
-      defaultPath
-    } else {
-      val hardcodedDefault = "local/modules"
-      println(s"No path provided. Using hardcoded default: $hardcodedDefault")
-      hardcodedDefault
-    }
-  }
-
-  /** Saves the given path to the log file */
-  def savePathToLogFile(path: String): Unit = {
-    try {
-      Files.write(
-        Paths.get(logFilePath),
-        path.getBytes,
-        StandardOpenOption.CREATE,
-        StandardOpenOption.TRUNCATE_EXISTING
-      )
-      println(s"Saved path to log file: $logFilePath")
-    } catch {
-      case ex: Exception =>
-        println(s"Failed to save path to log file: ${ex.getMessage}")
     }
   }
 }
