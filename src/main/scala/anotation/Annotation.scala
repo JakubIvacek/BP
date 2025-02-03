@@ -87,6 +87,7 @@ object Annotation {
       val proteinEntry = proteinEntryOpt.get
       variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, proteinEntry)
     }
+    variant.positionEnd = VariantTypeAnnotation.calculateEndPosition(variant)
     HGVS.variantAddHGVS(variant, overlappingEntries)
     
   }

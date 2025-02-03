@@ -1,6 +1,7 @@
 package hgvs
 import data.{DnaVariant, GffEntry}
 import files.FastaReader
+import hgvs2.CodonAmino
 /**
  * Generates HGVS annotation for DUP.
  * Duplication: a sequence change where, compared to a reference sequence,

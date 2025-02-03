@@ -2,7 +2,8 @@ package anotation
 
 import data.{DnaVariant, GffEntry, VariantType}
 import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf}
-import hgvs.{HGVSCoding, Utils, CodonAmino}
+import hgvs.{HGVSCoding, Utils}
+import hgvs2.CodonAmino
 
 object VariantTypeAnnotation {
   /**
@@ -109,6 +110,27 @@ object VariantTypeAnnotation {
     (1 to ref.length).exists { unitLength =>
       val repeatUnit = ref.substring(0, unitLength)
       remaining.grouped(unitLength).forall(_ == repeatUnit)
+    }
+  }
+
+  /**
+   * Calculates the end position of a genetic variant based on its type.
+   *
+   * @param variant The DnaVariant instance containing details of the genetic variant.
+   * @return The end position as a BigInt.
+   */
+  def calculateEndPosition(variant: DnaVariant): BigInt = {
+    variant.varType match {
+      case VariantType.SNP  =>
+        variant.position
+      case VariantType.INS =>
+        variant.position + 1
+      case VariantType.DEL | VariantType.INDEL =>
+        variant.position + variant.refAllele.length - 1
+      case VariantType.DUP | VariantType.RPT | VariantType.INV =>
+        variant.position + variant.altAllele.length - 1
+      case _ =>
+        variant.position + variant.altAllele.length - 1
     }
   }
 

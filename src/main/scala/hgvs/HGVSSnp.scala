@@ -1,6 +1,7 @@
 package hgvs
-import data.{GffEntry, DnaVariant}
-import files.{GFFReader,FastaReader}
+import data.{DnaVariant, GffEntry}
+import files.{FastaReader, GFFReader}
+import hgvs2.CodonAmino
 /**
  * SNP variant HGVS
  * DNA-level HGVS

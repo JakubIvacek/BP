@@ -1,6 +1,7 @@
 package hgvs
 import data.{DnaVariant, GffEntry}
 import files.FastaReader
+import hgvs2.CodonAmino
 /**
  * DELINS variant HGVS annotation add
  * DNA-level HGVS

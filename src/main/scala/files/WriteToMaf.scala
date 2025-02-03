@@ -19,7 +19,7 @@ object WriteToMaf {
    */
   def writeMafFile(variants: ListBuffer[DnaVariant], outputPath: String): Unit = {
     //create write header
-    val mafHeaders = "Hugo_Symbol\tChrom\tStart_Pos\tEnd_Pos\tNCBI_Build\tRef_Allele\tTumor_Seq_Allele2" +
+    val mafHeaders = "Hugo_Symbol\tChrom\tStart_Pos\tEnd_Pos\tNCBI_Build\tRef_Allele\tAlt_Allele" +
         "\tVSQR_Score\tVariant_Classification\tVariant_Type\tAllele_Freq\tGene_Type__Gencode\tHGVS_DNA\tHGVS_RNA\tHGVS_Protein" + 
       "\tEntrez_Gene_Id__Gencode\tTranscript_id__Gencode" +
         "\tTranscript_name__Gencode\tExon_id__Gencode\tExon_number__Gencode\tTranscript_type__Gencode\tLevel__Gencode"
@@ -46,7 +46,7 @@ object WriteToMaf {
       dnaVariant.geneName,
       dnaVariant.contig,
       dnaVariant.position,
-      dnaVariant.position,
+      dnaVariant.positionEnd,
       dnaVariant.NCBIBuild,
       dnaVariant.refAllele,
       dnaVariant.altAllele,

@@ -1,8 +1,19 @@
 package hgvs2
 
+import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
 import files.GFFReader
 object Utils {
+
+  def reverseComplement(sequence: String): String = {
+    sequence.reverse.map {
+      case 'A' => 'T'
+      case 'T' => 'A'
+      case 'C' => 'G'
+      case 'G' => 'C'
+      case other => other
+    }
+  }
   /**
    * Identifies the repeated sequence and its repeat count.
    *
@@ -50,6 +61,25 @@ object Utils {
     finalAlt
   }
 
+  /**
+   * Retrieves the string representing the type of variant for use in HGVS notation.
+   *
+   * @param variantType The type of the variant (e.g., DEL, INS, DUP).
+   * @return A string indicating the type of sequence change.
+   */
+  def getPastPositionPart(variantType: VariantType): String = {
+    variantType match {
+      case DEL => "del"
+      case INS => "ins"
+      case DUP => "dup"
+      case INV => "inv"
+      case INDEL => "delins"
+      case Other => "="
+      // ext, fs, 
+      case _ => ""
+    }
+  }
+  
   /**
    * Returns the transcript-relative position of the variant.
    * If the variant is inside a transcript, it calculates the relative position.

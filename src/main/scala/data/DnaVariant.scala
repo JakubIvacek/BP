@@ -38,6 +38,7 @@ import scala.jdk.CollectionConverters.*
 case class DnaVariant(
                   val contig: String,
                   val position: BigInt,
+                  var positionEnd: BigInt,
                   val refAllele: String,
                   val altAllele: String,
                   val alleleFreq: Double,
@@ -83,6 +84,7 @@ object DnaVariant{
       resultVariants += new DnaVariant(
         contig = variant.getContig,
         position = variant.getStart,
+        positionEnd = 0,
         refAllele = refAllele,
         altAllele = altAllele.getBaseString,
         alleleFreq = alleleFreq,
@@ -136,38 +138,7 @@ object DnaVariant{
     rounded
   }
 
-  /**
-   * Determine the type of variant (SNP or Indel)
-   *
-   * @param refAllele The reference allele.
-   * @param altAllele The alternate allele.
-   * @return (SNP or Indel).
-   */
-  private def returnVariantType(refAllele: String, altAllele: String): VariantType = {
-    if (refAllele.isEmpty || altAllele.isEmpty) {
-      return VariantType.Other 
-    }
-    if (refAllele.length == altAllele.length && refAllele != altAllele) {
-      return VariantType.SNP
-    }
-    // Check DUP
-    //CHECK RPT
-    //CHECK INV
-    //CHECK ALLELES
-    //CHECK EXT
-    //CHECK FS
-    
-    if (refAllele.length > altAllele.length) {
-      return VariantType.DEL
-    }
-    if (refAllele.length < altAllele.length) {
-      return VariantType.INS
-    }
-    if (refAllele != altAllele) {
-      return VariantType.INDEL
-    }
-    VariantType.Other
-  }
+
 
   /**
    * Check if a variant is somatic based on its annotation in the VCF file.
