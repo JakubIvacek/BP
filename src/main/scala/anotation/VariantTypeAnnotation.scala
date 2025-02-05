@@ -2,8 +2,8 @@ package anotation
 
 import data.{DnaVariant, GffEntry, VariantType}
 import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf}
-import hgvs.{HGVSCoding, Utils}
-import hgvs2.CodonAmino
+import hgvs.Utils
+import hgvs.CodonAmino
 
 object VariantTypeAnnotation {
   /**
@@ -38,7 +38,7 @@ object VariantTypeAnnotation {
    * @param variant   The DNA variant information.
    * @param refAllele The reference allele sequence.
    * @param altAllele The alternate allele sequence.
-   * @param cdsEntry  The coding sequence (CDS) entry.
+   * @param cdsEntry  The coding sequence entry.
    * @return The type of the genetic variant at the protein level.
    */
   def returnVariantTypeProtein(variant: DnaVariant, refAllele: String, altAllele: String, cdsEntry: GffEntry): VariantType = {
@@ -63,7 +63,7 @@ object VariantTypeAnnotation {
     if (refProtein != altProtein) return VariantType.INDEL
     if (isDuplication(refProtein, altProtein)) return VariantType.DUP
     if (isRepeatedSequence(refProtein, altProtein)) return VariantType.RPT
-    if (isFrameshift(refAllele, altAllele)) return VariantType.FS
+    if (isFrameshift(refAllele, altAllele, cdsSequence, variantOffset)) return VariantType.FS
     if (isExtension(refProtein, altProtein)) return VariantType.EXT
 
     VariantType.Other
@@ -134,10 +134,24 @@ object VariantTypeAnnotation {
     }
   }
 
-  private def isFrameshift(refAllele: String, altAllele: String): Boolean = {
+  private def isFrameshift(refAllele: String, altAllele: String, cdsSequence: String, variantOffset: Int): Boolean = {
     val lengthDifference = altAllele.length - refAllele.length
-    // Check if the length difference is not divisible by 3
-    lengthDifference % 3 != 0
+
+    // Check if the length difference is not divisible by 3, indicating a frameshift
+    if (lengthDifference % 3 != 0) {
+      return true
+    }
+
+    // Replace the reference allele with the alternate allele in the sequence
+    val refSeq = cdsSequence.take(variantOffset) + cdsSequence.drop(variantOffset + refAllele.length)
+    val refModifiedSeq = refSeq.take(variantOffset) + altAllele + refSeq.drop(variantOffset)
+
+    // Translate and compare protein sequences
+    val refProtein = CodonAmino.translateDnaToProtein(refSeq)
+    val altProtein = CodonAmino.translateDnaToProtein(refModifiedSeq)
+
+    // If the protein sequences are different, a frameshift has occurred
+    refProtein != altProtein
   }
 
   private def isExtension(refProtein: String, altProtein: String): Boolean = {

@@ -3,7 +3,7 @@ package anotation
 import data.VariantType.Other
 import data.{DnaVariant, GffEntry, VariantType}
 import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf}
-import hgvs2.HGVS
+import hgvs.HGVS
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -81,11 +81,12 @@ object Annotation {
     variant.NCBIBuild = referenceGenome
     //set var type
     variant.varType = VariantTypeAnnotation.returnVariantTypeDnaRna(variant.refAllele, variant.altAllele)
-    // check if maped to coding region so protein level annotation
-    val proteinEntryOpt = overlappingEntries.find(entry => entry.attributes.contains("protein_id"))
-    if (proteinEntryOpt.isDefined) {
-      val proteinEntry = proteinEntryOpt.get
-      variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, proteinEntry)
+    // Check if the variant is mapped to a CDS region
+    val cdsEntryOpt = overlappingEntries.find(entry => entry.name == "CDS")
+    if (cdsEntryOpt.isDefined) {
+      // If the variant is within a CDS, perform protein-level annotation
+      val cdsEntry = cdsEntryOpt.get
+      variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, cdsEntry)
     }
     variant.positionEnd = VariantTypeAnnotation.calculateEndPosition(variant)
     HGVS.variantAddHGVS(variant, overlappingEntries)

@@ -1,4 +1,5 @@
-package hgvs2
+package hgvs
+import anotation.VariantTypeAnnotation.getProteinSequence
 import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
 import files.FastaReader
@@ -22,11 +23,12 @@ object HGVS {
       case None =>  HGVSDNA(variant, entries)
     }
 
-    // Protein LEVEL: Mapped to protein
-    val proteinEntry = entries.find(_.attributes.contains("protein_id"))
-    proteinEntry match {
-      case Some(entry) => HGVSProtein(variant, entries, entry)
-      case None => 
+    // Protein LEVEL: Mapped to CDS
+    // Check if the variant is mapped to a CDS region
+    val cdsEntryOpt = entries.find(entry => entry.name == "CDS" && entry.contig == variant.contig)
+    cdsEntryOpt match {
+      case Some(cdsEntry) => HGVSProtein(variant, entries, cdsEntry)
+      case None =>
     }
   }
 
@@ -43,7 +45,7 @@ object HGVS {
     val pastPosPart = Utils.getPastPositionPart(variant.varType)
     val seq = HGVSDnaRna.getSeq(variant, true)
     val hgvs = s"${seqId}:g.${position}$pastPosPart$seq"
-    
+
     variant.HGVSDNA = hgvs
   }
 
@@ -63,7 +65,7 @@ object HGVS {
     val seq = HGVSDnaRna.getSeq(variant, transcript.strandPlus)
     val pos = HGVSDnaRna.getTranscriptPosition(variant, entries.find(_.name == "exon"), transId, transcript.strandPlus)
     val pastPosPart = Utils.getPastPositionPart(variant.varType)
-    val coordinateType = if entries.exists(_.attributes.contains("protein_id")) then "c" else "n"
+    val coordinateType = if (entries.exists(entry => entry.name == "CDS")) "c" else "n"
 
     val hgvs = if variant.varType == SNP then s"${geneId}($transId):$coordinateType.${pos}$pastPosPart$seq"
     else s"${transId}:$coordinateType.${pos}$pastPosPart$seq"
@@ -88,9 +90,32 @@ object HGVS {
     variant.HGVSRNA = hgvs
   }
 
-  def HGVSProtein(variant: DnaVariant, entries: Seq[GffEntry], proteinEntry: GffEntry): Unit = {
+  /**
+   * Generates HGVS notation at the Protein level.
+   *
+   * @param variant    The DNA variant.
+   * @param entries    GFF entries containing transcript information.
+   * @param cdsEntry   The matched CDS GFF entry.
+   */
+  def HGVSProtein(variant: DnaVariant, entries: Seq[GffEntry], cdsEntry: GffEntry): Unit = {
     // proteinId : p . position/range ppp? sequence
-    val proteinId = proteinEntry.attributes("protein_id")
-    
+    val proteinId = cdsEntry.attributes("protein_id")
+    val coordinate = "p"
+    val pastPosPart = Utils.getPastPositionPart(variant.proteinVarType)
+
+    val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    // Calculate the variant offset within the CDS based on strand orientation
+    val variantOffset = if (cdsEntry.strandPlus) {
+      (variant.position - cdsEntry.start).toInt
+    } else {
+      (cdsEntry.end - variant.position).toInt
+    }
+    val refProtein = getProteinSequence(cdsSequence, variant.refAllele, variantOffset)
+    val altProtein = getProteinSequence(cdsSequence, variant.altAllele, variantOffset)
+
+    val pos, altAA = HGVSp.returnProteinHGVS(variant, refProtein, altProtein, variantOffset, cdsEntry.strandPlus, cdsSequence.length)
+    val hgvs = s"$proteinId:p.$pos$pastPosPart$altAA"
+    variant.HGVSProtein = hgvs
+
   }
 }

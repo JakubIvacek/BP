@@ -1,4 +1,4 @@
-package hgvs2
+package hgvs
 
 import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}

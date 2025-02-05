@@ -44,7 +44,8 @@ class IntervalTree {
       case Some(entries) =>
         // Filter for exon entries matching the specified transcript_id
         entries.filter(entry =>
-          entry.attributes.get("transcript_id").contains(transcriptId) && entry.name == "exon"
+          entry.attributes.get("transcript_id").contains(transcriptId)
+            && (entry.name == "exon" || entry.name == "CDS" || entry.name == "start_codon" || entry.name == "stop_codon")
         ).toList
       case None => List()
     }
