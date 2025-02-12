@@ -58,13 +58,13 @@ object VariantTypeAnnotation {
 
     // Determine variant type
     if (refProtein.length == altProtein.length && refProtein != altProtein) return VariantType.SNP
-    if (refProtein.length > altProtein.length) return VariantType.DEL
-    if (refProtein.length < altProtein.length) return VariantType.INS
-    if (refProtein != altProtein) return VariantType.INDEL
-    if (isDuplication(refProtein, altProtein)) return VariantType.DUP
-    if (isRepeatedSequence(refProtein, altProtein)) return VariantType.RPT
-    if (isFrameshift(refAllele, altAllele, cdsSequence, variantOffset)) return VariantType.FS
-    if (isExtension(refProtein, altProtein)) return VariantType.EXT
+    else if (isDuplication(refProtein, altProtein)) return VariantType.DUP
+    else if (isRepeatedSequence(refProtein, altProtein)) return VariantType.RPT
+    else if (isFrameshift(refAllele, altAllele)) return VariantType.FS
+    else if (isExtension(refProtein, altProtein)) return VariantType.EXT
+    else if (refProtein.length > altProtein.length) return VariantType.DEL
+    else if (refProtein.length < altProtein.length) return VariantType.INS
+    else if (refProtein != altProtein) return VariantType.INDEL
 
     VariantType.Other
   }
@@ -94,6 +94,7 @@ object VariantTypeAnnotation {
    * @return Boolean indicating whether the variant is a repeated sequence.
    */
   def isRepeatedSequence(ref: String, alt: String): Boolean = {
+    // If either sequence is empty, or if the alternate sequence is shorter than the reference, it's not a repeat
     if (ref.isEmpty || alt.isEmpty || alt.length < ref.length) {
       return false
     }
@@ -103,15 +104,21 @@ object VariantTypeAnnotation {
       return false
     }
 
-    // Check if the remaining sequence is composed of a repeat unit
+    // Extract the remaining part of the alternate sequence after the reference part
     val remaining = alt.substring(ref.length)
+    
+    val minRepeatLength = 2 
 
-    // Try all possible substrings of the reference as potential repeat units
-    (1 to ref.length).exists { unitLength =>
-      val repeatUnit = ref.substring(0, unitLength)
+    // Check if the remaining sequence can be divided into multiple repeating units of a given length
+    (minRepeatLength to remaining.length / 2).exists { unitLength =>
+      // Extract the potential repeat unit
+      val repeatUnit = remaining.substring(0, unitLength)
+
+      // Ensure that the remaining sequence is composed of this repeat unit
       remaining.grouped(unitLength).forall(_ == repeatUnit)
     }
   }
+
 
   /**
    * Calculates the end position of a genetic variant based on its type.
@@ -134,25 +141,11 @@ object VariantTypeAnnotation {
     }
   }
 
-  private def isFrameshift(refAllele: String, altAllele: String, cdsSequence: String, variantOffset: Int): Boolean = {
-    val lengthDifference = altAllele.length - refAllele.length
-
-    // Check if the length difference is not divisible by 3, indicating a frameshift
-    if (lengthDifference % 3 != 0) {
-      return true
-    }
-
-    // Replace the reference allele with the alternate allele in the sequence
-    val refSeq = cdsSequence.take(variantOffset) + cdsSequence.drop(variantOffset + refAllele.length)
-    val refModifiedSeq = refSeq.take(variantOffset) + altAllele + refSeq.drop(variantOffset)
-
-    // Translate and compare protein sequences
-    val refProtein = CodonAmino.translateDnaToProtein(refSeq)
-    val altProtein = CodonAmino.translateDnaToProtein(refModifiedSeq)
-
-    // If the protein sequences are different, a frameshift has occurred
-    refProtein != altProtein
+  private def isFrameshift(refAllele: String, altAllele: String): Boolean = {
+    // Frameshift occurs when the length difference is NOT a multiple of 3
+    (altAllele.length - refAllele.length) % 3 != 0
   }
+
 
   private def isExtension(refProtein: String, altProtein: String): Boolean = {
     // Check for C-terminal extension

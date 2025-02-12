@@ -1,7 +1,7 @@
 package hgvs
 
 import anotation.VariantTypeAnnotation.getProteinSequence
-import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP, FS}
+import data.VariantType.{DEL, DUP, EXT, FS, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
 import files.FastaReader
 
@@ -25,9 +25,9 @@ object HGVSp {
       case DEL => handleDEL(aaIndex, variant, refProtein, strandPlus)
       case INS => handleINS(aaIndex, variant, refProtein, altProtein, strandPlus)
       case INDEL => handleINDEL(aaIndex, variant, refProtein, altProtein, strandPlus)
-      case RPT => ("", "")
+      case RPT => handleRPT(aaIndex, refProtein, altProtein)
       case DUP => handleDUP(aaIndex, variant, refProtein, altProtein, strandPlus)
-      // CASE EXT, FS
+      case EXT => handleExtension(aaIndex, variant, refProtein, altProtein, strandPlus)
       case FS  => handleFS(aaIndex, refProtein, altProtein, cdsSeqLen)
       case _ => ("", "")
     }
@@ -49,16 +49,18 @@ object HGVSp {
    * @return A tuple with the HGVS substitution notation and the alternate amino acid (or "Ter" if a stop codon is present).
    */
   def handleSNP(aaIndex: Int, refProtein: String, altProtein: String): (String, String) = {
-    if (aaIndex < refProtein.length / 3 && aaIndex < altProtein.length / 3) {
-      val refAA = refProtein.substring(aaIndex * 3, aaIndex * 3 + 3)
-      val altAA = altProtein.substring(aaIndex * 3, aaIndex * 3 + 3) match {
-        case "*" => "Ter"
+    val refAAList = refProtein.grouped(3).toList
+    val altAAList = altProtein.grouped(3).toList
+    if (aaIndex < refAAList.length && aaIndex < altAAList.length) {
+      val refAA = refAAList(aaIndex)
+      val altAA = altAAList(aaIndex) match {
         case aa => aa
       }
+
       val pos = s"$refAA${aaIndex + 1}"
       (pos, altAA)
     } else {
-      ("", "")
+      ("?", "?")
     }
   }
 
@@ -267,7 +269,7 @@ object HGVSp {
     }.map(remaining.substring(0, _)).getOrElse("")
 
     if (repeatUnit.isEmpty) {
-      return ("", "")
+      return ("?", "?")
     }
 
     val totalRepeatCount = altProtein.length / repeatUnit.length
@@ -313,23 +315,23 @@ object HGVSp {
         // C-terminal extension
         if (altProtein.startsWith(refProtein)) {
           val endAA = refProtein.substring(refProtein.length - 3, refProtein.length)
-          return (s"Ter${aaIndex + 1}${endAA.capitalize}extTer$extensionLength", "")
+          return (s"Ter${aaIndex + 1}${endAA}extTer", s"$extensionLength")
         }
 
         // N-terminal extension
         if (altProtein.endsWith(refProtein)) {
-          return (s"Met1ext-$extensionLength", "")
+          return ("Met1ext", s"-$extensionLength")
         }
       } else {
         // C-terminal extension on the minus strand
         if (altProtein.startsWith(refProtein)) {
           val endAA = refProtein.substring(refProtein.length - 3, refProtein.length)
-          return (s"Ter${aaIndex + 1}${endAA.capitalize}extTer$extensionLength", "")
+          return (s"Ter${aaIndex + 1}${endAA}extTer", s"$extensionLength")
         }
 
         // N-terminal extension on the minus strand
         if (altProtein.endsWith(refProtein)) {
-          return (s"Met1ext-$extensionLength", "")
+          return (s"Met1ext", s"-$extensionLength")
         }
       }
     }
@@ -341,7 +343,7 @@ object HGVSp {
    * GENERATES PART AFTER COORDINATE p.
    *
    * Syntax for frameshift with known stop codon position:
-   * sequence_identifier ":p." aa_position "fs" [ "Ter" position ]
+   * sequence_identifier ":p." aa_position "fsTer" position
    * Example: NP_0123456.1:p.Arg97ProfsTer23
    *
    * @param aaIndex           Index of the amino acid where the frameshift occurs in the alternate protein.
@@ -352,6 +354,7 @@ object HGVSp {
    */
   def handleFS(aaIndex: Int, refProtein: String, altProtein: String, cdsSequenceLength: Int): (String, String) = {
     val startAA = altProtein.substring(aaIndex * 3, aaIndex * 3 + 3)
-    (s"$startAA${aaIndex + 1}fsTer${cdsSequenceLength / 3}", "")
+    //println("In frameshift")
+    (s"$startAA${aaIndex + 1}", s"${cdsSequenceLength / 3}")
   }
 }

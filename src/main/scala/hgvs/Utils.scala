@@ -1,6 +1,6 @@
 package hgvs
 
-import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP}
+import data.VariantType.{DEL, DUP, EXT, FS, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
 import files.GFFReader
 object Utils {
@@ -76,6 +76,7 @@ object Utils {
       case INDEL => "delins"
       case Other => "="
       // ext, fs
+      case FS => "fsTer"
       case _ => ""
     }
   }

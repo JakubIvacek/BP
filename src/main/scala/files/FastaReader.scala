@@ -9,7 +9,7 @@ import scala.io.Source
  */
 object FastaReader {
   // File paths to reference genome FASTA files
-  val faHg38 = "reference/hg38/hg38.fa" // Path to the hg38 reference genome
+  val faHg38 = "reference/hg38/GRCh38.primary_assembly.genome.fa" // Path to the hg38 reference genome
   val faT2T = "reference/t2t/chm13v2.0.fa" // Path to the T2T reference genome
 
   // Cache to store loaded sequences for faster access
@@ -38,7 +38,7 @@ object FastaReader {
           if (currentContig.nonEmpty) {
             fastaCache(currentContig) = sequenceBuffer.toString
           }
-          currentContig = line
+          currentContig = line.split(" ")(0)
           sequenceBuffer.clear()
         } else {
           sequenceBuffer.append(line.trim)

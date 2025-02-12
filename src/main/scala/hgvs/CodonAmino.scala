@@ -9,8 +9,8 @@ object CodonAmino {
   /**
    * A map that associates each possible codon to its amino acid.
    * - Keys are 3-letter codons (e.g., "ATA", "ATC", "TTT", etc.).
-   * - Values are the amino acid abbreviations (e.g., "I" for Isoleucine, "M" for Methionine, "* "for Stop codon, etc.).
-   * Map contains all the standard 64 codons, including the stop codons (TAA, TAG, TGA) represented by "*".
+   * - Values are the amino acid abbreviations
+   * Map contains all the standard 64 codons, including the stop codons (TAA, TAG, TGA) represented by "Ter".
    */
   val codonToAminoAcid: Map[String, String] = Map(
     "ATA" -> "Ile", "ATC" -> "Ile", "ATT" -> "Ile", "ATG" -> "Met",
@@ -27,8 +27,8 @@ object CodonAmino {
     "GGA" -> "Gly", "GGC" -> "Gly", "GGG" -> "Gly", "GGT" -> "Gly",
     "TCA" -> "Ser", "TCC" -> "Ser", "TCG" -> "Ser", "TCT" -> "Ser",
     "TTC" -> "Phe", "TTT" -> "Phe", "TTA" -> "Leu", "TTG" -> "Leu",
-    "TAC" -> "Tyr", "TAT" -> "Tyr", "TAA" -> "Stop", "TAG" -> "Stop",
-    "TGC" -> "Cys", "TGT" -> "Cys", "TGA" -> "Stop", "TGG" -> "Trp",
+    "TAC" -> "Tyr", "TAT" -> "Tyr", "TAA" -> "Ter", "TAG" -> "Ter",
+    "TGC" -> "Cys", "TGT" -> "Cys", "TGA" -> "Ter", "TGG" -> "Trp",
     "CTA" -> "Leu", "CTC" -> "Leu", "CTG" -> "Leu", "CTT" -> "Leu"
   )
 

@@ -240,6 +240,43 @@ object ServiceModules {
   }
 
   /**
+   * Get the path of the gencode module reference file by version
+   *
+   * @param versionReference Module genome reference version (e.g., hg38, t2t).
+   * @return Option[String] Path to the newest gencode module or None if not found.
+   */
+  def getReferenceFilePathGenCode(versionReference: String): Option[String] = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      // Retrieve all gencode modules with the specified versionReference
+      val modules = RepositoryModules.findByNameAndReference(connection, "gencode", versionReference)
+      
+      val module = modules.headOption
+      module match {
+        case Some(module) =>
+          module.locationPath match {
+            case Some(path) => {
+              val fileName = if versionReference == "hg38" then "GRCh38.primary_assembly.genome.fa.gz" else if (versionReference == "t2t") then "chm13v2.0.fa" else ""
+              println(s"Reference file path : $path/$fileName")
+              Some(path + "/" + fileName)
+            }
+            case None =>
+              println(s"Module found but locationPath is not set.")
+              None
+          }
+        case None =>
+          println(s"No modules found for gencode with versionReference '$versionReference'.")
+          None
+      }
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while retrieving gencode module: ${e.getMessage}")
+        None
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+  /**
    * Get the version of newest module
    *
    * @param moduleName Module name
@@ -261,6 +298,24 @@ object ServiceModules {
       DatabaseConnection.closeConnection()
     }
   }
+
+  def getUnitProtPath(): Option[String] = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      // Retrieve all unitprot modules
+      val modules = RepositoryModules.findByName(connection, "unitprot")
+
+      // Return the path if any modules are found
+      modules.headOption.flatMap(_.locationPath)
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while retrieving the newest unitprot module: ${e.getMessage}")
+        None
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+
   /**
    * Create tables to create table for Modules
    */

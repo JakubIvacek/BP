@@ -25,7 +25,9 @@ object HGVS {
 
     // Protein LEVEL: Mapped to CDS
     // Check if the variant is mapped to a CDS region
-    val cdsEntryOpt = entries.find(entry => entry.name == "CDS" && entry.contig == variant.contig)
+    val cdsEntryOpt = entries.find(entry =>
+      entry.attributes.contains("protein_id") && entry.attributes.get("gene_type").contains("protein_coding")
+    )
     cdsEntryOpt match {
       case Some(cdsEntry) => HGVSProtein(variant, entries, cdsEntry)
       case None =>
@@ -65,7 +67,8 @@ object HGVS {
     val seq = HGVSDnaRna.getSeq(variant, transcript.strandPlus)
     val pos = HGVSDnaRna.getTranscriptPosition(variant, entries.find(_.name == "exon"), transId, transcript.strandPlus)
     val pastPosPart = Utils.getPastPositionPart(variant.varType)
-    val coordinateType = if (entries.exists(entry => entry.name == "CDS")) "c" else "n"
+    val coordinateType = if (entries.exists(entry => 
+      entry.attributes.contains("protein_id") && entry.attributes.get("gene_type").contains("protein_coding"))) "c" else "n"
 
     val hgvs = if variant.varType == SNP then s"${geneId}($transId):$coordinateType.${pos}$pastPosPart$seq"
     else s"${transId}:$coordinateType.${pos}$pastPosPart$seq"
@@ -113,8 +116,12 @@ object HGVS {
     val refProtein = getProteinSequence(cdsSequence, variant.refAllele, variantOffset)
     val altProtein = getProteinSequence(cdsSequence, variant.altAllele, variantOffset)
 
-    val pos, altAA = HGVSp.returnProteinHGVS(variant, refProtein, altProtein, variantOffset, cdsEntry.strandPlus, cdsSequence.length)
-    val hgvs = s"$proteinId:p.$pos$pastPosPart$altAA"
+    val (pos, altAA) = HGVSp.returnProteinHGVS(variant, refProtein, altProtein, variantOffset, cdsEntry.strandPlus, cdsSequence.length)
+    val hgvs = if (pos.nonEmpty && altAA.nonEmpty) {
+      s"$proteinId:p.$pos$pastPosPart$altAA"
+    } else {
+      s"$proteinId:p.?" // Add "?" if pos or altAA coudlnt be calculated
+    }
     variant.HGVSProtein = hgvs
 
   }

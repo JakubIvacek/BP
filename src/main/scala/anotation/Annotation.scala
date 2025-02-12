@@ -24,9 +24,9 @@ object Annotation {
   def annotate(inputFile: String, outputFile: String, referenceGenome: String): Unit = {
     // Read the VCF file and extract DNA variants
     val dnaVariants: ListBuffer[DnaVariant] = FileReaderVcf.read(inputFile)
-
-    //val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
+    
     // Load the GFF3 file containing Gencode annotations if not already loaded.
+    //val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
     if (!GFFReader.isLoaded) GFFReader.preloadGff3File("gencode.v47.annotation.gff3")
 
     // Annotate the variants
@@ -82,7 +82,9 @@ object Annotation {
     //set var type
     variant.varType = VariantTypeAnnotation.returnVariantTypeDnaRna(variant.refAllele, variant.altAllele)
     // Check if the variant is mapped to a CDS region
-    val cdsEntryOpt = overlappingEntries.find(entry => entry.name == "CDS")
+    val cdsEntryOpt = overlappingEntries.find(entry =>
+      entry.attributes.contains("protein_id") && entry.attributes.get("gene_type").contains("protein_coding")
+    )
     if (cdsEntryOpt.isDefined) {
       // If the variant is within a CDS, perform protein-level annotation
       val cdsEntry = cdsEntryOpt.get

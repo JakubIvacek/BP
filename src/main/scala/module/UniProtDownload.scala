@@ -1,0 +1,43 @@
+package module
+
+import database.modules.ServiceModules
+import ftp.FtpClient
+import java.nio.file.{Files, Paths}
+
+object UniProtDownload {
+  val server = "ftp.uniprot.org"
+  val directory = "/pub/databases/uniprot/knowledgebase/complete/"
+  val fileName = "uniprot_sprot.dat.gz"
+
+  def download(localPath: String) : Unit = {
+    if getPath().isEmpty then {
+      val finalLocalPath = if localPath == "" then s"uniprot" else s"$localPath/uniprot"
+      FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)
+      ServiceModules.addModuleToDatabase("uniprot", "1", finalLocalPath, s"$server$directory", false, "")
+      // Process the downloaded file
+      val inputFilePath = s"$finalLocalPath/$fileName"
+      val outputFilePath = s"$finalLocalPath/uniprot_pdb_mappings.txt"
+
+      if (Files.exists(Paths.get(inputFilePath))) {
+        utils.ExtractPDB.extractPdbMappings(inputFilePath, outputFilePath)
+      } else {
+        println(s"Downloaded file not found at $inputFilePath.")
+      }
+    } else {
+      println("Already installed.")
+    }
+  }
+
+
+  def getPath(): String = {
+    val path = ServiceModules.getUnitProtPath()
+    path match {
+      case Some(path) => path
+      case None => ""
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+    //download("BP/")
+  }
+}

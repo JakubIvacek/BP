@@ -1,7 +1,8 @@
 package commandLine
 
-import java.io.PrintWriter
+import anotation.Annotation
 
+import java.io.PrintWriter
 import module.GenCodeModule
 import org.rogach.scallop.*
 
@@ -9,7 +10,7 @@ import org.rogach.scallop.*
 // sbt "run -d gencode -p /path/save" -v 43  (optional path if saves to .log file) DOWNLOAD VERSION
 // sbt "run -r 1"                                   REMOVE ID
 // sbt "run -i gencode"                             PRINT INFO
-// sbt "run -f filename -rv version -p /path/save"   ANNOTATION not connceted yet
+// sbt "run -f filename -rv version -op /output/path"   ANNOTATION not connceted yet
 // sbt "run -h"                                     HELP
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
@@ -21,7 +22,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val filename = opt[String]("f", required = false, descr = "Filename for annotation (Lynch.vcf)")
   val referenceVersion = opt[String]("rv", required = false, descr = "Reference version for annotation (hg38, t2t)")
   val path = opt[String]("p", required = false, descr = "File path for download (/path/dir) (optional path saves to .log file)")
-
+  val outPath = opt[String]("op", required = false, descr = "File path for output (/path/file_name.maf)")
   // Call verify after defining all options
   verify()
 }
@@ -78,10 +79,15 @@ object Main {
         printInformation(conf.info())
       }
       // sbt run -f filename -rv referenceVersion -p path
-      if (conf.filename.isDefined && conf.referenceVersion.isDefined && conf.path.isDefined) {
+      if (conf.filename.isDefined && conf.referenceVersion.isDefined && conf.outPath.isDefined) {
         val file = conf.filename()
         val version = conf.referenceVersion()
-        println(s"Annotate with file: $file and reference version: $version path to save: ${conf.path()}")
+        val outPath = conf.outPath()
+        if (version != "hg38" || version != "t2t") println("Enter referenceVersion : hg38 or t2t")
+        else{
+          Annotation.annotate(file,  outPath, version)
+          println(s"Annotate with file: $file and reference version: $version out path: ${outPath}")
+        }
       }
     }
   }
