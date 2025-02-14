@@ -106,9 +106,9 @@ object HGVS {
     val proteinId = cdsEntry.attributes("protein_id")
     val coordinate = "p"
     val pastPosPart = Utils.getPastPositionPart(variant.proteinVarType)
-    //val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
-    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath)
-    val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
+    val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath.getOrElse(""))
+    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
     // Calculate the variant offset within the CDS based on strand orientation
     val variantOffset = if (cdsEntry.strandPlus) {
       (variant.position - cdsEntry.start).toInt

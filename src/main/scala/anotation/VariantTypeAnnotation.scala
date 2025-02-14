@@ -4,6 +4,8 @@ import data.{DnaVariant, GffEntry, VariantType}
 import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf}
 import hgvs.Utils
 import hgvs.CodonAmino
+import database.modules.ServiceModules
+import utils.Gunzip
 
 object VariantTypeAnnotation {
   /**
@@ -41,12 +43,11 @@ object VariantTypeAnnotation {
    * @param cdsEntry  The coding sequence entry.
    * @return The type of the genetic variant at the protein level.
    */
-  def returnVariantTypeProtein(variant: DnaVariant, refAllele: String, altAllele: String, cdsEntry: GffEntry): VariantType = {
-    //val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
-    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath)
+  def returnVariantTypeProtein(variant: DnaVariant, refAllele: String, altAllele: String, cdsEntry: GffEntry, faPath: String): VariantType = {
+    val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath)
     
     // Get the coding sequence (CDS) from the genome
-    val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
 
     // Calculate variant offset within the CDS
     val variantOffset = if (cdsEntry.strandPlus) {

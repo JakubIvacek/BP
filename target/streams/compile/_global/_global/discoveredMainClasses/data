@@ -1,1 +1,1 @@
-["commandLine.Main"]
+["anotation.AnnotateMainTest","commandLine.Main","module.UniProtDownload"]

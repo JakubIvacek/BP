@@ -4,6 +4,7 @@ import data.VariantType.Other
 import data.{DnaVariant, GffEntry, VariantType}
 import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf}
 import hgvs.HGVS
+import utils.Gunzip
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -26,14 +27,22 @@ object Annotation {
     val dnaVariants: ListBuffer[DnaVariant] = FileReaderVcf.read(inputFile)
     
     // Load the GFF3 file containing Gencode annotations if not already loaded.
-    //val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
-    if (!GFFReader.isLoaded) GFFReader.preloadGff3File("gencode.v47.annotation.gff3")
-
+    val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
+    val finalPath = path.getOrElse("")
+    Gunzip.unzipFile(finalPath)
+    val unzipedFile = finalPath.stripSuffix(".gz")
+    if (!GFFReader.isLoaded) GFFReader.preloadGff3File(unzipedFile)
+    //if (!GFFReader.isLoaded) GFFReader.preloadGff3File("gencode.v47.annotation.gff3")
+    val faPath = database.modules.ServiceModules.getReferenceFilePathGenCode(referenceGenome).getOrElse("")
+    Gunzip.unzipFile(faPath)
+    val faUnzipped = faPath.stripSuffix(".gz")
     // Annotate the variants
-    annotateVariants(dnaVariants.toList, referenceGenome)
+    annotateVariants(dnaVariants.toList, referenceGenome, faUnzipped)
 
     // Write the annotated variants to MAF file.
     WriteToMaf.writeMafFile(dnaVariants, outputFile)
+    Gunzip.zipFile(unzipedFile)
+    Gunzip.zipFile(faUnzipped)
   }
 
   /**
@@ -42,9 +51,9 @@ object Annotation {
    * @param dnaVariants     A list of DNA variants to annotate.
    * @param referenceGenome The reference genome to use for annotation (e.g., "hg38").
    */
-  def annotateVariants(dnaVariants: List[DnaVariant], referenceGenome: String): Unit = {
+  def annotateVariants(dnaVariants: List[DnaVariant], referenceGenome: String, faPath: String): Unit = {
     dnaVariants.foreach(variant =>
-      annotateVariantGencode(variant, referenceGenome)
+      annotateVariantGencode(variant, referenceGenome, faPath)
       //here can be added annotateVariantGnomAD ...
     )
   }
@@ -55,7 +64,7 @@ object Annotation {
    * @param variant         The DNA variant to annotate.
    * @param referenceGenome The reference genome to use for annotation.
    */
-  def annotateVariantGencode(variant: DnaVariant, referenceGenome: String): Unit = {
+  def annotateVariantGencode(variant: DnaVariant, referenceGenome: String, faPath: String): Unit = {
 
     val intervalTree = GFFReader.getIntervalTree(variant.contig)
 
@@ -88,7 +97,7 @@ object Annotation {
     if (cdsEntryOpt.isDefined) {
       // If the variant is within a CDS, perform protein-level annotation
       val cdsEntry = cdsEntryOpt.get
-      variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, cdsEntry)
+      variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, cdsEntry, faPath)
     }
     variant.positionEnd = VariantTypeAnnotation.calculateEndPosition(variant)
     HGVS.variantAddHGVS(variant, overlappingEntries)

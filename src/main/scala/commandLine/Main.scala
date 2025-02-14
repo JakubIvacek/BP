@@ -20,9 +20,9 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val info = opt[String]("i", required = false, descr = "Print info module name (genocde, gnomad ...)")
   val help = opt[Boolean]("h", noshort = true, descr = "Show help message")
   val filename = opt[String]("f", required = false, descr = "Filename for annotation (Lynch.vcf)")
-  val referenceVersion = opt[String]("rv", required = false, descr = "Reference version for annotation (hg38, t2t)")
+  val referenceVersion = opt[String]("a", required = false, descr = "Reference version for annotation (hg38, t2t)")
   val path = opt[String]("p", required = false, descr = "File path for download (/path/dir) (optional path saves to .log file)")
-  val outPath = opt[String]("op", required = false, descr = "File path for output (/path/file_name.maf)")
+  val outPath = opt[String]("o", required = false, descr = "File path for output (/path/file_name.maf)")
   // Call verify after defining all options
   verify()
 }
@@ -78,15 +78,15 @@ object Main {
         println(s"Print: ${conf.info()}")
         printInformation(conf.info())
       }
-      // sbt run -f filename -rv referenceVersion -p path
+      // sbt run -f filename -a referenceVersion -o path
       if (conf.filename.isDefined && conf.referenceVersion.isDefined && conf.outPath.isDefined) {
         val file = conf.filename()
         val version = conf.referenceVersion()
         val outPath = conf.outPath()
-        if (version != "hg38" || version != "t2t") println("Enter referenceVersion : hg38 or t2t")
+        if (version != "hg38" && version != "t2t") println("Enter referenceVersion : hg38 or t2t")
         else{
-          Annotation.annotate(file,  outPath, version)
           println(s"Annotate with file: $file and reference version: $version out path: ${outPath}")
+          Annotation.annotate(file,  outPath, version)
         }
       }
     }

@@ -22,34 +22,34 @@ object GFFReader {
     val source = Source.fromFile(filename)
     val contigTrees = scala.collection.mutable.Map[String, IntervalTree]()
 
-    source.getLines()
-      .filterNot(_.startsWith("#"))
-      .flatMap { line =>
-        val fields = line.split("\t")
-        if (fields.length < 9) None
-        else {
-          val contig = fields(0)
-          val start = Try(fields(3).toInt).getOrElse(0)
-          val end = Try(fields(4).toInt).getOrElse(0)
-          val name = fields(2)
-          val strandPlus = if fields(6) == "+" then true else false
-          val attributes = fields(8).split(";").map { attr =>
-            val keyValue = attr.split("=")
-            if (keyValue.length == 2) keyValue(0) -> keyValue(1) else keyValue(0) -> ""
-          }.toMap
+    try {
+      for (line <- source.getLines()) {
+        if (!line.startsWith("#")) {
+          val fields = line.split("\t", -1) // -1 keeps empty values
+          if (fields.length >= 9) {
+            val contig = fields(0)
+            val start = Try(fields(3).toInt).getOrElse(0)
+            val end = Try(fields(4).toInt).getOrElse(0)
+            val name = fields(2)
+            val strandPlus = fields(6) == "+"
+            val attributes = fields(8).split(";").map { attr =>
+              val keyValue = attr.split("=")
+              keyValue.head -> keyValue.lift(1).getOrElse("")
+            }.toMap
 
-          Some(contig, GffEntry(contig, start, end, strandPlus, name, attributes))
+            // Insert directly into tree without buffering in a list
+            val tree = contigTrees.getOrElseUpdate(contig, new IntervalTree())
+            tree.insert(GffEntry(contig, start, end, strandPlus, name, attributes))
+          }
         }
       }
-      .foreach { case (contig, entry) =>
-        val tree = contigTrees.getOrElseUpdate(contig, new IntervalTree())
-        tree.insert(entry)
-      }
-
-    intervalTrees = contigTrees.toMap
-    isLoaded = true
-    source.close()
+      intervalTrees = contigTrees.toMap
+      isLoaded = true
+    } finally {
+      source.close() // Ensure resource is closed
+    }
   }
+
 
   /**
    * Retrieve the `IntervalTree` for a specific contig.
