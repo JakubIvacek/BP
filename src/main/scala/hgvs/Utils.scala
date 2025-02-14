@@ -76,7 +76,7 @@ object Utils {
       case INDEL => "delins"
       case Other => "="
       // ext, fs
-      case FS => "fsTer"
+      case FS => "fs"
       case _ => ""
     }
   }

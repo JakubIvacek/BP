@@ -42,6 +42,9 @@ object VariantTypeAnnotation {
    * @return The type of the genetic variant at the protein level.
    */
   def returnVariantTypeProtein(variant: DnaVariant, refAllele: String, altAllele: String, cdsEntry: GffEntry): VariantType = {
+    //val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
+    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath)
+    
     // Get the coding sequence (CDS) from the genome
     val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
 

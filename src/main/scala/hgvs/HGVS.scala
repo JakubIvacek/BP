@@ -2,6 +2,7 @@ package hgvs
 import anotation.VariantTypeAnnotation.getProteinSequence
 import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
+import database.modules.ServiceModules
 import files.FastaReader
 
 object HGVS {
@@ -105,7 +106,8 @@ object HGVS {
     val proteinId = cdsEntry.attributes("protein_id")
     val coordinate = "p"
     val pastPosPart = Utils.getPastPositionPart(variant.proteinVarType)
-
+    //val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
+    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath)
     val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
     // Calculate the variant offset within the CDS based on strand orientation
     val variantOffset = if (cdsEntry.strandPlus) {
@@ -119,8 +121,10 @@ object HGVS {
     val (pos, altAA) = HGVSp.returnProteinHGVS(variant, refProtein, altProtein, variantOffset, cdsEntry.strandPlus, cdsSequence.length)
     val hgvs = if (pos.nonEmpty && altAA.nonEmpty) {
       s"$proteinId:p.$pos$pastPosPart$altAA"
+    } else if (variant.proteinVarType == Other) {
+      "."
     } else {
-      s"$proteinId:p.?" // Add "?" if pos or altAA coudlnt be calculated
+      s"$proteinId:p.?" // ? if pos or altAA cant be calculated
     }
     variant.HGVSProtein = hgvs
 

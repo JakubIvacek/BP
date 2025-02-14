@@ -89,14 +89,11 @@ object HGVSp {
       (pos, "")
     } else if (delLength > 1) {
       // Range deletion
-      val (startIndex, endIndex) = if (strandPlus) {
-        (aaIndex, aaIndex + delLength - 1)
-      } else {
-        (aaIndex - delLength + 1, aaIndex)
-      }
+      val startIndex = Math.max(0, if (strandPlus) aaIndex else aaIndex - delLength + 1)
+      val endIndex = Math.min(refProtein.length / 3 - 1, if (strandPlus) aaIndex + delLength - 1 else aaIndex)
       if (startIndex >= 0 && endIndex < refProtein.length / 3) {
-        val startAA = refProtein.substring(startIndex * 3, startIndex * 3 + 3)
-        val endAA = refProtein.substring(endIndex * 3, endIndex * 3 + 3)
+        val startAA = refProtein.slice(startIndex * 3, startIndex * 3 + 3)
+        val endAA = refProtein.slice(endIndex * 3, endIndex * 3 + 3)
         val pos = s"$startAA${startIndex + 1}_${endAA}${endIndex + 1}"
         (pos, "")
       } else {
@@ -127,24 +124,11 @@ object HGVSp {
     val insLength = (variant.altAllele.length - variant.refAllele.length) / 3
     if (insLength > 0 && aaIndex < refProtein.length / 3) {
       // Define the start and end adjacent residues
-      val leftAA = refProtein.substring(aaIndex * 3, aaIndex * 3 + 3)
-      val rightAA = if (strandPlus) {
-        // Forward strand: next amino acid to the right
-        if ((aaIndex + 1) * 3 < refProtein.length)
-          refProtein.substring((aaIndex + 1) * 3, (aaIndex + 1) * 3 + 3)
-        else
-          ""
-      } else {
-        // Reverse strand: previous amino acid to the left
-        if ((aaIndex - 1) >= 0)
-          refProtein.substring((aaIndex - 1) * 3, (aaIndex - 1) * 3 + 3)
-        else
-          ""
-      }
+      val leftAA = refProtein.slice(aaIndex * 3, aaIndex * 3 + 3)
+      val rightAA = refProtein.slice((aaIndex + 1) * 3, (aaIndex + 1) * 3 + 3)
 
-      val insertedSeq = altProtein.substring(aaIndex * 3 + 3, aaIndex * 3 + 3 + insLength * 3)
-      val pos = if (strandPlus) s"$leftAA${aaIndex + 1}_$rightAA${aaIndex + 2}"
-      else s"$rightAA${aaIndex}_$leftAA${aaIndex + 1}"
+      val insertedSeq = altProtein.slice(aaIndex * 3 + 3, aaIndex * 3 + 3 + insLength * 3)
+      val pos = s"$leftAA${aaIndex + 1}_$rightAA${aaIndex + 2}"
       (pos, s"$insertedSeq")
     } else {
       ("", "")
@@ -190,12 +174,12 @@ object HGVSp {
       else
         ""
 
-      val insertedSeq = altProtein.substring(aaIndex * 3, aaIndex * 3 + insLength * 3)
+      val insertedSeq = altProtein.slice(aaIndex * 3, aaIndex * 3 + insLength * 3)
 
       val pos = if (delLength == 1) {
         s"$startAA${startIndex + 1}"
       } else {
-        s"$startAA${startIndex + 1}_${endAA}${endIndex + 1}"
+        s"$startAA${startIndex + 1}_$endAA${endIndex + 1}"
       }
 
       (pos, s"delins$insertedSeq")
@@ -228,16 +212,13 @@ object HGVSp {
       val startAA = refProtein.substring(aaIndex * 3, aaIndex * 3 + 3)
       val pos = s"$startAA${aaIndex + 1}"
 
-      // we need to extract the entire duplicated sequence from altProtein
-      val duplicatedSeq = altProtein.substring(aaIndex * 3, aaIndex * 3 + insLength * 3)
-
       // If the duplication involves a range
       val endIndex = aaIndex + insLength - 1
       if (endIndex > aaIndex) {
         val endAA = refProtein.substring(endIndex * 3, endIndex * 3 + 3)
-        (s"$startAA${aaIndex + 1}_${endAA}${endIndex + 1}", s"$duplicatedSeq")
+        (s"$startAA${aaIndex + 1}_${endAA}${endIndex + 1}", "")
       } else {
-        (pos, s"$duplicatedSeq")
+        (pos, "")
       }
     } else {
       ("", "")
@@ -353,8 +334,17 @@ object HGVSp {
    * @return A tuple with the HGVS frameshift notation and any additional sequence information.
    */
   def handleFS(aaIndex: Int, refProtein: String, altProtein: String, cdsSequenceLength: Int): (String, String) = {
-    val startAA = altProtein.substring(aaIndex * 3, aaIndex * 3 + 3)
-    //println("In frameshift")
-    (s"$startAA${aaIndex + 1}", s"${cdsSequenceLength / 3}")
+    val refAA = refProtein.substring(aaIndex * 3, aaIndex * 3 + 3)
+    val affectedPos = aaIndex + 1
+
+    // Find stop codon (Ter position)
+    val remainingAAs = altProtein.drop(aaIndex * 3).grouped(3).toList
+    val stopIndex = remainingAAs.indexWhere(_ == "Ter")
+    // Determine stop position if found
+    val stopPosition: Option[Int] = if (stopIndex >= 0) Some(affectedPos + stopIndex) else None
+    stopPosition match {
+      case Some(pos) => (s"$refAA$affectedPos", s"Ter$pos")
+      case None => (s"$refAA$affectedPos", "")
+    }
   }
 }

@@ -23,9 +23,11 @@ object FastaReader {
    * @param NCBIBuild The name of the genome build to load (e.g., "hg38" or "t2t").
    *                  If the requested genome build is already loaded, it skips reloading.
    */
+  //def loadSequence(NCBIBuild: String, faPath: String): Unit = {
   def loadSequence(NCBIBuild: String): Unit = {
     // Only load if cache is empty
     if (NCBILoaded != NCBIBuild) {
+      //val fastaFile = faPath
       val fastaFile = if (NCBIBuild == "hg38") faHg38 else faT2T
       val fastaLines = Source.fromFile(fastaFile).getLines()
       NCBILoaded = NCBIBuild
@@ -62,6 +64,7 @@ object FastaReader {
    * @return The extracted sequence as a string.
    * @throws IllegalArgumentException if the specified contig is not found in the FASTA file.
    */
+  //def getSequence(NCBIBuild: String, contig: String, start: Int, end: Int, strandPlus: Boolean, faPath: String): String = {
   def getSequence(NCBIBuild: String, contig: String, start: Int, end: Int, strandPlus: Boolean): String = {
     // Load the sequence file if the cache is empty
     loadSequence(NCBIBuild)
