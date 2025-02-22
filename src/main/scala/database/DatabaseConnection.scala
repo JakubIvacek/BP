@@ -14,6 +14,7 @@ object DatabaseConnection {
       connection = DriverManager.getConnection(url)
       //println("Connection to SQLite database established: " + url)
     }
+    modules.TableModules.createTableModules(connection)
     connection
   }
 

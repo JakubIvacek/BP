@@ -303,8 +303,7 @@ object ServiceModules {
     val connection = DatabaseConnection.getConnection
     try {
       // Retrieve all unitprot modules
-      val modules = RepositoryModules.findByName(connection, "unitprot")
-
+      val modules = RepositoryModules.findByName(connection, "uniprot")
       // Return the path if any modules are found
       modules.headOption.flatMap(_.locationPath)
     } catch {

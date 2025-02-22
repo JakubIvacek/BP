@@ -58,7 +58,8 @@ case class DnaVariant(
                   var level: String,
                   var HGVSDNA: String,
                   var HGVSRNA: String,
-                  var HGVSProtein: String
+                  var HGVSProtein: String,
+                  var pdbID: String
                 ){
 }
 
@@ -104,7 +105,8 @@ object DnaVariant{
         HGVSDNA = ".",
         HGVSRNA = ".",
         HGVSProtein = ".",
-        proteinVarType = VariantType.Other
+        proteinVarType = VariantType.Other,
+        pdbID = "."
       )
     }
     // Return the list as an immutable List

@@ -27,7 +27,7 @@ object TableModules {
 
     val statement = connection.createStatement()
     statement.execute(createTableQuery)
-    println("Table modules created successfully!")
+    //println("Table modules created successfully!")
   }
 
   /**

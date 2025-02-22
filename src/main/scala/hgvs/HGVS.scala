@@ -127,6 +127,6 @@ object HGVS {
       s"$proteinId:p.?" // ? if pos or altAA cant be calculated
     }
     variant.HGVSProtein = hgvs
-
+    variant.pdbID = anotation.pdbID.getPdbID(pos)
   }
 }
