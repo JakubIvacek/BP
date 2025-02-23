@@ -2,10 +2,9 @@ package anotation
 
 import data.VariantType.Other
 import data.{DnaVariant, GffEntry, VariantType}
-import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf}
+import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf, GFFReader2}
 import hgvs.HGVS
 import utils.Gunzip
-
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
@@ -27,22 +26,25 @@ object Annotation {
     val dnaVariants: ListBuffer[DnaVariant] = FileReaderVcf.read(inputFile)
     
     // Load the GFF3 file containing Gencode annotations if not already loaded.
-    val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
-    val finalPath = path.getOrElse("")
-    Gunzip.unzipFile(finalPath)
-    val unzipedFile = finalPath.stripSuffix(".gz")
-    if (!GFFReader.isLoaded) GFFReader.preloadGff3File(unzipedFile)
+    //val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
+    //val finalPath = path.getOrElse("")
+    //Gunzip.unzipFile(finalPath)
+    //val unzipedFile = finalPath.stripSuffix(".gz")
+    //if (!GFFReader.isLoaded) GFFReader.preloadGff3File(unzipedFile)
     //if (!GFFReader.isLoaded) GFFReader.preloadGff3File("gencode.v47.annotation.gff3")
-    val faPath = database.modules.ServiceModules.getReferenceFilePathGenCode(referenceGenome).getOrElse("")
-    Gunzip.unzipFile(faPath)
-    val faUnzipped = faPath.stripSuffix(".gz")
+    //val faPath = database.modules.ServiceModules.getReferenceFilePathGenCode(referenceGenome).getOrElse("")
+    //Gunzip.unzipFile(faPath)
+    //val faUnzipped = faPath.stripSuffix(".gz")
     // Annotate the variants
+    val faUnzipped = ""
+    GFFReader2.loadGffFile("gencode.v47.annotation.gff3")
     annotateVariants(dnaVariants.toList, referenceGenome, faUnzipped)
 
     // Write the annotated variants to MAF file.
     WriteToMaf.writeMafFile(dnaVariants, outputFile)
-    Gunzip.zipFile(unzipedFile)
-    Gunzip.zipFile(faUnzipped)
+    GFFReader2.close()
+    //Gunzip.zipFile(unzipedFile)
+    //Gunzip.zipFile(faUnzipped)
   }
 
   /**
@@ -66,40 +68,65 @@ object Annotation {
    */
   def annotateVariantGencode(variant: DnaVariant, referenceGenome: String, faPath: String): Unit = {
 
-    val intervalTree = GFFReader.getIntervalTree(variant.contig)
+    //val intervalTree = GFFReader.getIntervalTree(variant.contig)
 
     // Search for overlapping entries
-    val overlappingEntries: Seq[GffEntry] = {
-      val entries = intervalTree.search(variant.contig, variant.position.toInt)
-      if (entries.nonEmpty) entries
-      else {
-        (intervalTree.findClosestUpstream(variant.contig, variant.position.toInt).toSeq ++
-          intervalTree.findClosestDownstream(variant.contig, variant.position.toInt).toSeq)
+    //val overlappingEntries: Seq[GffEntry] = {
+    //  val entries = intervalTree.search(variant.contig, variant.position.toInt, variant.positionEnd.toInt)
+    //  if (entries.nonEmpty) entries
+    //  else {
+    //    (intervalTree.findClosestUpstream(variant.contig, variant.position.toInt).toSeq ++
+    //      intervalTree.findClosestDownstream(variant.contig, variant.position.toInt).toSeq)
+    //  }
+    //}
+    variant.positionEnd = VariantTypeAnnotation.calculateEndPosition(variant)
+    GFFReader2.ensureVariantInWindow(variant.positionEnd.toInt, variant.contig) //load more if needed
+
+    val overlappingEntries = {
+      val overlaps = GFFReader2.loadedEntries.filter(gene =>
+        gene.contig == variant.contig &&
+          gene.start < variant.position &&
+          gene.end > variant.position &&
+          gene.start < variant.positionEnd &&
+          gene.end > variant.positionEnd
+      )
+
+      if (overlaps.nonEmpty) {
+        overlaps.toSeq // Convert to immutable Seq
+      } else {
+        //println("closest")
+        // If no overlap found, find the closest upstream or downstream gene
+        val sameContigGenes = GFFReader2.loadedEntries.filter(_.contig == variant.contig)
+        if (sameContigGenes.nonEmpty) {
+          Seq(sameContigGenes.minBy(gene => Math.abs(gene.start - variant.position.toInt))) // Wrap in Seq
+        } else {
+          Seq.empty // Immutable empty sequence
+        }
       }
     }
     // assignAttributes
     variant.geneID = getAttribute(overlappingEntries, "gene_id")
     variant.geneName = prioritizeGeneName(overlappingEntries)
     variant.geneType = getAttribute(overlappingEntries, "gene_type")
-    variant.transID = getAttribute(overlappingEntries, "transcript_id")
-    variant.transName = getAttribute(overlappingEntries, "transcript_name")
-    variant.transType = getAttribute(overlappingEntries, "transcript_type")
-    variant.exonID = getAttribute(overlappingEntries, "exon_id")
+    variant.transID = prioritizeAttribute(overlappingEntries, "transcript_id")
+    variant.transName = prioritizeAttribute(overlappingEntries, "transcript_name")
+    variant.transType = prioritizeAttribute(overlappingEntries, "transcript_type")
+    variant.exonID = prioritizeAttribute(overlappingEntries, "exon_id")
     variant.exonNum = getAttribute(overlappingEntries, "exon_number")
     variant.level = getAttribute(overlappingEntries, "level")
     variant.NCBIBuild = referenceGenome
     //set var type
     variant.varType = VariantTypeAnnotation.returnVariantTypeDnaRna(variant.refAllele, variant.altAllele)
+
     // Check if the variant is mapped to a CDS region
     val cdsEntryOpt = overlappingEntries.find(entry =>
       entry.attributes.contains("protein_id") && entry.attributes.get("gene_type").contains("protein_coding")
     )
     if (cdsEntryOpt.isDefined) {
-      // If the variant is within a CDS, perform protein-level annotation
+       //If the variant is within a CDS, perform protein-level annotation
       val cdsEntry = cdsEntryOpt.get
       variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, cdsEntry, faPath)
     }
-    variant.positionEnd = VariantTypeAnnotation.calculateEndPosition(variant)
     HGVS.variantAddHGVS(variant, overlappingEntries)
     
   }
@@ -126,6 +153,13 @@ object Annotation {
    */
   def prioritizeGeneName(entries: Seq[GffEntry]): String = {
     val geneNames = entries.flatMap(_.attributes.get("gene_name")).distinct
+    geneNames.find(!_.startsWith("ENSG"))
+      .orElse(geneNames.find(_.startsWith("ENSG")))
+      .getOrElse(".")
+  }
+
+  def prioritizeAttribute(entries: Seq[GffEntry], attributeName: String): String = {
+    val geneNames = entries.flatMap(_.attributes.get(attributeName)).distinct
     geneNames.find(!_.startsWith("ENSG"))
       .orElse(geneNames.find(_.startsWith("ENSG")))
       .getOrElse(".")

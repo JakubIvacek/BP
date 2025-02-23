@@ -1,7 +1,7 @@
 package anotation
 
 import data.{DnaVariant, GffEntry, VariantType}
-import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf}
+import files.{FastaReader, FastaReader2, FileReaderVcf, GFFReader, WriteToMaf}
 import hgvs.Utils
 import hgvs.CodonAmino
 import database.modules.ServiceModules
@@ -44,10 +44,10 @@ object VariantTypeAnnotation {
    * @return The type of the genetic variant at the protein level.
    */
   def returnVariantTypeProtein(variant: DnaVariant, refAllele: String, altAllele: String, cdsEntry: GffEntry, faPath: String): VariantType = {
-    val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath)
+    val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, "")
     
     // Get the coding sequence (CDS) from the genome
-    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    //val cdsSequence = FastaReader2.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
 
     // Calculate variant offset within the CDS
     val variantOffset = if (cdsEntry.strandPlus) {
@@ -55,6 +55,7 @@ object VariantTypeAnnotation {
     } else {
       (cdsEntry.end - variant.position).toInt
     }
+    
 
     // Translate the nucleotide sequences into proteins
     val refProtein = getProteinSequence(cdsSequence, refAllele, variantOffset)
@@ -164,7 +165,7 @@ object VariantTypeAnnotation {
   }
 
   def getProteinSequence(cdsSequence: String, allele: String, variantOffset: Int): String = {
-    require(variantOffset >= 0 && variantOffset <= cdsSequence.length, "Variant offset is out of range for the CDS sequence.")
+    require(variantOffset >= 0 && variantOffset <= cdsSequence.length, s"Variant offset is out of range for the CDS sequence. $variantOffset length ${cdsSequence.length}")
     val updatedCds = cdsSequence.substring(0, variantOffset) + allele + cdsSequence.substring(variantOffset + allele.length)
     val trimmedCds = if (updatedCds.length % 3 == 0) {
       updatedCds

@@ -14,10 +14,10 @@ class IntervalTree {
     tree.getOrElseUpdate(entry.contig, mutable.TreeSet[GffEntry]()).add(entry)
   }
 
-  def search(contig: String, position: Int): List[GffEntry] = {
+  def search(contig: String, position: Int, positionEnd: Int): List[GffEntry] = {
     tree.get(contig) match {
       case Some(entries) =>
-        entries.filter(entry => entry.start <= position && entry.end >= position).toList
+        entries.filter(entry => entry.start <= position && entry.end >= position && positionEnd >= entry.start && positionEnd <= entry.end).toList
       case None => List()
     }
   }

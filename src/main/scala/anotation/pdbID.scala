@@ -58,8 +58,7 @@ object pdbID {
     matchingEntries match {
       case Nil => "." // No matching entries found
       case list =>
-        // Choose the best entry based on resolution (lowest resolution = best quality)
-        val bestEntry = list.minBy(entry => entry.resolution.getOrElse(Double.MinValue))
+        val bestEntry = list.minBy(entry => entry.resolution.getOrElse(Double.MaxValue))
         bestEntry.pdbId
     }
   }

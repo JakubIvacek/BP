@@ -3,7 +3,7 @@ import anotation.VariantTypeAnnotation.getProteinSequence
 import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
 import database.modules.ServiceModules
-import files.FastaReader
+import files.{FastaReader, FastaReader2}
 
 object HGVS {
 
@@ -106,15 +106,17 @@ object HGVS {
     val proteinId = cdsEntry.attributes("protein_id")
     val coordinate = "p"
     val pastPosPart = Utils.getPastPositionPart(variant.proteinVarType)
-    val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
-    val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath.getOrElse(""))
-    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    //val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
+    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath.getOrElse(""))
+    val cdsSequence = FastaReader2.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
     // Calculate the variant offset within the CDS based on strand orientation
     val variantOffset = if (cdsEntry.strandPlus) {
       (variant.position - cdsEntry.start).toInt
     } else {
       (cdsEntry.end - variant.position).toInt
     }
+
+    // Translate the nucleotide sequences into proteins
     val refProtein = getProteinSequence(cdsSequence, variant.refAllele, variantOffset)
     val altProtein = getProteinSequence(cdsSequence, variant.altAllele, variantOffset)
 
@@ -127,6 +129,6 @@ object HGVS {
       s"$proteinId:p.?" // ? if pos or altAA cant be calculated
     }
     variant.HGVSProtein = hgvs
-    variant.pdbID = anotation.pdbID.getPdbID(pos)
+    //variant.pdbID = anotation.pdbID.getPdbID(pos)
   }
 }
