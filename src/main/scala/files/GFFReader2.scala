@@ -105,8 +105,8 @@ object GFFReader2 {
   def getExonsForTranscriptId(transcriptId: String): List[GffEntry] = {
     // Filter the loaded GFF entries to find those with feature "exon" and matching transcriptId
     loadedEntries.filter(entry =>
-        entry.attributes.getOrElse("transcript_id", "") == transcriptId &&
-        entry.name == "exon"
+        entry.attributes.getOrElse("transcript_id", "") == transcriptId && 
+          (entry.name == "exon" || entry.name == "CDS" || entry.name == "start_codon" || entry.name == "stop_codon")
     ).toList
   }
 }
