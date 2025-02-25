@@ -84,7 +84,7 @@ object GFFReader2 {
    * @param variantStart The start position of the variant.
    */
   private def cleanUpWindow(variantStart: Int, variantContig: String): Unit = {
-    while (loadedEntries.size > 1 && (loadedEntries(0).end < variantStart || loadedEntries(0).contig != variantContig)) {
+    while (loadedEntries.size > 1 && (loadedEntries(1).end < variantStart || loadedEntries(1).contig != variantContig)) {
       loadedEntries.dequeue()
     }
   }

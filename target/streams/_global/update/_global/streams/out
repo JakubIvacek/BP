@@ -1,3 +1,4 @@
-[0m[[0m[0mdebug[0m] [0m[0mnot up to date. inChanged = true, force = false[0m
-[0m[[0m[0mdebug[0m] [0m[0mUpdating ...[0m
-[0m[[0m[0mdebug[0m] [0m[0mDone updating [0m
+[warn] scallop_3-4.1.0.jar no longer exists at C:\Users\ivace\AppData\Local\Coursier\Cache\v1\https\repo1.maven.org\maven2\org\rogach\scallop_3\4.1.0\scallop_3-4.1.0.jar
+[debug] not up to date. inChanged = false, force = false
+[debug] Updating ...
+[debug] Done updating 

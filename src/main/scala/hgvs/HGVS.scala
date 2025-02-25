@@ -115,11 +115,9 @@ object HGVS {
     } else {
       (cdsEntry.end - variant.position).toInt
     }
-
     // Translate the nucleotide sequences into proteins
     val refProtein = getProteinSequence(cdsSequence, variant.refAllele, variantOffset)
     val altProtein = getProteinSequence(cdsSequence, variant.altAllele, variantOffset)
-
     val (pos, altAA) = HGVSp.returnProteinHGVS(variant, refProtein, altProtein, variantOffset, cdsEntry.strandPlus, cdsSequence.length)
     val hgvs = if (pos.nonEmpty && altAA.nonEmpty) {
       s"$proteinId:p.$pos$pastPosPart$altAA"

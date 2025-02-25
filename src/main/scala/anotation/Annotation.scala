@@ -96,14 +96,21 @@ object Annotation {
       } else {
         //println("closest")
         // If no overlap found, find the closest upstream or downstream gene
-        val sameContigGenes = GFFReader2.loadedEntries.filter(_.contig == variant.contig)
-        if (sameContigGenes.nonEmpty) {
-          Seq(sameContigGenes.minBy(gene => Math.abs(gene.start - variant.position.toInt))) // Wrap in Seq
+        val sameContigLoaded = GFFReader2.loadedEntries.filter(_.contig == variant.contig)
+        if (sameContigLoaded.nonEmpty) {
+          val closestGene = sameContigLoaded
+            .filter(entry => !entry.attributes.contains("protein_id") && !entry.attributes.get("gene_type").contains("protein_coding"))
+            .minByOption(entry => Math.abs(entry.start - variant.position.toInt))
+          closestGene match {
+            case Some(gene) => Seq(gene)
+            case None => Seq.empty // Return an empty sequence if no closest gene is found
+          }
         } else {
           Seq.empty // Immutable empty sequence
         }
       }
     }
+
     // assignAttributes
     variant.geneID = getAttribute(overlappingEntries, "gene_id")
     variant.geneName = prioritizeGeneName(overlappingEntries)

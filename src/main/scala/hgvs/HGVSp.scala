@@ -20,6 +20,10 @@ object HGVSp {
    */
   def returnProteinHGVS(variant: DnaVariant, refProtein: String, altProtein: String, variantOffset: Int, strandPlus: Boolean, cdsSeqLen: Int): (String, String) = {
     val aaIndex = variantOffset / 3
+    if (aaIndex * 3 >= refProtein.length || aaIndex * 3 >= altProtein.length) {
+      //println(s"${aaIndex * 3} is out of bounds for proteins: ref=${refProtein.length}, alt=${altProtein.length}")
+      return ("", "")
+    }
     variant.proteinVarType match {
       case SNP => handleSNP(aaIndex, refProtein, altProtein)
       case DEL => handleDEL(aaIndex, variant, refProtein, strandPlus)

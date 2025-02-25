@@ -44,11 +44,11 @@ object VariantTypeAnnotation {
    * @return The type of the genetic variant at the protein level.
    */
   def returnVariantTypeProtein(variant: DnaVariant, refAllele: String, altAllele: String, cdsEntry: GffEntry, faPath: String): VariantType = {
-    val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, "")
+    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, "")
     
     // Get the coding sequence (CDS) from the genome
-    //val cdsSequence = FastaReader2.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
-
+    val cdsSequence = FastaReader2.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    //println(s"${cdsEntry.start} end ${cdsEntry.end} - length ${cdsSequence.length} - position ${variant.contig} ${variant.position} ${variant.positionEnd}")
     // Calculate variant offset within the CDS
     val variantOffset = if (cdsEntry.strandPlus) {
       (variant.position - cdsEntry.start).toInt
@@ -166,7 +166,11 @@ object VariantTypeAnnotation {
 
   def getProteinSequence(cdsSequence: String, allele: String, variantOffset: Int): String = {
     require(variantOffset >= 0 && variantOffset <= cdsSequence.length, s"Variant offset is out of range for the CDS sequence. $variantOffset length ${cdsSequence.length}")
-    val updatedCds = cdsSequence.substring(0, variantOffset) + allele + cdsSequence.substring(variantOffset + allele.length)
+    val endOffset = variantOffset + allele.length
+    val safeEndOffset = math.min(endOffset, cdsSequence.length)
+
+    // Modify the CDS sequence by inserting the allele at the specified offset
+    val updatedCds = cdsSequence.substring(0, variantOffset) + allele + cdsSequence.substring(safeEndOffset)
     val trimmedCds = if (updatedCds.length % 3 == 0) {
       updatedCds
     } else {
