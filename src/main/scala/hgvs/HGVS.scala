@@ -107,8 +107,9 @@ object HGVS {
     val coordinate = "p"
     val pastPosPart = Utils.getPastPositionPart(variant.proteinVarType)
     //val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
+    val faPath = "reference/hg38/GRCh38.primary_assembly.genome.fa"
     //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath.getOrElse(""))
-    val cdsSequence = FastaReader2.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    val cdsSequence = FastaReader2.getSequence(faPath, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
     // Calculate the variant offset within the CDS based on strand orientation
     val variantOffset = if (cdsEntry.strandPlus) {
       (variant.position - cdsEntry.start).toInt
@@ -119,7 +120,7 @@ object HGVS {
     val refProtein = getProteinSequence(cdsSequence, variant.refAllele, variantOffset)
     val altProtein = getProteinSequence(cdsSequence, variant.altAllele, variantOffset)
     val (pos, altAA) = HGVSp.returnProteinHGVS(variant, refProtein, altProtein, variantOffset, cdsEntry.strandPlus, cdsSequence.length)
-    val hgvs = if (pos.nonEmpty && altAA.nonEmpty) {
+    val hgvs = if (pos.nonEmpty) {
       s"$proteinId:p.$pos$pastPosPart$altAA"
     } else if (variant.proteinVarType == Other) {
       "."

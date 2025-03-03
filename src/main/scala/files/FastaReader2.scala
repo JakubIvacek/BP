@@ -20,24 +20,18 @@ object FastaReader2 {
 
   // Window size for loading data in chunks
   val windowSize = 1000000  // Adjust based on memory capacity
-
+  var faPathLoaded = ""
   /**
    * Loads the FASTA file for the specified genome build and initializes the iterator.
    *
    * @param NCBIBuild The genome build to load (e.g., "hg38" or "t2t").
    */
-  def loadFastaFile(NCBIBuild: String): Unit = {
-    if (NCBILoaded != NCBIBuild) {
-      val fastaFile = NCBIBuild match {
-        case "hg38" => faHg38
-        case "t2t"  => faT2T
-        case _ => throw new IllegalArgumentException(s"Unsupported genome build: $NCBIBuild")
-      }
-
+  def loadFastaFile(fastaPath: String): Unit = {
+    if (faPathLoaded != fastaPath) {
+       faPathLoaded = fastaPath
       // Load the FASTA file for the specified build
-      source = Some(Source.fromFile(fastaFile))
+      source = Some(Source.fromFile(fastaPath))
       iterator = source.get.getLines()
-      NCBILoaded = NCBIBuild
     }
   }
 
@@ -54,15 +48,21 @@ object FastaReader2 {
       currentStartPosition = 1
     }
 
-    // Remove old sequence data to keep only what's needed
-    if (start > currentStartPosition + windowSize) {
-      val newStartIndex = start - currentStartPosition
-      if (newStartIndex < sequenceBuffer.length) {
-        sequenceBuffer.delete(0, newStartIndex)  // Trim older bases
-      } else {
-        sequenceBuffer.clear()
+    //val keepBefore = 50000 ??
+
+    // Remove old sequence data
+    if (start > currentStartPosition) {
+      val newStart = math.max(currentStartPosition, start)
+      val newStartIndex = newStart - currentStartPosition
+
+      if (newStartIndex > 0) {
+        if (newStartIndex < sequenceBuffer.length) {
+          sequenceBuffer.delete(0, newStartIndex) // Trim older bases but keep `keepBefore`
+        } else {
+          sequenceBuffer.clear()
+        }
+        currentStartPosition = newStart
       }
-      currentStartPosition = start
     }
 
     // Load more data if needed
@@ -86,9 +86,9 @@ object FastaReader2 {
   /**
    * Retrieves a specific sequence from the loaded reference genome.
    */
-  def getSequence(NCBIBuild: String, contig: String, start: Int, end: Int, strandPlus: Boolean): String = {
+  def getSequence(faPath: String, contig: String, start: Int, end: Int, strandPlus: Boolean): String = {
     // Ensure the genome build is loaded
-    loadFastaFile(NCBIBuild)
+    loadFastaFile(faPath)
 
     // Retrieve cached sequence if available
     val (cachedStart, sequence) = fastaCache.getOrElse(contig, (0, ""))

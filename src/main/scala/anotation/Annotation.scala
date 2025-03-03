@@ -36,7 +36,7 @@ object Annotation {
     //Gunzip.unzipFile(faPath)
     //val faUnzipped = faPath.stripSuffix(".gz")
     // Annotate the variants
-    val faUnzipped = ""
+    val faUnzipped = "reference/hg38/GRCh38.primary_assembly.genome.fa"
     GFFReader2.loadGffFile("gencode.v47.annotation.gff3")
     annotateVariants(dnaVariants.toList, referenceGenome, faUnzipped)
 
@@ -96,18 +96,17 @@ object Annotation {
       } else {
         //println("closest")
         // If no overlap found, find the closest upstream or downstream gene
-        val sameContigLoaded = GFFReader2.loadedEntries.filter(_.contig == variant.contig)
-        if (sameContigLoaded.nonEmpty) {
-          val closestGene = sameContigLoaded
-            .filter(entry => !entry.attributes.contains("protein_id") && !entry.attributes.get("gene_type").contains("protein_coding"))
-            .minByOption(entry => Math.abs(entry.start - variant.position.toInt))
-          closestGene match {
-            case Some(gene) => Seq(gene)
-            case None => Seq.empty // Return an empty sequence if no closest gene is found
-          }
-        } else {
-          Seq.empty // Immutable empty sequence
-        }
+        //val sameContigLoaded = GFFReader2.loadedEntries.filter(_.contig == variant.contig)
+        //if (sameContigLoaded.nonEmpty) {
+        //  val closestGene = sameContigLoaded
+        //    .filter(entry => !entry.attributes.contains("protein_id") && !entry.attributes.get("gene_type").contains("protein_coding"))
+        //    .minByOption(entry => Math.abs(entry.start - variant.position.toInt))
+        // closestGene match {
+        //   case Some(gene) => Seq(gene)
+        //   case None => Seq.empty // Return an empty sequence if no closest gene is found
+        // }
+        //} else {
+        Seq.empty // Immutable empty sequence
       }
     }
 

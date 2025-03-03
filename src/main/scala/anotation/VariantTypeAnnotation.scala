@@ -47,7 +47,7 @@ object VariantTypeAnnotation {
     //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, "")
     
     // Get the coding sequence (CDS) from the genome
-    val cdsSequence = FastaReader2.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    val cdsSequence = FastaReader2.getSequence(faPath, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
     //println(s"${cdsEntry.start} end ${cdsEntry.end} - length ${cdsSequence.length} - position ${variant.contig} ${variant.position} ${variant.positionEnd}")
     // Calculate variant offset within the CDS
     val variantOffset = if (cdsEntry.strandPlus) {
@@ -55,22 +55,25 @@ object VariantTypeAnnotation {
     } else {
       (cdsEntry.end - variant.position).toInt
     }
-    
+
 
     // Translate the nucleotide sequences into proteins
     val refProtein = getProteinSequence(cdsSequence, refAllele, variantOffset)
     val altProtein = getProteinSequence(cdsSequence, altAllele, variantOffset)
 
-    // Determine variant type
-    if (refProtein.length == altProtein.length && refProtein != altProtein) return VariantType.SNP
-    else if (isDuplication(refProtein, altProtein)) return VariantType.DUP
-    else if (isRepeatedSequence(refProtein, altProtein)) return VariantType.RPT
-    else if (isFrameshift(refAllele, altAllele)) return VariantType.FS
-    else if (isExtension(refProtein, altProtein)) return VariantType.EXT
-    else if (refProtein.length > altProtein.length) return VariantType.DEL
-    else if (refProtein.length < altProtein.length) return VariantType.INS
-    else if (refProtein != altProtein) return VariantType.INDEL
+    // Only check protein level if DNA-level classification is inconclusive
+    if (isFrameshift(refAllele, altAllele)) return VariantType.FS
+    if (isDuplication(refProtein, altProtein)) return VariantType.DUP
+    if (isRepeatedSequence(refProtein, altProtein)) return VariantType.RPT
+    if (isExtension(refProtein, altProtein)) return VariantType.EXT
 
+    // Determine variant type
+    if (refAllele.length > altAllele.length && altAllele.length == 1) return VariantType.DEL
+    if (refAllele.length < altAllele.length && refAllele.length == 1) return VariantType.INS
+    if (refAllele.length != altAllele.length) return VariantType.INDEL
+
+    // Fix: SNP should be checked only if refAllele == altAllele at nucleotide level
+    if (refProtein.length == altProtein.length && refProtein != altProtein) return VariantType.SNP
     VariantType.Other
   }
 

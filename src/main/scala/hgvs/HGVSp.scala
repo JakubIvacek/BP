@@ -26,7 +26,7 @@ object HGVSp {
     }
     variant.proteinVarType match {
       case SNP => handleSNP(aaIndex, refProtein, altProtein)
-      case DEL => handleDEL(aaIndex, variant, refProtein, strandPlus)
+      case DEL => handleDEL(aaIndex, variant, refProtein, altProtein, strandPlus)
       case INS => handleINS(aaIndex, variant, refProtein, altProtein, strandPlus)
       case INDEL => handleINDEL(aaIndex, variant, refProtein, altProtein, strandPlus)
       case RPT => handleRPT(aaIndex, refProtein, altProtein)
@@ -84,25 +84,36 @@ object HGVSp {
    * @param strandPlus Boolean indicating if the strand is the plus strand.
    * @return A tuple with the HGVS deletion notation and an empty string (as the deleted sequence is not represented).
    */
-  def handleDEL(aaIndex: Int, variant: DnaVariant, refProtein: String, strandPlus: Boolean): (String, String) = {
-    val delLength = (variant.refAllele.length - variant.altAllele.length) / 3
-    if (delLength == 1) {
-      // Single deletion
-      val refAA = refProtein.substring(aaIndex * 3, aaIndex * 3 + 3)
+  def handleDEL(aaIndex: Int, variant: DnaVariant, refProtein: String, altProtein: String, strandPlus: Boolean): (String, String) = {
+
+    // Group the reference protein into amino acids
+    val refAminoAcids = refProtein.grouped(3).toList
+    val altAminoAcids = altProtein.grouped(3).toList
+
+    // Calculate the number of amino acids deleted based on the length difference
+    val delAAcount = (  variant.refAllele.length - variant.altAllele.length ) / 3
+    if (delAAcount == 1) {
+      // Single amino acid deletion
+      val refAA = refAminoAcids(aaIndex) // Get the amino acid at aaIndex
       val pos = s"$refAA${aaIndex + 1}"
       (pos, "")
-    } else if (delLength > 1) {
-      // Range deletion
-      val startIndex = Math.max(0, if (strandPlus) aaIndex else aaIndex - delLength + 1)
-      val endIndex = Math.min(refProtein.length / 3 - 1, if (strandPlus) aaIndex + delLength - 1 else aaIndex)
-      if (startIndex >= 0 && endIndex < refProtein.length / 3) {
-        val startAA = refProtein.slice(startIndex * 3, startIndex * 3 + 3)
-        val endAA = refProtein.slice(endIndex * 3, endIndex * 3 + 3)
-        val pos = s"$startAA${startIndex + 1}_${endAA}${endIndex + 1}"
-        (pos, "")
-      } else {
-        ("", "")
-      }
+
+    } else if (delAAcount > 1) {
+      // Multi-amino acid deletion (range)
+      val startIndex = if (strandPlus) aaIndex else aaIndex - delAAcount + 1
+      val endIndex = if (strandPlus) aaIndex + delAAcount - 1 else aaIndex
+
+      // Ensure valid indices
+      if (startIndex < 0 || endIndex >= refAminoAcids.length) return ("", "")
+
+      // Extract the range of amino acids for deletion
+      val deletedAAs = refAminoAcids.slice(startIndex, endIndex + 1)
+      val startAA = deletedAAs.head
+      val endAA = deletedAAs.last
+
+      val pos = s"$startAA${startIndex + 1}_${endAA}${endIndex + 1}"
+      (pos, "")
+
     } else {
       ("", "")
     }
