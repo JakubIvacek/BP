@@ -168,7 +168,10 @@ object VariantTypeAnnotation {
   }
 
   def getProteinSequence(cdsSequence: String, allele: String, variantOffset: Int): String = {
-    require(variantOffset >= 0 && variantOffset <= cdsSequence.length, s"Variant offset is out of range for the CDS sequence. $variantOffset length ${cdsSequence.length}")
+    if(variantOffset < 0 || variantOffset > cdsSequence.length) {
+      println(s"Variant offset is out of range for the CDS sequence. $variantOffset length ${cdsSequence.length}")
+      return ""
+    }
     val endOffset = variantOffset + allele.length
     val safeEndOffset = math.min(endOffset, cdsSequence.length)
 

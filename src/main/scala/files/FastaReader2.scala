@@ -24,7 +24,7 @@ object FastaReader2 {
   /**
    * Loads the FASTA file for the specified genome build and initializes the iterator.
    *
-   * @param NCBIBuild The genome build to load (e.g., "hg38" or "t2t").
+   * @param fastaPath Path to .fa file
    */
   def loadFastaFile(fastaPath: String): Unit = {
     if (faPathLoaded != fastaPath) {
@@ -35,6 +35,14 @@ object FastaReader2 {
     }
   }
 
+  /**
+   * Reloads the FASTA file for the specified genome build and initializes the iterator.
+   *
+   */
+  def reloadFastaFile(): Unit = {
+    source = Some(Source.fromFile(faPathLoaded))
+    iterator = source.get.getLines()
+  }
   /**
    * Loads the next batch of the FASTA sequence into memory.
    */
@@ -52,7 +60,7 @@ object FastaReader2 {
 
     // Remove old sequence data
     if (start > currentStartPosition) {
-      val newStart = math.max(currentStartPosition, start)
+      val newStart = math.max(currentStartPosition, Math.max(0,start - 5000))
       val newStartIndex = newStart - currentStartPosition
 
       if (newStartIndex > 0) {
@@ -78,11 +86,16 @@ object FastaReader2 {
         sequenceBuffer.append(line.trim)
       }
     }
+    // If the iterator has reached the end of the file, reload it
+    if (!iterator.hasNext) {
+       reloadFastaFile()
+    }
     //println("Loaded -> " + sequenceBuffer.length)
     // Store updated sequence in cache with its start position
     fastaCache(currentContig) = (currentStartPosition, sequenceBuffer.toString)
   }
 
+  
   /**
    * Retrieves a specific sequence from the loaded reference genome.
    */
@@ -94,7 +107,7 @@ object FastaReader2 {
     val (cachedStart, sequence) = fastaCache.getOrElse(contig, (0, ""))
 
     // If requested region isn't in cache, load more data
-    if (sequence.isEmpty || start < cachedStart || end > cachedStart + sequence.length) {
+    if (sequence.isEmpty || end > cachedStart + sequence.length) {
       loadNextBatch(contig, start, end)
     }
 
@@ -106,7 +119,8 @@ object FastaReader2 {
 
     // Ensure range is within bounds
     if (start < newStart || end > newStart + newSequence.length) {
-      throw new IllegalArgumentException(s"Requested range [$start, $end) is out of bounds for contig $contig.")
+      println(s"Requested range [$start, $end) is out of bounds for contig $contig. $newStart ${newSequence.length}")
+      return ""
     }
 
     // Extract the requested subsequence

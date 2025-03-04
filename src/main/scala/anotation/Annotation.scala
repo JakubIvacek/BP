@@ -2,7 +2,7 @@ package anotation
 
 import data.VariantType.Other
 import data.{DnaVariant, GffEntry, VariantType}
-import files.{FastaReader, FileReaderVcf, GFFReader, WriteToMaf, GFFReader2}
+import files.{FastaReader, FileReaderVcf, FileReaderVcf2, GFFReader, WriteToMaf, WriteToMaf2, GFFReader2}
 import hgvs.HGVS
 import utils.Gunzip
 import scala.collection.mutable
@@ -47,6 +47,33 @@ object Annotation {
     //Gunzip.zipFile(faUnzipped)
   }
 
+  def annotateInBatches(inputFile: String, outputFile: String, referenceGenome: String, batchSize: Int = 1000): Unit = {
+    FileReaderVcf2.open(inputFile) // Open the VCF reader once
+    GFFReader2.loadGffFile("gencode.v47.annotation.gff3") // Load GFF annotations once
+
+    val faUnzipped = "reference/hg38/GRCh38.primary_assembly.genome.fa"
+    var batchCount = 1
+    var hasMoreVariants = true
+
+    while (hasMoreVariants) {
+
+      val dnaVariants = FileReaderVcf2.readBatch(batchSize)
+      if (dnaVariants.isEmpty) {
+        hasMoreVariants = false
+      } else {
+        println(s"Processing batch $batchCount... ${dnaVariants.toList.head.contig}")
+        annotateVariants(dnaVariants.toList, referenceGenome, faUnzipped)
+
+        WriteToMaf2.writeMafFile(dnaVariants, outputFile, append = batchCount > 1)
+
+        batchCount += 1
+      }
+    }
+
+    // Cleanup
+    FileReaderVcf2.close() // Close the VCF reader when done
+    GFFReader2.close() // Close GFFReader once after processing all batches
+  }
   /**
    * Annotate a list of DNA variants
    *

@@ -15,7 +15,7 @@ object GFFReader2 {
   private var iterator: Iterator[String] = Iterator.empty
   private val batchSize = 20 // 20 whole genes
   private val initialLoadSize = 100 // 100 whole genes
-
+  private var loadedCount = 0
   /**
    * Loads a GFF3 file and initializes the iterator.
    *
@@ -54,10 +54,12 @@ object GFFReader2 {
           val gene = GffEntry(contig, start, end, strandPlus, name, attributes)
           loadedEntries.enqueue(gene)
           loaded += 1
+          loadedCount += 1
         } else {
           // If it's not a "gene"
           val feature = GffEntry(contig, start, end, strandPlus, name, attributes)
           loadedEntries.enqueue(feature)
+          loadedCount += 1
         }
       }
     }
@@ -70,8 +72,11 @@ object GFFReader2 {
    * @param variantEnd The end position of the variant.
    */
   def ensureVariantInWindow(variantEnd: Int, variantContig: String): Unit = {
-    while (loadedEntries.nonEmpty && (loadedEntries.last.end < variantEnd || loadedEntries.last.contig != variantContig)) {
+    while (loadedEntries.nonEmpty && (loadedEntries.last.end < variantEnd || loadedEntries.last.contig != variantContig) && loadedCount < 15000) {
       loadNextBatch(batchSize)
+      if(loadedCount > 10000){
+        println(loadedCount)
+      }
       //cleanUpWindow(variantEnd, variantContig)
       //println("new load")
     }
@@ -86,6 +91,7 @@ object GFFReader2 {
   private def cleanUpWindow(variantStart: Int, variantContig: String): Unit = {
     while (loadedEntries.size > 1 && (loadedEntries(1).end < variantStart || loadedEntries(1).contig != variantContig)) {
       loadedEntries.dequeue()
+      loadedCount -= 1
     }
   }
 
