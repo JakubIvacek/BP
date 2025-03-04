@@ -72,11 +72,8 @@ object GFFReader2 {
    * @param variantEnd The end position of the variant.
    */
   def ensureVariantInWindow(variantEnd: Int, variantContig: String): Unit = {
-    while (loadedEntries.nonEmpty && (loadedEntries.last.end < variantEnd || loadedEntries.last.contig != variantContig) && loadedCount < 15000) {
+    while (loadedEntries.nonEmpty && (loadedEntries.last.end < variantEnd || loadedEntries.last.contig != variantContig)) {
       loadNextBatch(batchSize)
-      if(loadedCount > 10000){
-        println(loadedCount)
-      }
       //cleanUpWindow(variantEnd, variantContig)
       //println("new load")
     }

@@ -2,7 +2,7 @@ package anotation
 
 import data.VariantType.Other
 import data.{DnaVariant, GffEntry, VariantType}
-import files.{FastaReader, FileReaderVcf, FileReaderVcf2, GFFReader, WriteToMaf, WriteToMaf2, GFFReader2}
+import files.{FastaReader, FileReaderVcf, FileReaderVcf2, GFFReader, WriteToMaf, WriteToMaf2, GFFReader2, FastaReader2}
 import hgvs.HGVS
 import utils.Gunzip
 import scala.collection.mutable
@@ -109,7 +109,7 @@ object Annotation {
     variant.positionEnd = VariantTypeAnnotation.calculateEndPosition(variant)
     GFFReader2.ensureVariantInWindow(variant.positionEnd.toInt, variant.contig) //load more if needed
 
-    val overlappingEntries = {
+    var overlappingEntries = {
       val overlaps = GFFReader2.loadedEntries.filter(gene =>
         gene.contig == variant.contig &&
           gene.start < variant.position &&
@@ -121,38 +121,41 @@ object Annotation {
       if (overlaps.nonEmpty) {
         overlaps.toSeq // Convert to immutable Seq
       } else {
-        //println("closest")
-        // If no overlap found, find the closest upstream or downstream gene
-        //val sameContigLoaded = GFFReader2.loadedEntries.filter(_.contig == variant.contig)
-        //if (sameContigLoaded.nonEmpty) {
-        //  val closestGene = sameContigLoaded
-        //    .filter(entry => !entry.attributes.contains("protein_id") && !entry.attributes.get("gene_type").contains("protein_coding"))
-        //    .minByOption(entry => Math.abs(entry.start - variant.position.toInt))
-        // closestGene match {
-        //   case Some(gene) => Seq(gene)
-        //   case None => Seq.empty // Return an empty sequence if no closest gene is found
-        // }
-        //} else {
         Seq.empty // Immutable empty sequence
+      }
+    }
+    val matchingEntries = overlappingEntries.filter { entry =>
+      val refSequence = FastaReader2.getSequence(faPath, entry.contig, entry.start, entry.end, entry.strandPlus)
+
+      // Calculate offset of variant position within the entry
+      val offset = (variant.position - entry.start).toInt
+      val refAlleleLength = variant.refAllele.length
+
+      // Ensure offset and full reference allele range are within bounds
+      if (offset >= 0 && (offset + refAlleleLength) <= refSequence.length) {
+        val refBaseAtVariant = refSequence.substring(offset, offset + refAlleleLength) // Extract matching-length reference bases
+        refBaseAtVariant == variant.refAllele
+      } else {
+        false // Skip entries where the variant range is out of bounds
       }
     }
 
     // assignAttributes
-    variant.geneID = getAttribute(overlappingEntries, "gene_id")
-    variant.geneName = prioritizeGeneName(overlappingEntries)
-    variant.geneType = getAttribute(overlappingEntries, "gene_type")
-    variant.transID = prioritizeAttribute(overlappingEntries, "transcript_id")
-    variant.transName = prioritizeAttribute(overlappingEntries, "transcript_name")
-    variant.transType = prioritizeAttribute(overlappingEntries, "transcript_type")
-    variant.exonID = prioritizeAttribute(overlappingEntries, "exon_id")
-    variant.exonNum = getAttribute(overlappingEntries, "exon_number")
-    variant.level = getAttribute(overlappingEntries, "level")
+    variant.geneID = getAttribute(matchingEntries, "gene_id")
+    variant.geneName = prioritizeGeneName(matchingEntries)
+    variant.geneType = getAttribute(matchingEntries, "gene_type")
+    variant.transID = prioritizeAttribute(matchingEntries, "transcript_id")
+    variant.transName = prioritizeAttribute(matchingEntries, "transcript_name")
+    variant.transType = prioritizeAttribute(matchingEntries, "transcript_type")
+    variant.exonID = prioritizeAttribute(matchingEntries, "exon_id")
+    variant.exonNum = getAttribute(matchingEntries, "exon_number")
+    variant.level = getAttribute(matchingEntries, "level")
     variant.NCBIBuild = referenceGenome
     //set var type
     variant.varType = VariantTypeAnnotation.returnVariantTypeDnaRna(variant.refAllele, variant.altAllele)
 
     // Check if the variant is mapped to a CDS region
-    val cdsEntryOpt = overlappingEntries.find(entry =>
+    val cdsEntryOpt = matchingEntries.find(entry =>
       entry.attributes.contains("protein_id") && entry.attributes.get("gene_type").contains("protein_coding")
     )
     if (cdsEntryOpt.isDefined) {
@@ -160,7 +163,7 @@ object Annotation {
       val cdsEntry = cdsEntryOpt.get
       variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, cdsEntry, faPath)
     }
-    HGVS.variantAddHGVS(variant, overlappingEntries)
+    HGVS.variantAddHGVS(variant, matchingEntries)
     
   }
   

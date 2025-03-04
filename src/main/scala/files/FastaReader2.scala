@@ -60,7 +60,7 @@ object FastaReader2 {
 
     // Remove old sequence data
     if (start > currentStartPosition) {
-      val newStart = math.max(currentStartPosition, Math.max(0,start - 5000))
+      val newStart = math.max(currentStartPosition, Math.max(0,start - 70000))
       val newStartIndex = newStart - currentStartPosition
 
       if (newStartIndex > 0) {
