@@ -107,7 +107,7 @@ object HGVS {
     val coordinate = "p"
     val pastPosPart = Utils.getPastPositionPart(variant.proteinVarType)
     //val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
-    val faPath = "reference/hg38/GRCh38.primary_assembly.genome.fa"
+    val faPath = "GRCh38.primary_assembly.genome.fa"
     //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath.getOrElse(""))
     val cdsSequence = FastaReader2.getSequence(faPath, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
     // Calculate the variant offset within the CDS based on strand orientation

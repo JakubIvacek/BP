@@ -72,13 +72,24 @@ object GFFReader2 {
    * @param variantEnd The end position of the variant.
    */
   def ensureVariantInWindow(variantEnd: Int, variantContig: String): Unit = {
-    while (loadedEntries.nonEmpty && (loadedEntries.last.end < variantEnd || loadedEntries.last.contig != variantContig)) {
+    while (iterator.hasNext && (loadedEntries.isEmpty || loadedEntries.last.contig < variantContig || (loadedEntries.last.contig == variantContig && loadedEntries.last.end < variantEnd))
+    ) {
       loadNextBatch(batchSize)
-      //cleanUpWindow(variantEnd, variantContig)
-      //println("new load")
+
+      // Stop if we reach a new contig
+      if (loadedEntries.nonEmpty && loadedEntries.last.contig != variantContig && loadedEntries.last.contig > variantContig) {
+        println(s"Stopped loading because contig changed to ${loadedEntries.last.contig}")
+        return
+      }
+
+      cleanUpWindow(variantEnd, variantContig)
+      //println(s"$variantContig $variantEnd new load length - ${loadedEntries.length} start - ${loadedEntries.head.contig} - ${loadedEntries.head.start} , end - ${loadedEntries.last.contig} ${loadedEntries.last.end}")
     }
+
     cleanUpWindow(variantEnd, variantContig)
   }
+
+
 
   /**
    * Removes genes that are no longer needed from the start of the queue.

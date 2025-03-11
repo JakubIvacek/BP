@@ -19,7 +19,7 @@ object FastaReader2 {
   private var currentStartPosition = 1 // Track the first position in sequenceBuffer
 
   // Window size for loading data in chunks
-  val windowSize = 1000000  // Adjust based on memory capacity
+  val windowSize = 2000000  // Adjust based on memory capacity
   var faPathLoaded = ""
   /**
    * Loads the FASTA file for the specified genome build and initializes the iterator.
@@ -60,7 +60,7 @@ object FastaReader2 {
 
     // Remove old sequence data
     if (start > currentStartPosition) {
-      val newStart = math.max(currentStartPosition, Math.max(0,start - 70000))
+      val newStart = math.max(currentStartPosition, Math.max(0,start - 1000000))
       val newStartIndex = newStart - currentStartPosition
 
       if (newStartIndex > 0) {
@@ -74,15 +74,25 @@ object FastaReader2 {
     }
 
     // Load more data if needed
-    while (iterator.hasNext && sequenceBuffer.length < (end - currentStartPosition + 1)) {
+    var contigFound = currentContig == contig
+
+    while (iterator.hasNext && (!contigFound || sequenceBuffer.length < (end - currentStartPosition + 1))) {
       val line = iterator.next()
       if (line.startsWith(">")) {
-        if (sequenceBuffer.nonEmpty) {
+        if (sequenceBuffer.nonEmpty && currentContig == contig) {
           fastaCache(currentContig) = (currentStartPosition, sequenceBuffer.toString)
         }
-        currentContig = line.substring(1).split(" ")(0)  // Remove '>' and normalize contig name
-        sequenceBuffer.clear()
-      } else {
+        val newContig = line.substring(1).split(" ")(0)
+        if (newContig == contig) {
+          currentContig = newContig
+          sequenceBuffer.clear()
+          currentStartPosition = 1
+          contigFound = true
+        } else {
+          currentContig = newContig
+          sequenceBuffer.clear()
+        }
+      } else if (contigFound) {
         sequenceBuffer.append(line.trim)
       }
     }
@@ -112,14 +122,24 @@ object FastaReader2 {
     }
 
     // Get the updated cached sequence
-    val (newStart, newSequence) = fastaCache.getOrElse(contig, (0, ""))
+    val (newStart, newSequence) = fastaCache.getOrElse(contig, {
+      // Try force-loading again if not found yet
+      loadNextBatch(contig, start, end)
+      fastaCache.getOrElse(contig, (0, ""))
+    })
+
     if (newSequence.isEmpty) {
       throw new IllegalArgumentException(s"Contig $contig not found in the FASTA file.")
     }
 
+
     // Ensure range is within bounds
-    if (start < newStart || end > newStart + newSequence.length) {
-      println(s"Requested range [$start, $end) is out of bounds for contig $contig. $newStart ${newSequence.length}")
+    if (start < newStart) {
+      println(s"Requested start [$start) <  $newStart  - $contig.")
+      return ""
+    }
+    if(end > newStart + newSequence.length){
+      println(s"Requested range [$end) > ${newStart + newSequence.length} - $contig.")
       return ""
     }
 

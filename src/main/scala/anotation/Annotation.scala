@@ -51,7 +51,7 @@ object Annotation {
     FileReaderVcf2.open(inputFile) // Open the VCF reader once
     GFFReader2.loadGffFile("gencode.v47.annotation.gff3") // Load GFF annotations once
 
-    val faUnzipped = "reference/hg38/GRCh38.primary_assembly.genome.fa"
+    val faUnzipped = "GRCh38.primary_assembly.genome.fa"
     var batchCount = 1
     var hasMoreVariants = true
 
@@ -65,7 +65,6 @@ object Annotation {
         annotateVariants(dnaVariants.toList, referenceGenome, faUnzipped)
 
         WriteToMaf2.writeMafFile(dnaVariants, outputFile, append = batchCount > 1)
-
         batchCount += 1
       }
     }
