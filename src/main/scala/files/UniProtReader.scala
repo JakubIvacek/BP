@@ -27,22 +27,23 @@ object UniProtReader {
     val source = Source.fromFile(filePath)
     try {
       source.getLines().flatMap { line =>
-        line match {
-          case pdbRegex(pdbId, method, resStr, ranges) if ranges.nonEmpty =>
-            val resolution = Option(resStr).flatMap(s => scala.util.Try(s.toDouble).toOption)
-            // Split multiple ranges and normalize chain cases
-            ranges.split(",").flatMap(_.trim match {
-              case chainRangeRegex(chain, start, end) =>
-                Some(UniProtEntry(pdbId, method, resolution, chain.toUpperCase, start.toInt, end.toInt))
-              case _ => None
-            })
-          case _ => None
-        }
+        val parts = line.split("\t")
+        if (parts.length >= 7) {
+          val uniprotId = parts(0)
+          val pdbId = parts(1)
+          val method = parts(2)
+          val resolution = if (parts(3) == "-1.0") None else Some(parts(3).toDouble)
+          val chain = parts(4)
+          val start = parts(5).toInt
+          val end = parts(6).toInt
+          Some(UniProtEntry(pdbId, method, resolution, chain, start, end, uniprotId))
+        } else None
       }.toList
     } finally {
       source.close()
     }
   }
+
 
   /**
    * Loads the UniProt-PDB mappings, downloading them if necessary.

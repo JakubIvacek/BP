@@ -17,5 +17,6 @@ case class UniProtEntry(
                          resolution: Option[Double],
                          chain: String,
                          start: Int,
-                         end: Int
+                         end: Int,
+                         uniProtId: String
                        )

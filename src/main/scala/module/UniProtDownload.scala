@@ -2,6 +2,8 @@ package module
 
 import database.modules.ServiceModules
 import ftp.FtpClient
+import pdb.ExtractPDB
+
 import java.nio.file.{Files, Paths}
 
 object UniProtDownload {
@@ -18,7 +20,7 @@ object UniProtDownload {
       val outputFilePath = s"$finalLocalPath/uniprot_pdb_mappings.txt"
       ServiceModules.addModuleToDatabase("uniprot", "1", finalLocalPath, s"$server$directory", false, "")
       if (Files.exists(Paths.get(inputFilePath))) {
-        utils.ExtractPDB.extractPdbMappings(inputFilePath, outputFilePath)
+        ExtractPDB.extractPdbMappings(inputFilePath, outputFilePath)
       } else {
         println(s"Downloaded file not found at $inputFilePath.")
       }
