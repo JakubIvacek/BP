@@ -42,7 +42,6 @@ object pdbID {
   def getPdbID(hgvs: String, hgvsPos: String, isoformsFastaPath: String): String = {
     val positions = extractPositions(hgvsPos)
     val entries = files.UniProtReader.getList()
-    val seqMap: Map[String, String] = UniProtSequenceLoader.loadSequencesFromFasta("uniprot_isoforms.fasta") // tu asi tu cestu by som daval ??
     val matchedEntryOpt: Option[UniProtEntry] = positions match {
       case (startPos, None) =>
         findMatchingEntry(startPos, startPos, entries)
@@ -51,15 +50,35 @@ object pdbID {
       case _ =>
         None
     }
-
-    matchedEntryOpt match {
-      case Some(entry) =>
-        val isValid = validateHGVSrefAA(hgvs, entry.pdbId, seqMap)
-        if (isValid) entry.pdbId else "."
-      case None => "."
-    }
+    "."
+    // val seqMap: Map[String, String] = UniProtSequenceLoader.loadSequencesFromFasta("uniprot_isoforms.fasta") // tu asi tu cestu by som daval ??
+    //matchedEntryOpt match {
+    //  case Some(entry) =>
+    //    val isValid = validateHGVSrefAA(hgvs, entry.pdbId, seqMap)
+    //    if (isValid) entry.pdbId else "."
+    //  case None => "."
+    //}
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
   def findMatchingEntry(start: Int, end: Int, entries: List[UniProtEntry]): Option[UniProtEntry]= {
     val matchingEntries = entries.filter(entry => start >= entry.start && end <= entry.end)
     matchingEntries match {

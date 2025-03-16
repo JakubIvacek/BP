@@ -10,11 +10,13 @@ object UniProtDownload {
   val server = "ftp.uniprot.org"
   val directory = "/pub/databases/uniprot/knowledgebase/complete/"
   val fileName = "uniprot_sprot.dat.gz"
+  val fastaName = "uniprot_sprot.fasta.gz"
 
   def download(localPath: String) : Unit = {
     if getPath().isEmpty then {
       val finalLocalPath = if localPath == "" then s"uniprot" else s"$localPath/uniprot"
       FtpClient.downloadSpecificFile(finalLocalPath, fileName, server, directory)
+      FtpClient.downloadSpecificFile(finalLocalPath, fastaName, server, directory)
       // Process the downloaded file
       val inputFilePath = s"$finalLocalPath/$fileName"
       val outputFilePath = s"$finalLocalPath/uniprot_pdb_mappings.txt"
@@ -40,6 +42,6 @@ object UniProtDownload {
   }
 
   def main(args: Array[String]): Unit = {
-    //download("BP/")
+    download("")
   }
 }
