@@ -3,7 +3,7 @@ import anotation.VariantTypeAnnotation.getProteinSequence
 import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
 import database.modules.ServiceModules
-import files.{FastaReader, FastaReader2}
+import files.{FastaReader2}
 
 object HGVS {
 
@@ -128,6 +128,6 @@ object HGVS {
       s"$proteinId:p.?" // ? if pos or altAA cant be calculated
     }
     variant.HGVSProtein = hgvs
-    //variant.pdbID = anotation.pdbID.getPdbID(pos)
+    variant.pdbID = anotation.pdbID.getPdbID(hgvs, pos)
   }
 }

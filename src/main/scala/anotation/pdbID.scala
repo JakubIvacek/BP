@@ -1,6 +1,6 @@
 package anotation
 import data.UniProtEntry
-import pdb.UniProtSequenceLoader
+import pdb.{UniProtSequenceLoader, PdbFastaReader}
 
 import scala.util.matching.Regex
 
@@ -39,44 +39,31 @@ object pdbID {
    * @param hgvs The HGVS notation string position part.
    * @return String containing matched pdbID
    */
-  def getPdbID(hgvs: String, hgvsPos: String, isoformsFastaPath: String): String = {
+  def getPdbID(hgvs: String, hgvsPos: String): String = {
+    PdbFastaReader.load()
     val positions = extractPositions(hgvsPos)
     val entries = files.UniProtReader.getList()
-    val matchedEntryOpt: Option[UniProtEntry] = positions match {
+
+    // Find PDB entry matching the position
+    val matchedEntryOpt = positions match {
       case (startPos, None) =>
         findMatchingEntry(startPos, startPos, entries)
       case (startPos, Some(endPos)) =>
         findMatchingEntry(startPos, endPos, entries)
-      case _ =>
-        None
+      case _ => None
     }
-    "."
-    // val seqMap: Map[String, String] = UniProtSequenceLoader.loadSequencesFromFasta("uniprot_isoforms.fasta") // tu asi tu cestu by som daval ??
-    //matchedEntryOpt match {
-    //  case Some(entry) =>
-    //    val isValid = validateHGVSrefAA(hgvs, entry.pdbId, seqMap)
-    //    if (isValid) entry.pdbId else "."
-    //  case None => "."
-    //}
+    //println(s"$hgvs - matchedPos ${matchedEntryOpt} ")
+    // Retrieve UniProt sequence from FASTA
+    val sequenceOpt = PdbFastaReader.getSequence(matchedEntryOpt.map(_.uniProtId).getOrElse(""))
+    if (sequenceOpt.isEmpty) return "." // No sequence available for this UniProt ID
+    val sequence = sequenceOpt.get
+    println(s"$hgvs - matchedPos ${matchedEntryOpt} ${sequence.take(10)}")
+    // Validate the reference amino acid
+    if (!validateHGVSrefAA(hgvs, sequence, hgvsPos)) return "."
+    println("Matched :)")
+    // Return the matched PDB ID if all checks pass
+    matchedEntryOpt.map(_.pdbId).getOrElse(".")
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   
   def findMatchingEntry(start: Int, end: Int, entries: List[UniProtEntry]): Option[UniProtEntry]= {
@@ -89,35 +76,57 @@ object pdbID {
     }
   }
 
-  def validateHGVSrefAA(hgvs: String, uniprotId: String, sequenceMap: Map[String, String]): Boolean = {
-    hgvs match {
-      // Handle single position format (e.g., Gly54)
-      case singlePosPattern(refAA3, posStr) =>
+  def validateHGVSrefAA(hgvs: String, sequence: String, hgvsPos: String): Boolean = {
+    val seqLen = sequence.length // Store sequence length for better performance
+
+    hgvsPos match {
+      //  Single Position Check (e.g., p.Arg100His)
+      case pdbID.singlePosPattern(refAA3, posStr) =>
         val pos = posStr.toInt
-        val refAA1 = threeLetterToOneLetter(refAA3)  // Convert three-letter to one-letter code
-        val sequence = sequenceMap.getOrElse(uniprotId, "")
-        if (sequence.isEmpty || pos > sequence.length) return false
+        val refAA1 = pdbID.threeLetterToOneLetter(refAA3)
+
+        if (pos > seqLen) {
+          println(s"ERROR: Position $pos exceeds sequence length ($seqLen).")
+          return false
+        }
+
+        println(s"🔍 Checking: ${sequence.charAt(pos - 1).toString} == $refAA1")
         sequence.charAt(pos - 1).toString == refAA1
 
-      // Handle range format (e.g., Gly35_Glu45)
-      case rangePattern(refAA3, startPosStr, refAA4, endPosStr) =>
+      // Range Check (e.g., p.Gly35_Glu45)
+      case pdbID.rangePattern(refAA3, startPosStr, refAA4, endPosStr) =>
         val startPos = startPosStr.toInt
         val endPos = endPosStr.toInt
-        val refAA1 = threeLetterToOneLetter(refAA3)
-        val refAA2 = threeLetterToOneLetter(refAA4)
-        val sequence = sequenceMap.getOrElse(uniprotId, "")
-        if (sequence.isEmpty || endPos > sequence.length || startPos > endPos) return false
-        sequence.charAt(startPos - 1).toString == refAA1 && sequence.charAt(endPos - 1).toString == refAA2
+        val refAA1 = pdbID.threeLetterToOneLetter(refAA3)
+        val refAA2 = pdbID.threeLetterToOneLetter(refAA4)
 
-      // Handle extension format (e.g., Met1ext or Ter56extTer)
-      case extPattern(refAA3, posStr) =>
+        if (startPos > seqLen || endPos > seqLen) {
+          println(s"ERROR: Start ($startPos) or End ($endPos) exceeds sequence length ($seqLen).")
+          return false
+        }
+
+        println(s"Checking: ${sequence.charAt(startPos - 1).toString} == $refAA1")
+        println(s"Checking: ${sequence.charAt(endPos - 1).toString} == $refAA2")
+
+        sequence.charAt(startPos - 1).toString == refAA1 &&
+          sequence.charAt(endPos - 1).toString == refAA2
+
+      // Extension Check (e.g., p.Met1ext or p.Ter56extTer)
+      case pdbID.extPattern(refAA3, posStr) =>
         val pos = posStr.toInt
-        val refAA1 = threeLetterToOneLetter(refAA3)
-        val sequence = sequenceMap.getOrElse(uniprotId, "")
-        if (sequence.isEmpty || pos > sequence.length) return false
-        sequence.charAt(pos - 1).toString == refAA1 || sequence.charAt(pos - 1).toString == "X"  // "X" for termination or extension
+        val refAA1 = pdbID.threeLetterToOneLetter(refAA3)
 
-      case _ => false
+        if (pos > seqLen) {
+          println(s"INFO: Position $pos extends beyond sequence length ($seqLen), considered valid extension.")
+          return true
+        }
+
+        // Check if reference AA matches at canonical position
+        sequence.charAt(pos - 1).toString == refAA1 || sequence.charAt(pos - 1).toString == "X"
+
+      case _ =>
+        println("ERROR: Invalid HGVS format.")
+        false
     }
   }
 

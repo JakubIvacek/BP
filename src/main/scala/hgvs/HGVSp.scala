@@ -3,7 +3,7 @@ package hgvs
 import anotation.VariantTypeAnnotation.getProteinSequence
 import data.VariantType.{DEL, DUP, EXT, FS, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
-import files.FastaReader
+import files.FastaReader2
 
 object HGVSp {
   /**

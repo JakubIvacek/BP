@@ -2,7 +2,7 @@ package anotation
 
 import data.VariantType.Other
 import data.{DnaVariant, GffEntry, VariantType}
-import files.{FastaReader, FileReaderVcf, FileReaderVcf2, GFFReader, WriteToMaf, WriteToMaf2, GFFReader2, FastaReader2}
+import files.{FileReaderVcf2, WriteToMaf2, GFFReader2, FastaReader2}
 import hgvs.HGVS
 import utils.Gunzip
 import scala.collection.mutable
@@ -23,7 +23,7 @@ object Annotation {
    */
   def annotate(inputFile: String, outputFile: String, referenceGenome: String): Unit = {
     // Read the VCF file and extract DNA variants
-    val dnaVariants: ListBuffer[DnaVariant] = FileReaderVcf.read(inputFile)
+    //val dnaVariants: ListBuffer[DnaVariant] = FileReaderVcf.read(inputFile)
     
     // Load the GFF3 file containing Gencode annotations if not already loaded.
     //val path = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
@@ -36,13 +36,13 @@ object Annotation {
     //Gunzip.unzipFile(faPath)
     //val faUnzipped = faPath.stripSuffix(".gz")
     // Annotate the variants
-    val faUnzipped = "reference/hg38/GRCh38.primary_assembly.genome.fa"
-    GFFReader2.loadGffFile("gencode.v47.annotation.gff3")
-    annotateVariants(dnaVariants.toList, referenceGenome, faUnzipped)
+    //val faUnzipped = "reference/hg38/GRCh38.primary_assembly.genome.fa"
+    //GFFReader2.loadGffFile("gencode.v47.annotation.gff3")
+    //annotateVariants(dnaVariants.toList, referenceGenome, faUnzipped)
 
     // Write the annotated variants to MAF file.
-    WriteToMaf.writeMafFile(dnaVariants, outputFile)
-    GFFReader2.close()
+    //WriteToMaf.writeMafFile(dnaVariants, outputFile)
+    //GFFReader2.close()
     //Gunzip.zipFile(unzipedFile)
     //Gunzip.zipFile(faUnzipped)
   }

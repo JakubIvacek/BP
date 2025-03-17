@@ -1,7 +1,7 @@
 package anotation
 
 import data.{DnaVariant, GffEntry, VariantType}
-import files.{FastaReader, FastaReader2, FileReaderVcf, GFFReader, WriteToMaf}
+import files.{FastaReader2}
 import hgvs.Utils
 import hgvs.CodonAmino
 import database.modules.ServiceModules
