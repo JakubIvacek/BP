@@ -49,9 +49,18 @@ object Annotation {
 
   def annotateInBatches(inputFile: String, outputFile: String, referenceGenome: String, batchSize: Int = 1000): Unit = {
     FileReaderVcf2.open(inputFile) // Open the VCF reader once
-    GFFReader2.loadGffFile("gencode.v47.annotation.gff3") // Load GFF annotations once
+    val modulePaths = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
+    val (path, faPath) = modulePaths match {
+      case Some((p, f)) => (p, f)
+      case None =>
+        println("Gencode module not found. Please download Gencode first.")
+        return // Stops execution here
+    }
+    val finalPath = path
+    GFFReader2.loadGffFile(finalPath)
+    //GFFReader2.loadGffFile("gencode.v47.annotation.gff3") // Load GFF annotations once
 
-    val faUnzipped = "GRCh38.primary_assembly.genome.fa"
+
     var batchCount = 1
     var hasMoreVariants = true
 
@@ -62,7 +71,7 @@ object Annotation {
         hasMoreVariants = false
       } else {
         println(s"Processing batch $batchCount... ${dnaVariants.toList.head.contig}")
-        annotateVariants(dnaVariants.toList, referenceGenome, faUnzipped)
+        annotateVariants(dnaVariants.toList, referenceGenome, faPath)
 
         WriteToMaf2.writeMafFile(dnaVariants, outputFile, append = batchCount > 1)
         batchCount += 1

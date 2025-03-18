@@ -1,6 +1,8 @@
 package files
 
 import scala.io.Source
+import java.io.{File, FileInputStream, InputStream}
+import java.util.zip.GZIPInputStream
 
 object FastaReader2 {
   // File paths to reference genome FASTA files
@@ -26,15 +28,26 @@ object FastaReader2 {
    *
    * @param fastaPath Path to .fa file
    */
+
+  /**
+   * Loads the FASTA file for the specified genome build and initializes the iterator.
+   *
+   * @param fastaPath Path to .fa or .fa.gz file
+   */
   def loadFastaFile(fastaPath: String): Unit = {
     if (faPathLoaded != fastaPath) {
-       faPathLoaded = fastaPath
-      // Load the FASTA file for the specified build
-      source = Some(Source.fromFile(fastaPath))
+      faPathLoaded = fastaPath
+
+      // Determine if the file is GZIP-compressed
+      val file = new File(fastaPath)
+      val inputStream: InputStream =
+        if (fastaPath.endsWith(".gz")) new GZIPInputStream(new FileInputStream(file))
+        else new FileInputStream(file) // Regular text file
+
+      source = Some(Source.fromInputStream(inputStream))
       iterator = source.get.getLines()
     }
   }
-
   /**
    * Reloads the FASTA file for the specified genome build and initializes the iterator.
    *
@@ -120,7 +133,6 @@ object FastaReader2 {
     if (sequence.isEmpty || end > cachedStart + sequence.length) {
       loadNextBatch(contig, start, end)
     }
-
     // Get the updated cached sequence
     val (newStart, newSequence) = fastaCache.getOrElse(contig, {
       // Try force-loading again if not found yet
@@ -135,11 +147,11 @@ object FastaReader2 {
 
     // Ensure range is within bounds
     if (start < newStart) {
-      println(s"Requested start [$start) <  $newStart  - $contig.")
+      //println(s"Requested start [$start) <  $newStart  - $contig.")
       return ""
     }
     if(end > newStart + newSequence.length){
-      println(s"Requested range [$end) > ${newStart + newSequence.length} - $contig.")
+      //println(s"Requested range [$end) > ${newStart + newSequence.length} - $contig.")
       return ""
     }
 

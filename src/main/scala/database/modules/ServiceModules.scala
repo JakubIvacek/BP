@@ -199,36 +199,27 @@ object ServiceModules {
       DatabaseConnection.closeConnection()
     }
   }
-
+  
   /**
    * Get the path of the newest gencode module based on the versionReference.
    *
    * @param versionReference Module genome reference version (e.g., hg38).
-   * @return Option[String] Path to the newest gencode module or None if not found.
+   * @return Option[(String, String)] Tuple containing paths to the newest gencode annotation and genome file, or None if not found.
    */
-  def getNewestModulePathGenCode(versionReference: String): Option[String] = {
+  def getNewestModulePathGenCode(versionReference: String): Option[(String, String)] = {
     val connection = DatabaseConnection.getConnection
+    val faName = "GRCh38.primary_assembly.genome.fa.gz"
+
     try {
       // Retrieve all gencode modules with the specified versionReference
       val modules = RepositoryModules.findByNameAndReference(connection, "gencode", versionReference)
 
       // Find the module with the highest version number
-      val newestModule = modules.maxByOption(_.version.toInt)
-
-      newestModule match {
-        case Some(module) =>
-          module.locationPath match {
-            case Some(path) => {
-              val fileName = s"gencode.v${module.version}.annotation.gff3.gz"
-              Some(path + "/" + fileName)
-            }
-            case None =>
-              println(s"Newest module found but locationPath is not set.")
-              None
-          }
-        case None =>
-          println(s"No modules found for gencode with versionReference '$versionReference'.")
-          None
+      modules.maxByOption(_.version.toInt).flatMap { module =>
+        module.locationPath.map { path =>
+          val annotationFile = s"gencode.v${module.version}.annotation.gff3.gz"
+          (s"$path/$annotationFile", s"$path/$faName")
+        }
       }
     } catch {
       case e: Exception =>
@@ -238,6 +229,7 @@ object ServiceModules {
       DatabaseConnection.closeConnection()
     }
   }
+
 
   /**
    * Get the path of the gencode module reference file by version

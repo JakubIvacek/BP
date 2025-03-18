@@ -5,6 +5,8 @@ import data.GffEntry
 import scala.io.Source
 import scala.util.Try
 import scala.collection.mutable
+import java.io.{FileInputStream, InputStream, File}
+import java.util.zip.GZIPInputStream
 
 /**
  * The `GFFReader2` object implements a sliding window approach for loading GFF3 files dynamically.
@@ -22,7 +24,14 @@ object GFFReader2 {
    * @param filename The path to the GFF3 file.
    */
   def loadGffFile(filename: String): Unit = {
-    source = Some(Source.fromFile(filename))
+    val file = new File(filename)
+
+    // Check if the file is GZIP-compressed
+    val inputStream: InputStream =
+      if (filename.endsWith(".gz")) new GZIPInputStream(new FileInputStream(file))
+      else new FileInputStream(file) // Regular text file
+
+    source = Some(Source.fromInputStream(inputStream))
     iterator = source.get.getLines().filterNot(_.startsWith("#"))
     loadNextBatch(initialLoadSize)
   }
