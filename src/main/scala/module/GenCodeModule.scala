@@ -21,7 +21,7 @@ object GenCodeModule extends ModuleManager {
 
   private val referenceFile = "GRCh38.primary_assembly.genome.fa.gz"  // Name of the reference file on the FTP server
   private val server = "ftp.ebi.ac.uk"                                // FTP server hosting the Gencode files
-  private var scheduler: Option[ScheduledExecutorService] = None
+  //private var scheduler: Option[ScheduledExecutorService] = None
 
   /**
    * Downloads a specific release of Gencode annotation files for hg38.

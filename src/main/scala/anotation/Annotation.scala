@@ -49,6 +49,7 @@ object Annotation {
 
   def annotateInBatches(inputFile: String, outputFile: String, referenceGenome: String, batchSize: Int = 1000): Unit = {
     FileReaderVcf2.open(inputFile) // Open the VCF reader once
+
     val modulePaths = database.modules.ServiceModules.getNewestModulePathGenCode("hg38")
     val (path, faPath) = modulePaths match {
       case Some((p, f)) => (p, f)
@@ -58,6 +59,7 @@ object Annotation {
     }
     val finalPath = path
     GFFReader2.loadGffFile(finalPath)
+    
     //GFFReader2.loadGffFile("gencode.v47.annotation.gff3") // Load GFF annotations once
 
 
@@ -90,10 +92,22 @@ object Annotation {
    */
   def annotateVariants(dnaVariants: List[DnaVariant], referenceGenome: String, faPath: String): Unit = {
     dnaVariants.foreach(variant =>
-      annotateVariantGencode(variant, referenceGenome, faPath)
-      //here can be added annotateVariantGnomAD ...
+      annotateVariantGencode(variant, referenceGenome, faPath) //GENCODE
+      //annotateVariant1000Genomes(variant, referenceGenome)   //1000GENOMES
+      //...
     )
   }
+
+  /**
+   * Annotate a single DNA variant using the 1000Genomes annotation information
+   *
+   * @param variant         The DNA variant to annotate.
+   * @param referenceGenome The reference genome to use for annotation.
+   */
+  def annotateVariant1000Genomes(variant: DnaVariant, referenceGenome: String): Unit = {
+
+  }
+
 
   /**
    * Annotate a single DNA variant using the Gencode annotation information
