@@ -5,7 +5,7 @@ import scala.collection.mutable.ListBuffer
 import htsjdk.variant.vcf.VCFFileReader
 import data.DnaVariant
 
-object FileReaderVcf2 {
+object FileReaderVcf {
   private var vcfReader: Option[VCFFileReader] = None
   private var iterator: Option[java.util.Iterator[htsjdk.variant.variantcontext.VariantContext]] = None
 

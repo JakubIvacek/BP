@@ -5,7 +5,7 @@ import java.io.{File, PrintWriter}
 import data.DnaVariant
 import data.VariantType
 
-object WriteToMaf2{
+object WriteToMaf{
   /**
    * Write a list of DNA variants to a MAF file.
    *
@@ -21,7 +21,7 @@ object WriteToMaf2{
       // Write header only if file is new
       val mafHeaders = "Hugo_Symbol\tChrom\tStart_Pos\tEnd_Pos\tNCBI_Build\tRef_Allele\tAlt_Allele" +
         "\tVSQR_Score\tVariant_Classification\tVariant_Type\tVariant_Type_Protein\tAllele_Freq\tGene_Type__Gencode\tHGVS_DNA\tHGVS_RNA\tHGVS_Protein\tPDB_ID__Uniprot" +
-        "\tEntrez_Gene_Id__Gencode\tTranscript_id__Gencode" +
+         "\tAF_1000G\tAMR_AF_1000G\tAFR_AF_1000G\tEUR_AF_1000G\tSAS_AF_1000G\tEAS_AF_1000G" + "\tEntrez_Gene_Id__Gencode\tTranscript_id__Gencode" +
         "\tTranscript_name__Gencode\tExon_id__Gencode\tExon_number__Gencode\tTranscript_type__Gencode\tLevel__Gencode"
       writer.println(mafHeaders)
     }
@@ -53,6 +53,12 @@ object WriteToMaf2{
       dnaVariant.HGVSRNA,
       dnaVariant.HGVSProtein,
       dnaVariant.pdbID,
+      dnaVariant.AF_1000G,
+      dnaVariant.AMR_AF_1000G,
+      dnaVariant.AFR_AF_1000G,
+      dnaVariant.EUR_AF_1000G,
+      dnaVariant.SAS_AF_1000G,
+      dnaVariant.EAS_AF_1000G,
       dnaVariant.geneID,
       dnaVariant.transID,
       dnaVariant.transName,

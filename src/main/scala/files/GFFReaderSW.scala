@@ -11,7 +11,7 @@ import java.util.zip.GZIPInputStream
 /**
  * The `GFFReader2` object implements a sliding window approach for loading GFF3 files dynamically.
  */
-object GFFReader2 {
+object GFFReaderSW {
   var loadedEntries: mutable.Queue[GffEntry] = mutable.Queue()
   private var source: Option[Source] = None
   private var iterator: Iterator[String] = Iterator.empty
@@ -87,7 +87,7 @@ object GFFReader2 {
 
       // Stop if we reach a new contig
       if (loadedEntries.nonEmpty && loadedEntries.last.contig != variantContig && loadedEntries.last.contig > variantContig) {
-        println(s"Stopped loading because contig changed to ${loadedEntries.last.contig}")
+        //println(s"Stopped loading because contig changed to ${loadedEntries.last.contig}")
         return
       }
 

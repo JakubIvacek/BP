@@ -2,7 +2,7 @@ package hgvs
 
 import data.VariantType.{DEL, DUP, EXT, FS, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
-import files.GFFReader2
+import files.GFFReaderSW
 
 object Utils {
   
@@ -109,7 +109,7 @@ object Utils {
           (exonEntry.end - position + 1).toString
         }
       case None =>
-        val transExons = GFFReader2.getExonsForTranscriptId(transcriptId)
+        val transExons = GFFReaderSW.getExonsForTranscriptId(transcriptId)
         val sortedExons = transExons.sortBy(_.start)
 
         if (sortedExons.isEmpty) {

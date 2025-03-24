@@ -291,7 +291,7 @@ object ServiceModules {
     }
   }
 
-  def getUnitProtPath(): Option[String] = {
+  def getUnitProtPath: Option[String] = {
     val connection = DatabaseConnection.getConnection
     try {
       // Retrieve all unitprot modules
@@ -301,6 +301,22 @@ object ServiceModules {
     } catch {
       case e: Exception =>
         println(s"An error occurred while retrieving the newest unitprot module: ${e.getMessage}")
+        None
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+
+  def get1000GenomesPath: Option[String] = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      // Retrieve all unitprot modules
+      val modules = RepositoryModules.findByName(connection, "1000genomes")
+      // Return the path if any modules are found
+      modules.headOption.flatMap(_.locationPath)
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while retrieving the newest 1000 genomes module path: ${e.getMessage}")
         None
     } finally {
       DatabaseConnection.closeConnection()

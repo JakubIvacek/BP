@@ -1,7 +1,7 @@
 package anotation
 
 import data.{DnaVariant, GffEntry, VariantType}
-import files.{FastaReader2}
+import files.FastaReaderSW
 import hgvs.Utils
 import hgvs.CodonAmino
 import database.modules.ServiceModules
@@ -47,7 +47,7 @@ object VariantTypeAnnotation {
     //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, "")
     
     // Get the coding sequence (CDS) from the genome
-    val cdsSequence = FastaReader2.getSequence(faPath, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    val cdsSequence = FastaReaderSW.getSequence(faPath, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
     //println(s"${cdsEntry.start} end ${cdsEntry.end} - length ${cdsSequence.length} - position ${variant.contig} ${variant.position} ${variant.positionEnd}")
     // Calculate variant offset within the CDS
     val variantOffset = if (cdsEntry.strandPlus) {

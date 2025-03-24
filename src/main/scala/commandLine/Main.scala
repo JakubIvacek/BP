@@ -3,7 +3,7 @@ package commandLine
 import anotation.Annotation
 
 import java.io.PrintWriter
-import module.GenCodeModule
+import module.{GenCodeModule, Genomes1000Module}
 import org.rogach.scallop.*
 
 // sbt "run -d gencode -p /path/save (optional path if saves to .log file)"        DOWNLOAD LATEST
@@ -86,7 +86,7 @@ object Main {
         if (version != "hg38" && version != "t2t") println("Enter referenceVersion : hg38 or t2t")
         else{
           println(s"Annotate with file: $file and reference version: $version out path: ${outPath}")
-          Annotation.annotate(file,  outPath, version)
+          Annotation.annotateInBatches(file,  outPath, version)
         }
       }
     }
@@ -95,6 +95,9 @@ object Main {
   def printInformation(name: String): Unit = {
     if (name == "gencode"){
       GenCodeModule.printAllClassModules()
+    }
+    else if (name == "1000genomes"){
+      Genomes1000Module.printAllClassModules()
     }
     // GNOMAD ... ADD DALSIE
     else{
@@ -107,7 +110,9 @@ object Main {
     if (name == "gencode") {
       GenCodeModule.downloadModuleLatest(path)
     }
-    // GNOMAD ... ADD DALSIE
+    else if (name == "1000genomes"){
+      Genomes1000Module.downloadModuleLatest(path)
+    }
     else{
       println("Wrong module name Try again (Gencode, ...)")
     }
@@ -117,7 +122,9 @@ object Main {
     if (name == "gencode") {
       GenCodeModule.downloadModule(path, version)
     }
-    // GNOMAD ... ADD DALSIE
+    else if (name == "1000genomes"){
+      Genomes1000Module.downloadModule(path, version)
+    }
     else {
       println("Wrong module name Try again (Gencode, ...)")
     }

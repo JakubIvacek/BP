@@ -33,7 +33,7 @@ object UniProtDownload {
 
 
   def getPath(): String = {
-    val path = ServiceModules.getUnitProtPath()
+    val path = ServiceModules.getUnitProtPath
     
     path match {
       case Some(path) => path

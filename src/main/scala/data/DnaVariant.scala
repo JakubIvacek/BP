@@ -59,8 +59,14 @@ case class DnaVariant(
                   var HGVSDNA: String,
                   var HGVSRNA: String,
                   var HGVSProtein: String,
-                  var pdbID: String
-                ){
+                  var pdbID: String,
+                  var AMR_AF_1000G: String,
+                  var AFR_AF_1000G: String,
+                  var EUR_AF_1000G: String,
+                  var SAS_AF_1000G: String,
+                  var EAS_AF_1000G: String,
+                  var AF_1000G: String   
+                     ){
 }
 
 /**
@@ -106,7 +112,13 @@ object DnaVariant{
         HGVSRNA = ".",
         HGVSProtein = ".",
         proteinVarType = VariantType.Other,
-        pdbID = "."
+        pdbID = ".",
+        AMR_AF_1000G = ".",
+        AFR_AF_1000G = ".",
+        EUR_AF_1000G = ".",
+        SAS_AF_1000G = ".",
+        EAS_AF_1000G = ".",
+        AF_1000G = "."
       )
     }
     // Return the list as an immutable List

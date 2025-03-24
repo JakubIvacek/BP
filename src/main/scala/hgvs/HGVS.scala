@@ -3,7 +3,7 @@ import anotation.VariantTypeAnnotation.getProteinSequence
 import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
 import database.modules.ServiceModules
-import files.{FastaReader2}
+import files.FastaReaderSW
 
 object HGVS {
 
@@ -109,7 +109,7 @@ object HGVS {
     //val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
     val faPath = "GRCh38.primary_assembly.genome.fa"
     //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath.getOrElse(""))
-    val cdsSequence = FastaReader2.getSequence(faPath, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
+    val cdsSequence = FastaReaderSW.getSequence(faPath, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
     // Calculate the variant offset within the CDS based on strand orientation
     val variantOffset = if (cdsEntry.strandPlus) {
       (variant.position - cdsEntry.start).toInt
