@@ -84,11 +84,7 @@ object GenCodeModule extends ModuleManager {
    */
   override def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
                              fileName: String): Unit = {
-    Gunzip.unzipFile(s"$filePath/$fileName")
-    val outputFileName = fileName.stripSuffix(".gz")
-    LiftOverTool.liftOverGFF(s"$filePath/$outputFileName", outputPath, outputFileName)
-    Gunzip.zipFile(s"$filePath/$outputFileName")
-    Gunzip.zipFile(s"$outputPath/$outputFileName")
+    LiftOverTool.liftOverGFF(s"$filePath/$fileName", outputPath, fileName)
     FileStuff.copyFile("reference/t2t/chm13v2.0.fa", s"$outputPath/chm13v2.0.fa")
     ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath, downloadPath,  true, "t2t")
   }

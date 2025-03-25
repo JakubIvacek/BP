@@ -2,7 +2,7 @@ package module
 
 import database.modules.ServiceModules
 import ftp.{FtpClient, FtpClient1000genomes}
-import utils.RepositoryManager
+import utils.{Gunzip, LiftOverTool, RepositoryManager, FileStuff}
 
 object Genomes1000Module {
   private val server = "ftp.1000genomes.ebi.ac.uk"
@@ -75,17 +75,28 @@ object Genomes1000Module {
     val finalLocalPath = if localPath == "" then s"1000genomes/$version/hg38" else s"$localPath/1000genomes/$version/hg38"
     val versionInstalledCheck = ServiceModules.getModuleFromDatabase("1000genomes", version, "hg38")
     if (versionInstalledCheck.isEmpty && FtpClient1000genomes.isVersionPresent(version)) {
+      // DOWNLOAD
       filesToDownload.foreach { file =>
         //println(s"Downloading $file...")
         FtpClient.downloadSpecificFile(finalLocalPath, file, server, directory)
       }
       ServiceModules.addModuleToDatabase("1000genomes", version, finalLocalPath, s"$server$directory", false, "hg38")
-
-      //val finalOverliftPath = if localPath == "" then s"1000genomes/20130502/t2t" else s"$localPath/1000genomes/20130502/t2t"
-      // OVERLIFT ESTE TREBA
+      // OVERLIFT TO T2T
+      val finalOverliftPath = if localPath == "" then s"1000genomes/$version/t2t" else s"$localPath/1000genomes/$version/t2t"
+      filesToDownload.foreach { file =>
+        overLiftToT2T(finalOverliftPath, version, server + directory, finalLocalPath, file)
+      }
+      FileStuff.copyFile("reference/t2t/chm13v2.0.fa", s"$finalOverliftPath/chm13v2.0.fa")
+      ServiceModules.addModuleToDatabase("1000genomes", version, finalOverliftPath, s"$server$directory", true, "t2t")
     }
   }
 
+  def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
+                    fileName: String): Unit = {
+    if !fileName.endsWith(".tbi") then {
+      LiftOverTool.liftOverVcf(s"$filePath/$fileName", outputPath, fileName)
+    }
+  }
   def removeModuleById(id: Int): Unit = {
     val module = ServiceModules.getModuleFromDatabaseById(id)
     module match {
@@ -103,6 +114,7 @@ object Genomes1000Module {
       case Some(module) =>
         RepositoryManager.deleteRepository(module.locationPath.getOrElse("N/A")) //delete if location path present
         ServiceModules.deleteModuleFromDatabaseById(module.id.getOrElse(-1)) //delete from database
+
       case None =>
         println("No module found with this information.")
     }
@@ -126,10 +138,6 @@ object Genomes1000Module {
       println("ALL MODULES -")
       modules.foreach(_.print())
     }
-  }
-
-  def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String, fileName: String): Unit = {
-
   }
 
 

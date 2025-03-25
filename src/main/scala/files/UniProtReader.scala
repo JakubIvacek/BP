@@ -61,7 +61,7 @@ object UniProtReader {
         }
       }.toList
 
-      println(s"Successfully loaded ${entries.length} UniProt-PDB mappings")
+      //println(s"Successfully loaded ${entries.length} UniProt-PDB mappings")
       entries
     } finally {
       source.close()

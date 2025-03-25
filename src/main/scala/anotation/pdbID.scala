@@ -85,11 +85,11 @@ object pdbID {
         val refAA1 = pdbID.threeLetterToOneLetter(refAA3)
 
         if (pos > seqLen) {
-          println(s"$hgvsPos ERROR: Position $pos exceeds sequence length ($seqLen).")
+          //println(s"$hgvsPos ERROR: Position $pos exceeds sequence length ($seqLen).")
           return false
         }
 
-        println(s"$hgvsPos - Checking: ${sequence.charAt(pos - 1).toString} == $refAA1")
+        //println(s"$hgvsPos - Checking: ${sequence.charAt(pos - 1).toString} == $refAA1")
         sequence.charAt(pos - 1).toString == refAA1
 
       // Range Check (e.g., p.Gly35_Glu45)
@@ -100,12 +100,12 @@ object pdbID {
         val refAA2 = pdbID.threeLetterToOneLetter(refAA4)
 
         if (startPos > seqLen || endPos > seqLen) {
-          println(s"$hgvsPos ERROR: Start ($startPos) or End ($endPos) exceeds sequence length ($seqLen).")
+          //println(s"$hgvsPos ERROR: Start ($startPos) or End ($endPos) exceeds sequence length ($seqLen).")
           return false
         }
 
-        println(s"Checking: ${sequence.charAt(startPos - 1).toString} == $refAA1")
-        println(s"Checking: ${sequence.charAt(endPos - 1).toString} == $refAA2")
+        //println(s"Checking: ${sequence.charAt(startPos - 1).toString} == $refAA1")
+        //println(s"Checking: ${sequence.charAt(endPos - 1).toString} == $refAA2")
 
         sequence.charAt(startPos - 1).toString == refAA1 &&
           sequence.charAt(endPos - 1).toString == refAA2
@@ -116,7 +116,7 @@ object pdbID {
         val refAA1 = pdbID.threeLetterToOneLetter(refAA3)
 
         if (pos > seqLen) {
-          println(s"$hgvsPos INFO: Position $pos extends beyond sequence length ($seqLen), considered valid extension.")
+          //println(s"$hgvsPos INFO: Position $pos extends beyond sequence length ($seqLen), considered valid extension.")
           return true
         }
 

@@ -12,8 +12,8 @@ object VcfReaderSW {
   var loadedEntries: mutable.Queue[VCFEntry] = mutable.Queue()
   private var source: Option[Source] = None
   private var iterator: Iterator[String] = Iterator.empty
-  private val batchSize = 20 
-  private val initialLoadSize = 100 
+  private val batchSize = 50000
+  private val initialLoadSize = 100000
   private var loadedCount = 0
 
   /**
@@ -28,7 +28,7 @@ object VcfReaderSW {
     val inputStream: InputStream =
       if (filename.endsWith(".gz")) new GZIPInputStream(new FileInputStream(file))
       else new FileInputStream(file) // Regular text file
-
+    loadedEntries = mutable.Queue()
     source = Some(Source.fromInputStream(inputStream))
     iterator = source.get.getLines().filterNot(_.startsWith("#"))
     loadNextBatch(initialLoadSize)
@@ -62,6 +62,7 @@ object VcfReaderSW {
         loadedCount += 1
       }
     }
+    //println("Loaded new " + loaded)
   }
 
   /**
@@ -69,22 +70,15 @@ object VcfReaderSW {
    * If not, it loads additional variants as needed.
    *
    * @param variantEnd The end position of the variant being annotated.
-   * @param variantChrom The chromosome of the variant being annotated.
    */
-  def ensureVariantInWindow(variantEnd: Int, variantChrom: String): Unit = {
-    while (iterator.hasNext && (loadedEntries.isEmpty || loadedEntries.last.chrom < variantChrom || (loadedEntries.last.chrom == variantChrom && loadedEntries.last.pos < variantEnd))) {
+  def ensureVariantInWindow(variantEnd: Int): Unit = {
+    while (iterator.hasNext && (loadedEntries.isEmpty || loadedEntries.last.pos < variantEnd)) {
       loadNextBatch(batchSize)
-
-      // Stop if we reach a new chromosome
-      if (loadedEntries.nonEmpty && loadedEntries.last.chrom != variantChrom && loadedEntries.last.chrom > variantChrom) {
-        //println(s"Stopped loading because chromosome changed to ${loadedEntries.last.chrom}")
-        return
-      }
-
-      cleanUpWindow(variantEnd, variantChrom)
+      //println("Loaded : - " + loadedCount + s" End - ${loadedEntries.last.pos} Variant end - $variantEnd")
+      cleanUpWindow(variantEnd)
     }
 
-    cleanUpWindow(variantEnd, variantChrom)
+    cleanUpWindow(variantEnd)
   }
 
   /**
@@ -92,10 +86,16 @@ object VcfReaderSW {
    *
    * @param variantStart The start position of the variant being annotated.
    */
-  private def cleanUpWindow(variantStart: Int, variantChrom: String): Unit = {
-    while (loadedEntries.size > 1 && (loadedEntries(1).pos < variantStart || loadedEntries(1).chrom != variantChrom)) {
+  private def cleanUpWindow(variantStart: Int): Unit = {
+    var removed = 0
+    while (loadedEntries.size > 1 && (loadedEntries(1).pos < variantStart)) {
       loadedEntries.dequeue()
       loadedCount -= 1
+      removed += 1
+    }
+
+    if (removed > 0) {
+      //println(s"Cleaned up $removed entries.")
     }
   }
 

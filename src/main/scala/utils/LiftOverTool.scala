@@ -79,6 +79,7 @@ object LiftOverTool {
       "vcf",                
       chainFilePathHg38,        
       inputFile,
+      referencePath,
       s"$outputPath/$outputFileName"
     )
 

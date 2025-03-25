@@ -70,7 +70,7 @@ object ServiceModules {
         case Some(module) =>
           Some(module) 
         case None =>
-          println(s"No module found with name '$name' and version '$version'. Nothing to retrieve.")
+          //println(s"No module found with name '$name' and version '$version'. Nothing to retrieve.")
           None 
       }
     } catch {

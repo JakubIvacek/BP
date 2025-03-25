@@ -15,18 +15,23 @@ object Annotation1000Genomes {
    * @param referenceGenome The reference genome to use for annotation.
    */
   def annotateVariant1000Genomes(variant: DnaVariant, referenceGenome: String): Unit = {
+    // if not installed return
     directory = directory.orElse(database.modules.ServiceModules.get1000GenomesPath)
+    if directory.isEmpty then return // means 1000genomes is not installed so cant annotate
+
     if activeConting == "" || activeConting != variant.contig then {
       activeConting = variant.contig
-      VcfReaderSW.loadVcfFile(getVcfFile(activeConting))
+      VcfReaderSW.loadVcfFile(s"${directory.getOrElse("")}/${getVcfFile(activeConting)}")
+
+      println("Loaded file " + s"${directory.getOrElse("")}/${getVcfFile(activeConting)}" )
     }
     // SLIDE WINDOW VCF
-    VcfReaderSW.ensureVariantInWindow(variant.position.toInt, variant.contig)
+    VcfReaderSW.ensureVariantInWindow(variant.position.toInt)
     // FIND MATCHING ENTRIES
     var matchingEntries = {
       val overlaps = VcfReaderSW.loadedEntries.filter(entry =>
         entry.chrom == variant.contig && entry.pos == variant.position
-        && entry.alt == variant.altAllele && entry.ref == variant.refAllele
+          && entry.alt == variant.altAllele && entry.ref == variant.refAllele
 
       )
 
@@ -39,13 +44,12 @@ object Annotation1000Genomes {
     // ANNOTATE WITH MATCHING ENTRY
     if (matchingEntries.nonEmpty) {
       val entry = matchingEntries.head
-
+      //println("Matching entries - " + matchingEntries.length)
       // Separate info field into pairs
       val infoField = entry.info.split(";").map { keyValue =>
         val parts = keyValue.split("=")
         parts.head -> parts.lift(1).getOrElse("")
       }.toMap
-
       // Extract the relevant population frequencies and add to variant
       variant.AMR_AF_1000G = infoField.get("AMR_AF").flatMap(value => Try(value.toDouble).toOption).map(_.toString).getOrElse(".")
       variant.AFR_AF_1000G = infoField.get("AFR_AF").flatMap(value => Try(value.toDouble).toOption).map(_.toString).getOrElse(".")

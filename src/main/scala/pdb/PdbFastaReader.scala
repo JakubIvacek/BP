@@ -19,7 +19,6 @@ object PdbFastaReader {
    * @param fastaFile Path to UniProt FASTA file
    */
   def loadFasta(fastaFile: String): Unit = {
-    //println(s"📥 Loading UniProt FASTA file: $fastaFile")
 
     val gzipStream = new GZIPInputStream(new FileInputStream(fastaFile))
     val fastaSource = Source.fromInputStream(gzipStream)
@@ -38,7 +37,7 @@ object PdbFastaReader {
         if (parts.length > 2) {
           val fullID = parts(2).split(" ")(0) // Take first part before space (e.g., "1433F_HUMAN")
 
-          if (fullID.endsWith("_HUMAN")) { // ✅ Keep only human proteins
+          if (fullID.endsWith("_HUMAN")) { // Keep only human proteins
             val uniprotID = fullID.split("_")(0) // Take "1433F" from "1433F_HUMAN"
             currentID = Some(uniprotID)
           } else {
@@ -57,7 +56,7 @@ object PdbFastaReader {
     fastaSource.close()
     fastaMap = tempMap.toMap
     isLoaded = true
-    println(s" Loaded ${fastaMap.size} Human UniProt sequences into memory.")
+    //println(s" Loaded ${fastaMap.size} Human UniProt sequences into memory.")
   }
 
   /**
