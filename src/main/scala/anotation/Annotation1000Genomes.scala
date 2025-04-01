@@ -30,11 +30,10 @@ object Annotation1000Genomes {
     // FIND MATCHING ENTRIES
     var matchingEntries = {
       val overlaps = VcfReaderSW.loadedEntries.filter(entry =>
-        entry.chrom == variant.contig && entry.pos == variant.position
+        entry.chrom == variant.contig && entry.pos == variant.position.toInt
           && entry.alt == variant.altAllele && entry.ref == variant.refAllele
-
       )
-
+      println(overlaps)
       if (overlaps.nonEmpty) {
         overlaps.toSeq // Convert to immutable Seq
       } else {

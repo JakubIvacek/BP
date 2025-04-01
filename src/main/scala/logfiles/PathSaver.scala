@@ -1,4 +1,4 @@
-package commandLine
+package logfiles
 
 import java.nio.file.{Files, Paths, StandardOpenOption}
 

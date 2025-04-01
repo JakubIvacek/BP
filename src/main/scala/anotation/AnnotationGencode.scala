@@ -16,10 +16,9 @@ object AnnotationGencode {
       case Some((p, f)) => (p, f)
       case None =>
         println("Gencode module not found. Please download Gencode first.")
-        return None // Stops execution here
+        return None 
     }
     GFFReaderSW.loadGffFile(pathGencode)
-    //GFFReader2.loadGffFile("gencode.v47.annotation.gff3") // Load GFF annotations once
     Some(faPathGencode)
   }
 
@@ -72,7 +71,7 @@ object AnnotationGencode {
 
     // assignAttributes
     variant.geneID = getAttribute(matchingEntries, "gene_id")
-    variant.geneName = prioritizeGeneName(matchingEntries)
+    variant.geneName = prioritizeAttribute(matchingEntries, "gene_name")
     variant.geneType = getAttribute(matchingEntries, "gene_type")
     variant.transID = prioritizeAttribute(matchingEntries, "transcript_id")
     variant.transName = prioritizeAttribute(matchingEntries, "transcript_name")
@@ -111,19 +110,12 @@ object AnnotationGencode {
     }
 
   /**
-   * Prioritize the gene name in the list of overlapping GFF entries.
+   * Prioritize the name in the list of overlapping GFF entries.
    * If there are multiple gene names, prioritize those not starting with "ENSG".
    *
    * @param entries The list of overlapping GFF entries.
    * @return The prioritized gene name or "." if none is found.
    */
-  def prioritizeGeneName(entries: Seq[GffEntry]): String = {
-    val geneNames = entries.flatMap(_.attributes.get("gene_name")).distinct
-    geneNames.find(!_.startsWith("ENSG"))
-      .orElse(geneNames.find(_.startsWith("ENSG")))
-      .getOrElse(".")
-  }
-
   def prioritizeAttribute(entries: Seq[GffEntry], attributeName: String): String = {
     val geneNames = entries.flatMap(_.attributes.get(attributeName)).distinct
     geneNames.find(!_.startsWith("ENSG"))

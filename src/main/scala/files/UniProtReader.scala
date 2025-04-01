@@ -1,9 +1,9 @@
 package files
 
-import commandLine.PathSaver
 import scala.io.Source
 import scala.util.matching.Regex
 import data.UniProtEntry
+import logfiles.PathSaver
 import module.UniProtDownload
 
 /**

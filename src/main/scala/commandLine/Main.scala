@@ -1,17 +1,11 @@
 package commandLine
 
 import anotation.Annotation
+import logfiles.{PathSaver, RefChainDirManager}
 
 import java.io.PrintWriter
 import module.{GenCodeModule, Genomes1000Module}
 import org.rogach.scallop.*
-
-// sbt "run -d gencode -p /path/save (optional path if saves to .log file)"        DOWNLOAD LATEST
-// sbt "run -d gencode -p /path/save" -v 43  (optional path if saves to .log file) DOWNLOAD VERSION
-// sbt "run -r 1"                                   REMOVE ID
-// sbt "run -i gencode"                             PRINT INFO
-// sbt "run -f filename -rv version -op /output/path"   ANNOTATION not connceted yet
-// sbt "run -h"                                     HELP
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val remove = opt[Int]("r", required = false, descr = "Remove module by ID (1,2)")
@@ -20,7 +14,8 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val info = opt[String]("i", required = false, descr = "Print info module name (genocde, gnomad ...)")
   val help = opt[Boolean]("h", noshort = true, descr = "Show help message")
   val filename = opt[String]("f", required = false, descr = "Filename for annotation (Lynch.vcf)")
-  val referenceVersion = opt[String]("a", required = false, descr = "Reference version for annotation (hg38, t2t)")
+  val referenceVersion = opt[String]("a", required = false, descr = "Reference version for annotation (hg38, t2t) or path to reference dir (/path/)")
+  val chainFiles = opt[String]("c", required = false, descr = "Chain files directory path (/path/dir)")
   val path = opt[String]("p", required = false, descr = "File path for download (/path/dir) (optional path saves to .log file)")
   val outPath = opt[String]("o", required = false, descr = "File path for output (/path/file_name.maf)")
   // Call verify after defining all options
@@ -41,6 +36,12 @@ object Main {
     if (conf.help()) {
       conf.printHelp()
     } else {
+      if RefChainDirManager.getPaths.isEmpty then {
+        println("Before using commands set up CHAIN , REFERENCE files directory path")
+        println("By using commnad - sbt run -c CHAIN/DIR -a REFERENCE/DIR")
+        println("reference dir should contain : chm13.fa , hg38.fa ")
+        println("chain dir should contain : chm13-hg38.over.chain , hg38-chm13.over.chain")
+      }
       // sbt run -d name  no -p tries to retrieve from .log file
       if (conf.download.isDefined) {
         val path = PathSaver.getPath
@@ -61,6 +62,11 @@ object Main {
       if (conf.download.isDefined && conf.path.isDefined) {
         println(s"Download latest module: ${conf.download()} with path: ${conf.path()}")
         downloadModuleLatest(conf.download(), conf.path())
+      }
+      //sbt run -c dir -a dir
+      if (conf.chainFiles.isDefined && conf.referenceVersion.isDefined){
+        println(s"Saving dir paths chain - ${conf.chainFiles()} ref - ${conf.referenceVersion()}")
+        RefChainDirManager.savePathsToLogFile(conf.referenceVersion(), conf.chainFiles())
       }
       // sbt run -d name -v version -p path
       if (conf.download.isDefined && conf.path.isDefined && conf.version.isDefined) {

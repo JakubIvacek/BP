@@ -1,6 +1,6 @@
 package pdb
 
-import commandLine.PathSaver
+import logfiles.PathSaver
 import module.UniProtDownload
 import java.util.zip.GZIPInputStream
 import java.io.FileInputStream
