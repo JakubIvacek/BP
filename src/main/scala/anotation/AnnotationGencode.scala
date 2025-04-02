@@ -92,7 +92,7 @@ object AnnotationGencode {
       val cdsEntry = cdsEntryOpt.get
       variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, cdsEntry, faPath)
     }
-    HGVS.variantAddHGVS(variant, matchingEntries)
+    HGVS.variantAddHGVS(variant, matchingEntries, faPath)
 
   }
 

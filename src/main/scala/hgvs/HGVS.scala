@@ -6,14 +6,16 @@ import database.modules.ServiceModules
 import files.FastaReaderSW
 
 object HGVS {
-
+  
+  
   /**
    * Generates HGVS notations for DNA, RNA, and protein levels for a given variant.
    *
    * @param variant The DNA variant to be annotated.
    * @param entries GFF entries containing transcript and protein information.
+   * @param faPath  path to reference file               
    */
-  def variantAddHGVS(variant: DnaVariant, entries: Seq[GffEntry]): Unit = {
+  def variantAddHGVS(variant: DnaVariant, entries: Seq[GffEntry], faPath: String): Unit = {
 
     // DNA/RNA LEVEL: Mapped to transcript
     val matchingTranscript = entries.find(_.name == "transcript")
@@ -30,7 +32,7 @@ object HGVS {
       entry.attributes.contains("protein_id") && entry.attributes.get("gene_type").contains("protein_coding")
     )
     cdsEntryOpt match {
-      case Some(cdsEntry) => HGVSProtein(variant, entries, cdsEntry)
+      case Some(cdsEntry) => HGVSProtein(variant, entries, cdsEntry, faPath)
       case None =>
     }
   }
@@ -100,15 +102,14 @@ object HGVS {
    * @param variant    The DNA variant.
    * @param entries    GFF entries containing transcript information.
    * @param cdsEntry   The matched CDS GFF entry.
+   * @param faPath  path to reference file                        
    */
-  def HGVSProtein(variant: DnaVariant, entries: Seq[GffEntry], cdsEntry: GffEntry): Unit = {
+  def HGVSProtein(variant: DnaVariant, entries: Seq[GffEntry], cdsEntry: GffEntry, faPath: String): Unit = {
     // proteinId : p . position/range ppp? sequence
     val proteinId = cdsEntry.attributes("protein_id")
     val coordinate = "p"
     val pastPosPart = Utils.getPastPositionPart(variant.proteinVarType)
-    //val faPath = ServiceModules.getReferenceFilePathGenCode(variant.NCBIBuild)
-    val faPath = "GRCh38.primary_assembly.genome.fa"
-    //val cdsSequence = FastaReader.getSequence(variant.NCBIBuild, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus, faPath.getOrElse(""))
+
     val cdsSequence = FastaReaderSW.getSequence(faPath, cdsEntry.contig, cdsEntry.start, cdsEntry.end, cdsEntry.strandPlus)
     // Calculate the variant offset within the CDS based on strand orientation
     val variantOffset = if (cdsEntry.strandPlus) {

@@ -2,7 +2,8 @@ package module
 
 import database.modules.ServiceModules
 import ftp.{FtpClient, FtpClient1000genomes}
-import utils.{Gunzip, LiftOverTool, RepositoryManager, FileStuff}
+import logfiles.RefChainDirManager
+import utils.{FileStuff, Gunzip, LiftOverTool, RepositoryManager}
 
 object Genomes1000Module {
   private val server = "ftp.1000genomes.ebi.ac.uk"
@@ -86,7 +87,8 @@ object Genomes1000Module {
       filesToDownload.foreach { file =>
         overLiftToT2T(finalOverliftPath, version, server + directory, finalLocalPath, file)
       }
-      FileStuff.copyFile("reference/t2t/chm13v2.0.fa", s"$finalOverliftPath/chm13v2.0.fa")
+      val refPath = RefChainDirManager.getReferenceFileDir.getOrElse("")
+      FileStuff.copyFile(s"$refPath/chm13v2.0.fa", s"$finalOverliftPath/chm13v2.0.fa")
       ServiceModules.addModuleToDatabase("1000genomes", version, finalOverliftPath, s"$server$directory", true, "t2t")
     }
   }

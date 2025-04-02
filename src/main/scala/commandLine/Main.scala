@@ -36,11 +36,17 @@ object Main {
     if (conf.help()) {
       conf.printHelp()
     } else {
+      //sbt run -c dir -a dir SET UP CHAIN AND REF DIRECTORY
+      if (conf.chainFiles.isDefined && conf.referenceVersion.isDefined) {
+        println(s"Saving dir paths chain - ${conf.chainFiles()} ref - ${conf.referenceVersion()}")
+        RefChainDirManager.savePathsToLogFile(conf.referenceVersion(), conf.chainFiles())
+      }
       if RefChainDirManager.getPaths.isEmpty then {
         println("Before using commands set up CHAIN , REFERENCE files directory path")
         println("By using commnad - sbt run -c CHAIN/DIR -a REFERENCE/DIR")
         println("reference dir should contain : chm13.fa , hg38.fa ")
         println("chain dir should contain : chm13-hg38.over.chain , hg38-chm13.over.chain")
+        return
       }
       // sbt run -d name  no -p tries to retrieve from .log file
       if (conf.download.isDefined) {
@@ -60,17 +66,13 @@ object Main {
       }
       // sbt run -d name -p path
       if (conf.download.isDefined && conf.path.isDefined) {
+        PathSaver.savePathToLogFile(conf.path())
         println(s"Download latest module: ${conf.download()} with path: ${conf.path()}")
         downloadModuleLatest(conf.download(), conf.path())
       }
-      //sbt run -c dir -a dir
-      if (conf.chainFiles.isDefined && conf.referenceVersion.isDefined){
-        println(s"Saving dir paths chain - ${conf.chainFiles()} ref - ${conf.referenceVersion()}")
-        RefChainDirManager.savePathsToLogFile(conf.referenceVersion(), conf.chainFiles())
-      }
       // sbt run -d name -v version -p path
       if (conf.download.isDefined && conf.path.isDefined && conf.version.isDefined) {
-        //add path to log file if not added
+        PathSaver.savePathToLogFile(conf.path())
         println(s"Download latest module: ${conf.download()} with path: ${conf.path()} version : ${conf.version()}")
         downloadModule(conf.download(), conf.path(), conf.version())
       }

@@ -6,8 +6,8 @@ import java.util.zip.GZIPInputStream
 
 object FastaReaderSW {
   // File paths to reference genome FASTA files
-  val faHg38 = "GRCh38.primary_assembly.genome.fa"
-  val faT2T = "reference/t2t/chm13v2.0.fa"
+  //val faHg38 = "GRCh38.primary_assembly.genome.fa"
+  //val faT2T = "reference/t2t/chm13v2.0.fa"
 
   // Iterator for the FASTA file
   private var source: Option[Source] = None

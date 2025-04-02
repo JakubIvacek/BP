@@ -1,10 +1,11 @@
 package module
 
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import ftp.{FtpClient, FtpClientGencode}
 import database.modules.{RepositoryModules, ServiceModules}
-import utils.{Gunzip, LiftOverTool, RepositoryManager, FileStuff}
+import logfiles.RefChainDirManager
+import utils.{FileStuff, Gunzip, LiftOverTool, RepositoryManager}
 
 /**
  * Gencode module
@@ -85,7 +86,8 @@ object GenCodeModule extends ModuleManager {
   override def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
                              fileName: String): Unit = {
     LiftOverTool.liftOverGFF(s"$filePath/$fileName", outputPath, fileName)
-    FileStuff.copyFile("reference/t2t/chm13v2.0.fa", s"$outputPath/chm13v2.0.fa")
+    val refPath = RefChainDirManager.getReferenceFileDir.getOrElse("")
+    FileStuff.copyFile(s"$refPath/chm13v2.0.fa", s"$outputPath/chm13v2.0.fa")
     ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath, downloadPath,  true, "t2t")
   }
 

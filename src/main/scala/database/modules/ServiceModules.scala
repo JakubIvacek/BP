@@ -209,7 +209,8 @@ object ServiceModules {
   def getNewestModulePathGenCode(versionReference: String): Option[(String, String)] = {
     val connection = DatabaseConnection.getConnection
     val faName = "GRCh38.primary_assembly.genome.fa.gz"
-
+    val faNameT2T = "chm13.fa"
+    val faFinalName = if versionReference == "hg38" then faName else faNameT2T
     try {
       // Retrieve all gencode modules with the specified versionReference
       val modules = RepositoryModules.findByNameAndReference(connection, "gencode", versionReference)
@@ -218,51 +219,12 @@ object ServiceModules {
       modules.maxByOption(_.version.toInt).flatMap { module =>
         module.locationPath.map { path =>
           val annotationFile = s"gencode.v${module.version}.annotation.gff3.gz"
-          (s"$path/$annotationFile", s"$path/$faName")
+          (s"$path/$annotationFile", s"$path/$faFinalName")
         }
       }
     } catch {
       case e: Exception =>
         println(s"An error occurred while retrieving the newest gencode module: ${e.getMessage}")
-        None
-    } finally {
-      DatabaseConnection.closeConnection()
-    }
-  }
-
-
-  /**
-   * Get the path of the gencode module reference file by version
-   *
-   * @param versionReference Module genome reference version (e.g., hg38, t2t).
-   * @return Option[String] Path to the newest gencode module or None if not found.
-   */
-  def getReferenceFilePathGenCode(versionReference: String): Option[String] = {
-    val connection = DatabaseConnection.getConnection
-    try {
-      // Retrieve all gencode modules with the specified versionReference
-      val modules = RepositoryModules.findByNameAndReference(connection, "gencode", versionReference)
-      
-      val module = modules.headOption
-      module match {
-        case Some(module) =>
-          module.locationPath match {
-            case Some(path) => {
-              val fileName = if versionReference == "hg38" then "GRCh38.primary_assembly.genome.fa.gz" else if (versionReference == "t2t") then "chm13v2.0.fa" else ""
-              println(s"Reference file path : $path/$fileName")
-              Some(path + "/" + fileName)
-            }
-            case None =>
-              println(s"Module found but locationPath is not set.")
-              None
-          }
-        case None =>
-          println(s"No modules found for gencode with versionReference '$versionReference'.")
-          None
-      }
-    } catch {
-      case e: Exception =>
-        println(s"An error occurred while retrieving gencode module: ${e.getMessage}")
         None
     } finally {
       DatabaseConnection.closeConnection()

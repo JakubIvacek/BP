@@ -1,5 +1,7 @@
 package utils
 
+import logfiles.RefChainDirManager
+
 import scala.util.{Failure, Success, Try}
 import java.nio.file.{Files, Paths}
 import java.io.File
@@ -12,9 +14,12 @@ import scala.sys.process.*
  * Automatically download CrossMap tool if not located on device
  */
 object LiftOverTool {
-  private val chainFilePathHg38 = "liftover.chains/hg38-chm13v2.over.chain"
-  private val referencePath = "reference/t2t/chm13v2.0.fa"
+  private var chainFilePathHg38toT2T: Option[String] = None
+  private var referencePathT2T: Option[String] = None
   private var pathToCrossMap = ""
+  private val hg38toT2TChainName = "hg38-chm13.over.chain"
+  private val T2TRefName = "chm13.fa"
+
   /**
    * LiftOver GFF file using CrossMap.
    *
@@ -30,11 +35,12 @@ object LiftOverTool {
     if (!localDir.exists()) {
       localDir.mkdirs()
     }
+    checkIfPathsSet()
     checkWhereCrossMapLocated()
     val command = Seq(
       pathToCrossMap,
       "gff",
-      chainFilePathHg38,
+      chainFilePathHg38toT2T.getOrElse(""),
       inputPath,
       s"$outputPath/$filename"
     )
@@ -70,16 +76,15 @@ object LiftOverTool {
     if (!localDir.exists()) {
       localDir.mkdirs()
     }
+    checkIfPathsSet()
     checkWhereCrossMapLocated()
-    
-
     // Command for CrossMap VCF liftover
     val crossMapCommand = Seq(
       pathToCrossMap,         
       "vcf",                
-      chainFilePathHg38,        
+      chainFilePathHg38toT2T.getOrElse(""),
       inputFile,
-      referencePath,
+      referencePathT2T.getOrElse(""),
       s"$outputPath/$outputFileName"
     )
 
@@ -99,7 +104,12 @@ object LiftOverTool {
         None
     }
   }
-
+  private def checkIfPathsSet(): Unit = {
+    if chainFilePathHg38toT2T.isEmpty
+    then chainFilePathHg38toT2T = Some(RefChainDirManager.getChainFileDir.getOrElse("") + s"/$hg38toT2TChainName")
+    if referencePathT2T.isEmpty
+    then referencePathT2T = Some(RefChainDirManager.getReferenceFileDir.getOrElse("") + s"/$T2TRefName")
+  }
   /**
    * Check whether the CrossMap tool is available on the system.
    * If not found, attempt to install or update it using Pip.

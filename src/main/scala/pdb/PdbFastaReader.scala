@@ -89,31 +89,6 @@ object PdbFastaReader {
     val path = s"$dir/$filename"
     loadFasta(path)
   }
-
-
-  def main(args: Array[String]): Unit = {
-    println("🔹 Starting FASTA debug...")
-
-    // Load the FASTA file
-    loadFasta(s"uniprot/$filename")
-
-    // Print the first 10 loaded UniProt IDs and sequences (truncated)
-    println("\n🔍 First 10 loaded UniProt sequences:")
-    fastaMap.take(10).foreach { case (id, seq) =>
-      println(s"🆔 $id → ${seq.take(50)}... (${seq.length} AA)") // Print first 50 AA
-    }
-
-    // Let’s try retrieving specific UniProt IDs manually
-    val testIds = Seq("TKT1", "LDHB", "GAPDH", "ACTB", "HBB") // Example human protein IDs
-
-    println("\n🔍 Testing sequence retrieval:")
-    testIds.foreach { id =>
-      getSequence(id) match {
-        case Some(seq) => println(s"✅ $id found: ${seq.take(50)}... (${seq.length} AA)")
-        case None      => println(s"❌ $id NOT found in FASTA data.")
-      }
-    }
-  }
 }
 
 

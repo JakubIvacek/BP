@@ -18,7 +18,7 @@ object RepositoryModules {
     val preparedStatement: PreparedStatement = connection.prepareStatement(insertQuery)
     setModuleParameters(preparedStatement, module)
     preparedStatement.executeUpdate()
-    println(s"Module '${module.name}' inserted successfully!")
+    //println(s"Module '${module.name}' inserted successfully!")
   }
 
   /**
@@ -116,7 +116,7 @@ object RepositoryModules {
     val resultSet: ResultSet = preparedStatement.executeQuery()
     val modules = mapResultSetToModules(resultSet)
 
-    println(s"Modules with name and version'$moduleName' retrieved successfully!")
+    //println(s"Modules with name and version'$moduleName' retrieved successfully!")
     modules
   }
 
