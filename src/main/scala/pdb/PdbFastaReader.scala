@@ -1,7 +1,7 @@
 package pdb
 
+import downloader.UniProtDownload
 import logfiles.PathSaver
-import module.UniProtDownload
 import java.util.zip.GZIPInputStream
 import java.io.FileInputStream
 import scala.io.Source

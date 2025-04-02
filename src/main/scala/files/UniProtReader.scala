@@ -3,8 +3,8 @@ package files
 import scala.io.Source
 import scala.util.matching.Regex
 import data.UniProtEntry
+import downloader.UniProtDownload
 import logfiles.PathSaver
-import module.UniProtDownload
 
 /**
  * Reads UniProt-PDB mapping files and converts them into UniProtEntry instances.

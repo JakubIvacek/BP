@@ -5,7 +5,7 @@ import ftp.{FtpClient, FtpClient1000genomes}
 import logfiles.RefChainDirManager
 import utils.{FileStuff, Gunzip, LiftOverTool, RepositoryManager}
 
-object Genomes1000Module {
+object Genomes1000Module extends ModuleManager {
   private val server = "ftp.1000genomes.ebi.ac.uk"
   private val directory = "vol1/ftp/release/20130502/"
   private val filesToDownload = List(

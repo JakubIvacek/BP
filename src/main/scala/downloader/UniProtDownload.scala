@@ -1,4 +1,4 @@
-package module
+package downloader
 
 import database.modules.ServiceModules
 import ftp.FtpClient

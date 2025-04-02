@@ -10,7 +10,9 @@ lazy val root = (project in file("."))
     libraryDependencies += "com.lihaoyi" %% "ujson" % "2.0.0" ,
     libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.41.2.2",
     libraryDependencies += "commons-net" % "commons-net" % "3.9.0",
-    libraryDependencies += "org.rogach" %% "scallop" % "4.1.0"
+    libraryDependencies += "org.rogach" %% "scallop" % "4.1.0",
+    libraryDependencies += "org.playframework" %% "play-json" % "3.0.4"
+
 
 
   )
