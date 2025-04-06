@@ -2,7 +2,7 @@ package downloader
 
 
 import java.net.{URI, HttpURLConnection}
-import java.io.{BufferedReader, InputStreamReader, FileOutputStream}
+import java.io.{BufferedReader, InputStreamReader, FileOutputStream, File}
 import scala.util.{Try, Success, Failure}
 import play.api.libs.json._
 
@@ -57,6 +57,15 @@ object CosmicDownload {
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("GET")
 
+    // Ensure the directory exists
+    val outputFile = new File(outputFileName)
+    val outputDir = outputFile.getParentFile
+    if (outputDir != null && !outputDir.exists()) {
+      if (!outputDir.mkdirs()) {
+        println(s"Failed to create directories: ${outputDir.getAbsolutePath}")
+        return false
+      }
+    }
     Try {
       val inputStream = connection.getInputStream
       val fileOutputStream = new FileOutputStream(outputFileName)
@@ -73,34 +82,6 @@ object CosmicDownload {
     } match {
       case Success(_) => true
       case Failure(_) => false
-    }
-  }
-
-  def main(args: Array[String]): Unit = {
-    val email = "xivacek@stuba.sk" // Replace with your email
-    val password = "pyN.def.9.ire" // Replace with your password
-    val filePath = "grch38/cosmic/v101/Cosmic_CancerGeneCensus_Tsv_v101_GRCh38.tar" // Example file path
-    val outputFileName = "Cosmic_CancerGeneCensus_Tsv_v101_GRCh38.tar" // File will be saved here
-
-    // Step 1: Generate authentication string
-    val authString = generateAuthString(email, password)
-    println(s"Generated auth string: $authString")
-
-    // Step 2: Get the download URL
-    getDownloadURL(authString, filePath) match {
-      case Some(downloadLink) =>
-        println(s"Download link obtained: $downloadLink")
-
-        // Step 3: Download the file
-        val success = downloadFile(downloadLink, outputFileName)
-        if (success) {
-          println(s"File downloaded successfully: $outputFileName")
-        } else {
-          println("Failed to download the file.")
-        }
-
-      case None =>
-        println("Failed to obtain the download URL.")
     }
   }
 }

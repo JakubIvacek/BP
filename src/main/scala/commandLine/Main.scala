@@ -4,7 +4,7 @@ import anotation.Annotation
 import logfiles.{PathSaver, RefChainDirManager}
 
 import java.io.PrintWriter
-import module.{GenCodeModule, Genomes1000Module, UniprotModule}
+import module.{CosmicModule, GenCodeModule, Genomes1000Module, UniprotModule}
 import org.rogach.scallop.*
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
@@ -110,6 +110,9 @@ object Main {
     else if (name == "uniprot"){
       UniprotModule.printAllClassModules()
     }
+    else if (name == "cosmic"){
+      CosmicModule.printAllClassModules()
+    }
     else{
       println("Wrong module Printing all. (Gencode, ...)")
       GenCodeModule.printAllModules()
@@ -125,6 +128,8 @@ object Main {
     }
     else if (name == "uniprot"){
       UniprotModule.downloadModuleLatest(path)
+    }else if (name == "cosmic"){
+      CosmicModule.downloadModuleLatest(path)
     }
     else{
       println("Wrong module name Try again (Gencode, ...)")
@@ -140,6 +145,9 @@ object Main {
     }
     else if (name == "uniprot"){
       UniprotModule.downloadModule(path, version)
+    }
+    else if (name == "cosmic"){
+      CosmicModule.downloadModule(path, version)
     }
     else {
       println("Wrong module name Try again (Gencode, ...)")
