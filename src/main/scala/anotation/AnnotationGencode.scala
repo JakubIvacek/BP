@@ -41,10 +41,8 @@ object AnnotationGencode {
     var overlappingEntries = {
       val overlaps = GFFReaderSW.loadedEntries.filter(gene =>
         gene.contig == variant.contig &&
-          gene.start < variant.position &&
-          gene.end > variant.position &&
-          gene.start < variant.positionEnd &&
-          gene.end > variant.positionEnd
+          gene.start < variant.position && gene.end > variant.position &&
+          gene.start < variant.positionEnd && gene.end > variant.positionEnd
       )
 
       if (overlaps.nonEmpty) {
@@ -68,17 +66,27 @@ object AnnotationGencode {
         false // Skip entries where the variant range is out of bounds
       }
     }
-
-    // assignAttributes
-    variant.geneID = getAttribute(matchingEntries, "gene_id")
-    variant.geneName = prioritizeAttribute(matchingEntries, "gene_name")
-    variant.geneType = getAttribute(matchingEntries, "gene_type")
-    variant.transID = prioritizeAttribute(matchingEntries, "transcript_id")
-    variant.transName = prioritizeAttribute(matchingEntries, "transcript_name")
-    variant.transType = prioritizeAttribute(matchingEntries, "transcript_type")
-    variant.exonID = prioritizeAttribute(matchingEntries, "exon_id")
-    variant.exonNum = getAttribute(matchingEntries, "exon_number")
-    variant.level = getAttribute(matchingEntries, "level")
+    
+    // ASSIGN ATTRIBUTES
+    val selectedExon = matchingEntries.find(entry => entry.attributes.contains("exon_id"))
+    if (selectedExon.isDefined) {
+      // Use exon data if available
+      assignAttributes(selectedExon.get, variant)
+    } else {
+      // If no exon, check for a transcript
+      val selectedTranscript = matchingEntries.find(entry => entry.attributes.contains("transcript_id"))
+      if (selectedTranscript.isDefined) {
+        // Use transcript data if available
+        assignAttributes(selectedTranscript.get, variant)
+      } else {
+        // If no transcript, check for gene
+        val selectedGene = matchingEntries.find(entry => entry.attributes.contains("gene_id"))
+        if (selectedGene.isDefined) {
+          // Use gene data if available
+          assignAttributes(selectedGene.get, variant)
+        }
+      }
+    }
     variant.NCBIBuild = referenceGenome
     //set var type
     variant.varType = VariantTypeAnnotation.returnVariantTypeDnaRna(variant.refAllele, variant.altAllele)
@@ -92,6 +100,7 @@ object AnnotationGencode {
       val cdsEntry = cdsEntryOpt.get
       variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, cdsEntry, faPath)
     }
+
     HGVS.variantAddHGVS(variant, matchingEntries, faPath)
 
   }
@@ -111,7 +120,7 @@ object AnnotationGencode {
 
   /**
    * Prioritize the name in the list of overlapping GFF entries.
-   * If there are multiple gene names, prioritize those not starting with "ENSG".
+   * If there are multiple gene names for example, prioritize those not starting with "ENSG".
    *
    * @param entries The list of overlapping GFF entries.
    * @return The prioritized gene name or "." if none is found.
@@ -121,5 +130,20 @@ object AnnotationGencode {
     geneNames.find(!_.startsWith("ENSG"))
       .orElse(geneNames.find(_.startsWith("ENSG")))
       .getOrElse(".")
+  }
+
+  /**
+   * Helper function to extract attributes and assign them to the variant
+   */
+  def assignAttributes(entry: GffEntry, variant: DnaVariant): Unit = {
+    variant.exonID = entry.attributes.getOrElse("exon_id", ".")
+    variant.exonNum = entry.attributes.getOrElse("exon_number", ".")
+    variant.geneID = entry.attributes.getOrElse("gene_id", ".")
+    variant.geneName = entry.attributes.getOrElse("gene_name", ".")
+    variant.geneType = entry.attributes.getOrElse("gene_type", ".")
+    variant.transID = entry.attributes.getOrElse("transcript_id", ".")
+    variant.transName = entry.attributes.getOrElse("transcript_name", ".")
+    variant.transType = entry.attributes.getOrElse("transcript_type", ".")
+    variant.level = entry.attributes.getOrElse("level", ".")
   }
 }

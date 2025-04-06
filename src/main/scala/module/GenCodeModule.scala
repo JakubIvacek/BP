@@ -54,7 +54,7 @@ object GenCodeModule extends ModuleManager {
       ServiceModules.addModuleToDatabase("gencode", newReleaseNumber, finalLocalPath, s"$server$directory", false, "hg38")
       // Overlift module to T2T
       val finalOverLiftPath = if localPath == "" then s"gencode/$newReleaseNumber/t2t" else s"$localPath/gencode/$newReleaseNumber/t2t"
-      overLiftToT2T(finalOverLiftPath, newReleaseNumber, server + directory, finalLocalPath, fileName)
+      overLiftToT2T(finalOverLiftPath, newReleaseNumber, server + directory, finalLocalPath, List(fileName))
     } else {
       println("Could not determine the latest Gencode release or version installed already.")
     }
@@ -81,32 +81,16 @@ object GenCodeModule extends ModuleManager {
    * @param releaseNumber The Gencode release number.
    * @param downloadPath  The URL path to the FTP server.
    * @param filePath      The path to the input file to be overlifted.
-   * @param fileName      The name of the file to be overlifted.
+   * @param fileNames      The List of the files to be overlifted.
    */
   override def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
-                             fileName: String): Unit = {
-    LiftOverTool.liftOverGFF(s"$filePath/$fileName", outputPath, fileName)
+                             fileNames: List[String]): Unit = {
+    fileNames.foreach( fileName =>
+      LiftOverTool.liftOverGFF(s"$filePath/$fileName", outputPath, fileName)
+    )
     val refPath = RefChainDirManager.getReferenceFileDir.getOrElse("")
     FileStuff.copyFile(s"$refPath/chm13v2.0.fa", s"$outputPath/chm13v2.0.fa")
     ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath, downloadPath,  true, "t2t")
-  }
-
-  /**
-   * Removes a Gencode module by its name, release, and reference version.
-   *
-   * @param name             Module name (e.g., "gencode").
-   * @param release          Release number (e.g., "34").
-   * @param versionReference Reference version (e.g., "hg38").
-   */
-  override def removeModule(name: String, release: String, versionReference: String): Unit = {
-    val module = ServiceModules.getModuleFromDatabase(name, release, versionReference)
-    module match {
-      case Some(module) =>
-        RepositoryManager.deleteRepository(module.locationPath.getOrElse("N/A")) //delete if location path present
-        ServiceModules.deleteModuleFromDatabaseById(module.id.getOrElse(-1)) //delete from database
-      case None =>
-        println("No module found with this information.")
-    }
   }
 
   /**

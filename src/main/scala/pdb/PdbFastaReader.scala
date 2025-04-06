@@ -1,7 +1,9 @@
 package pdb
 
-import downloader.UniProtDownload
+
 import logfiles.PathSaver
+import module.UniprotModule
+
 import java.util.zip.GZIPInputStream
 import java.io.FileInputStream
 import scala.io.Source
@@ -74,17 +76,21 @@ object PdbFastaReader {
     fastaMap.get(uniprotID) // Match using extracted ID
   }
 
+  /**
+   * Retrieves the dir path to fasta file and returns its path
+   *
+   */
   def load(): Unit = {
     if (isLoaded) {
-      //println("ℹ️ UniProt FASTA already loaded. Skipping reload.")
+      //println("ℹ UniProt FASTA already loaded. Skipping reload.")
       return
     }
-    val dir = UniProtDownload.getPath() match {
+    val dir = UniprotModule.getPath() match {
       case p if p.nonEmpty => p // Use existing path if available
       case _ =>
-        val savePath = PathSaver.getPath.getOrElse("") // Get path from PathSaver or use empty string
-        UniProtDownload.download(savePath)
-        UniProtDownload.getPath()
+        val savePath = PathSaver.getPath.getOrElse("") 
+        UniprotModule.downloadModuleLatest(savePath)
+        UniprotModule.getPath()
     }
     val path = s"$dir/$filename"
     loadFasta(path)

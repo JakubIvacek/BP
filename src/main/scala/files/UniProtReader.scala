@@ -3,8 +3,8 @@ package files
 import scala.io.Source
 import scala.util.matching.Regex
 import data.UniProtEntry
-import downloader.UniProtDownload
 import logfiles.PathSaver
+import module.UniprotModule
 
 /**
  * Reads UniProt-PDB mapping files and converts them into UniProtEntry instances.
@@ -21,7 +21,6 @@ object UniProtReader {
    * @return A list of UniProtEntry instances representing the mappings.
    */
   def loadMappings(filePath: String): List[UniProtEntry] = {
-   // println(s"Attempting to load UniProt-PDB mappings from: $filePath")
 
     if (!new java.io.File(filePath).exists()) {
       println(s"ERROR: File not found - $filePath")
@@ -31,8 +30,6 @@ object UniProtReader {
     val source = Source.fromFile(filePath)
     try {
       val entries = source.getLines().flatMap { line =>
-        // Debug: Print each line being processed
-        // println(s"🔍 Processing Line: $line")
 
         val parts = line.split("\t") // UniProt ID + PDB mapping
         if (parts.length < 2) None
@@ -53,15 +50,14 @@ object UniProtReader {
               val chain = m.group(1)
               val start = m.group(2).toInt
               val end = m.group(3).toInt
-              UniProtEntry(pdbId, method, resolution, chain, start, end, uniprotId) // Correctly store UniProt ID
+              UniProtEntry(pdbId, method, resolution, chain, start, end, uniprotId) 
             }.toList
 
             chains
           } else None
         }
       }.toList
-
-      //println(s"Successfully loaded ${entries.length} UniProt-PDB mappings")
+      
       entries
     } finally {
       source.close()
@@ -76,25 +72,18 @@ object UniProtReader {
    */
   def getList(): List[UniProtEntry] = {
     list.getOrElse {
-      val dir = UniProtDownload.getPath() match {
+      val dir = UniprotModule.getPath() match {
         case p if p.nonEmpty => p                      // Use existing path if available
         case _ =>
           val savePath = PathSaver.getPath.getOrElse("") // Get path from PathSaver or use empty string
-          UniProtDownload.download(savePath)
-          UniProtDownload.getPath()
+          UniprotModule.downloadModuleLatest(savePath)
+          UniprotModule.getPath()
       }
       val path = s"$dir/$fileName"
       val loadedList = loadMappings(path)
       //println(s"Loaded ${loadedList.length} PDB entries")
       list = Some(loadedList) // Cache the loaded list
       loadedList
-    }
-  }
-
-  def main(args: Array[String]): Unit = {
-    val entries: List[UniProtEntry] = loadMappings(s"uniprot/$fileName")
-    entries.foreach { entry =>
-      //println(s" UniProt: ${entry.uniProtId}, PDB: ${entry.pdbId}, Range: ${entry.start}-${entry.end}")
     }
   }
 }

@@ -25,7 +25,7 @@ object CosmicDownload {
    */
   def getDownloadURL(authString: String, filePath: String): Option[String] = {
     val uri = new URI(s"https://cancer.sanger.ac.uk/api/mono/products/v1/downloads/scripted?path=$filePath&bucket=downloads")
-    val url = uri.toURL // Convert URI to URL
+    val url = uri.toURL
 
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("GET")
@@ -33,7 +33,7 @@ object CosmicDownload {
 
     Try {
       val reader = new BufferedReader(new InputStreamReader(connection.getInputStream))
-      val response = reader.readLine() // Read the JSON response
+      val response = reader.readLine()
       reader.close()
 
 

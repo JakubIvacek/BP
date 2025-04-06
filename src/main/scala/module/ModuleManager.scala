@@ -24,15 +24,6 @@ abstract class ModuleManager {
     def downloadModuleLatest(localPath: String): Unit
 
     /**
-     * Remove a module from the system based on its name, release version, and reference version.
-     *
-     * @param ModuleName       The name of the module to be removed.
-     * @param release          The release identifier of the module.
-     * @param versionReference The reference version of the module (e.g., genome build version).
-     */
-    def removeModule(ModuleName: String, release: String, versionReference: String): Unit
-
-    /**
      * Remove a module from the system based on its unique ID.
      *
      * @param ModuleId The unique identifier of the module to be removed.
@@ -58,8 +49,8 @@ abstract class ModuleManager {
      * @param releaseNumber The release identifier of the module (e.g., "34").
      * @param downloadPath  The FTP server path where the module files are located.
      * @param filePath      The local path to the original file that needs to be overlifted.
-     * @param fileName      The name of the file to be overlifted.
+     * @param fileNames      The List of the files to be overlifted.
      */
-    def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String, fileName: String): Unit
+    def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String, fileNames: List[String]): Unit
 }
 

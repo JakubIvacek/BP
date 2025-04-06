@@ -4,7 +4,7 @@ import anotation.Annotation
 import logfiles.{PathSaver, RefChainDirManager}
 
 import java.io.PrintWriter
-import module.{GenCodeModule, Genomes1000Module}
+import module.{GenCodeModule, Genomes1000Module, UniprotModule}
 import org.rogach.scallop.*
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
@@ -42,7 +42,7 @@ object Main {
         RefChainDirManager.savePathsToLogFile(conf.referenceVersion(), conf.chainFiles())
       }
       if RefChainDirManager.getPaths.isEmpty then {
-        println("Before using commands set up CHAIN , REFERENCE files directory path")
+        println("Before using COMMANDS set up CHAIN , REFERENCE files directory path")
         println("By using commnad - sbt run -c CHAIN/DIR -a REFERENCE/DIR")
         println("reference dir should contain : chm13.fa , hg38.fa ")
         println("chain dir should contain : chm13-hg38.over.chain , hg38-chm13.over.chain")
@@ -107,7 +107,9 @@ object Main {
     else if (name == "1000genomes"){
       Genomes1000Module.printAllClassModules()
     }
-    // GNOMAD ... ADD DALSIE
+    else if (name == "uniprot"){
+      UniprotModule.printAllClassModules()
+    }
     else{
       println("Wrong module Printing all. (Gencode, ...)")
       GenCodeModule.printAllModules()
@@ -121,6 +123,9 @@ object Main {
     else if (name == "1000genomes"){
       Genomes1000Module.downloadModuleLatest(path)
     }
+    else if (name == "uniprot"){
+      UniprotModule.downloadModuleLatest(path)
+    }
     else{
       println("Wrong module name Try again (Gencode, ...)")
     }
@@ -132,6 +137,9 @@ object Main {
     }
     else if (name == "1000genomes"){
       Genomes1000Module.downloadModule(path, version)
+    }
+    else if (name == "uniprot"){
+      UniprotModule.downloadModule(path, version)
     }
     else {
       println("Wrong module name Try again (Gencode, ...)")
