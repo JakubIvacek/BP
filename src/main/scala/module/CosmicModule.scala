@@ -1,7 +1,6 @@
 package module
 
-import cosmic.FAtoGFFaLoadCOSMIC
-import cosmic.{TSVtoGFFGeneCensus, TSVtoGFFNonCoding, TSVtoGFFResistance}
+import cosmic.{FAtoGFFaLoadCOSMIC, GFFtoFastaCosmic, TSVtoGFFGeneCensus, TSVtoGFFNonCoding, TSVtoGFFResistance}
 import database.modules.ServiceModules
 import downloader.CosmicDownload
 import logfiles.ConfigCredentials
@@ -95,6 +94,7 @@ object CosmicModule extends ModuleManager {
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_NonCodingVariants_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_NonCodingVariants_${releaseNumber}_Chm13.gff")
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_ResistanceMutations_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_ResistanceMutations_${releaseNumber}_Chm13.gff")
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_Genes_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_Genes_${releaseNumber}_Chm13.gff")
+      GFFtoFastaCosmic.convertToFasta(s"Cosmic_Genes_${releaseNumber}_Chm13.gff", s"$outputPath/Cosmic_Genes_${releaseNumber}_Chm13.fasta.gz")
       ServiceModules.addModuleToDatabase("cosmic", releaseNumber.substring(1), outputPath, downloadPath, true, "t2t")
 
     }

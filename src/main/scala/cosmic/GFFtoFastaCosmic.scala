@@ -72,17 +72,18 @@ object GFFtoFastaCosmic {
     // Close the writer after writing all sequences
     writer.close()
   }
-
+  def convertToFasta(filePath: String, outputPath: String): Unit = {
+    val gffEntries = readGFF(filePath)
+    writeToFasta(gffEntries, outputPath)
+  }
+  
   def parseAttributes(attributeString: String): Map[String, String] = {
     attributeString.split(";").map { attribute =>
       val keyValue = attribute.split("=")
       if (keyValue.length == 2) keyValue(0) -> keyValue(1) else keyValue(0) -> ""
     }.toMap
   }
-
   def main(args: Array[String]): Unit = {
-    val filePath = "cosmic_genes.gff"  // Specify the path to your GFF file
-    val gffEntries = readGFF(filePath)
-    writeToFasta(gffEntries, "new.fasta")
+    convertToFasta("cosmic_genes.gff", "new.fasta")
   }
 }
