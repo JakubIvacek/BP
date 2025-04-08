@@ -1,5 +1,6 @@
 package module
 
+import cosmic.FAtoGFFaLoadCOSMIC
 import cosmic.{TSVtoGFFGeneCensus, TSVtoGFFNonCoding, TSVtoGFFResistance}
 import database.modules.ServiceModules
 import downloader.CosmicDownload
@@ -61,6 +62,8 @@ object CosmicModule extends ModuleManager {
             TSVtoGFFGeneCensus.convertTSVToGFF(s"$finalLocalPath/Cosmic_CancerGeneCensus_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_CancerGeneCensus_${version}_GRCh38.gff")
             TSVtoGFFNonCoding.convertTSVToGFF(s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.gff")
             TSVtoGFFResistance.convertTSVToGFF(s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.gff")
+            FAtoGFFaLoadCOSMIC.loadFastaFromGzip(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.fasta.gz")
+            FAtoGFFaLoadCOSMIC.writeGFF(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.gff", FAtoGFFaLoadCOSMIC.loadedList.getOrElse(List()))
             println("Liftovering to T2T.")
             overLiftToT2T(localOverLiftPath, version, filePath, finalLocalPath, List(""))
             println("Liftover DONE module downloaded.")
@@ -86,14 +89,15 @@ object CosmicModule extends ModuleManager {
    * @param filePath      The path to the input file to be overlifted.
    * @param fileNames     The List of the files to be overlifted.
    */
-  def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
-                             fileNames: List[String]): Unit = {
-    LiftOverTool.liftOverGFF(s"$filePath/Cosmic_CancerGeneCensus_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_CancerGeneCensus_${releaseNumber}_Chm13.gff")
-    LiftOverTool.liftOverGFF(s"$filePath/Cosmic_NonCodingVariants_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_NonCodingVariants_${releaseNumber}_Chm13.gff")
-    LiftOverTool.liftOverGFF(s"$filePath/Cosmic_ResistanceMutations_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_ResistanceMutations_${releaseNumber}_Chm13.gff")
-    ServiceModules.addModuleToDatabase("cosmic", releaseNumber.substring(1), outputPath, downloadPath, true, "t2t")
+    def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
+                               fileNames: List[String]): Unit = {
+      LiftOverTool.liftOverGFF(s"$filePath/Cosmic_CancerGeneCensus_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_CancerGeneCensus_${releaseNumber}_Chm13.gff")
+      LiftOverTool.liftOverGFF(s"$filePath/Cosmic_NonCodingVariants_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_NonCodingVariants_${releaseNumber}_Chm13.gff")
+      LiftOverTool.liftOverGFF(s"$filePath/Cosmic_ResistanceMutations_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_ResistanceMutations_${releaseNumber}_Chm13.gff")
+      LiftOverTool.liftOverGFF(s"$filePath/Cosmic_Genes_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_Genes_${releaseNumber}_Chm13.gff")
+      ServiceModules.addModuleToDatabase("cosmic", releaseNumber.substring(1), outputPath, downloadPath, true, "t2t")
 
-  }
+    }
     /**
      * Removes a COSMIC module by its unique ID.
      *

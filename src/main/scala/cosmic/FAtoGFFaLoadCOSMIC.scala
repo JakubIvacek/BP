@@ -3,10 +3,11 @@ package cosmic
 import scala.io.Source
 import scala.collection.mutable.ListBuffer
 import java.util.zip.GZIPInputStream
-import java.io.FileInputStream
-import data.FaEntryCosmic
+import java.io.{File, FileInputStream, PrintWriter}
+import dataCosmic.FaEntryCosmic
+import utils.LiftOverTool
 
-object FaLoadCOSMIC {
+object FAtoGFFaLoadCOSMIC {
   
   var loadedList: Option[List[FaEntryCosmic]] = None
   
@@ -56,12 +57,33 @@ object FaLoadCOSMIC {
     (geneSymbol, transcriptAccession, chromosomeInfo.split(":")(0), genomeStart, genomeStop, strand)
   }
 
-  def main(args: Array[String]): Unit = {
-    FaLoadCOSMIC.loadFastaFromGzip("data/cosmic/v101/hg38/Cosmic_Genes_v101_GRCh38.fasta.gz")
-    println(FaLoadCOSMIC.loadedList.getOrElse(List()).length)
-    TSVtoGFFGeneCensus.convertTSVToGFF("data/cosmic/v101/hg38/Cosmic_CancerGeneCensus_v101_GRCh38.tsv.gz", "con_census.gff")
-    TSVtoGFFNonCoding.convertTSVToGFF("data/cosmic/v101/hg38/Cosmic_NonCodingVariants_v101_GRCh38.tsv.gz", "con_noncod.gff")
-    TSVtoGFFResistance.convertTSVToGFF("data/cosmic/v101/hg38/Cosmic_ResistanceMutations_v101_GRCh38.tsv.gz", "con_resmut.gff")
+  // Write GFF header
+  def writeGFFHeader(writer: PrintWriter): Unit = {
+    writer.println("##gff-version 3")
   }
-  
+
+  // Convert GeneFeature objects to GFF format and write to file
+  def writeGFF(filePath: String, features: Seq[FaEntryCosmic]): Unit = {
+    println(s"Converting cosmic .fa to .gff - $filePath")
+    val file = new File(filePath)
+    if (!file.getParentFile.exists()) {
+      file.getParentFile.mkdirs() // Create the directory if it doesn't exist
+    }
+    val writer = new PrintWriter(filePath)
+
+    // Write header
+    writeGFFHeader(writer)
+
+    // Write each feature in GFF format
+    features.foreach { feature =>
+      val attributes = s"Gene_ID=${feature.geneSymbol};" +
+        s"Transcript_ID=${feature.transcriptAccession};"
+
+      // Write the feature line in GFF format
+      writer.println(s"${feature.chromosome}\tCosmic\ttranscript\t${feature.genomeStart}\t${feature.genomeStop}\t.\t${feature.strand}\t.\t$attributes")
+    }
+
+    // Close the writer
+    writer.close()
+  }
 }

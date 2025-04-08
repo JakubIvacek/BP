@@ -1,6 +1,6 @@
 package cosmic
 
-import cosmic.data.NonCodingVariant
+import cosmic.dataCosmic.NonCodingVariant
 
 import java.io._
 import java.util.zip.GZIPInputStream
@@ -107,6 +107,7 @@ object TSVtoGFFNonCoding {
 
   // Main method to convert TSV to GFF
   def convertTSVToGFF(inputTSV: String, outputGFF: String, batchSize: Int = 10000): Unit = {
+    println(s"Converting - $inputTSV to $outputGFF")
     writeGFF(outputGFF, inputTSV, batchSize)
   }
 }

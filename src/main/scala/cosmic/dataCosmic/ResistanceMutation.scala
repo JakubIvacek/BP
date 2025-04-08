@@ -1,4 +1,4 @@
-package cosmic.data
+package cosmic.dataCosmic
 
 case class ResistanceMutation(
                                cosmicGeneId: String,

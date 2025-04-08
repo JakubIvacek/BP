@@ -1,6 +1,6 @@
 package anotation
 
-import cosmic.FaLoadCOSMIC
+import cosmic.FAtoGFFaLoadCOSMIC
 import data.DnaVariant
 
 object AnnotationCosmic {
@@ -12,7 +12,7 @@ object AnnotationCosmic {
    */
   def annotateVariantCosmic(variant: DnaVariant, referenceGenome: String): Unit = {
     
-    if FaLoadCOSMIC.loadedList.isEmpty then FaLoadCOSMIC.loadFastaFromGzip("data/cosmic/v101/hg38/Cosmic_Genes_v101_GRCh38.fasta.gz")
+    if FAtoGFFaLoadCOSMIC.loadedList.isEmpty then FAtoGFFaLoadCOSMIC.loadFastaFromGzip("data/cosmic/v101/hg38/Cosmic_Genes_v101_GRCh38.fasta.gz")
     
   }
 }

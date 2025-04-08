@@ -1,6 +1,6 @@
 package cosmic
 
-import cosmic.data.ResistanceMutation
+import cosmic.dataCosmic.ResistanceMutation
 
 import java.io.{BufferedReader, File, InputStreamReader, PrintWriter}
 import java.util.zip.GZIPInputStream
@@ -71,6 +71,7 @@ object TSVtoGFFResistance {
 
   // Main method to convert TSV to GFF
   def convertTSVToGFF(inputTSV: String, outputGFF: String): Unit = {
+    println(s"Converting - $inputTSV to $outputGFF")
     val mutations = readTSVResistanceMutations(inputTSV)
     writeGFF(outputGFF, mutations)
   }
