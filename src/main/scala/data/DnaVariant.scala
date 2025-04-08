@@ -20,15 +20,15 @@ import scala.jdk.CollectionConverters.*
  *                  
  *  ----- GENCODE ANNOTATION COLUMNS
  *  
- * @param geneID The gene ID associated with the variant
- * @param geneName The gene name associated with the variant
- * @param geneType The gene type associated with the variant
- * @param transID The transcript ID associated with the variant
- * @param transName The transcript name associated with the variant
- * @param transType The transcript type associated with the variant
- * @param exonID The exon ID associated with the variant
- * @param exonNum The exon number associated with the variant
- * @param level The annotation level of the variant
+ * @param geneID_Gencode The gene ID associated with the variant
+ * @param geneName_Gencode The gene name associated with the variant
+ * @param geneType_Gencode The gene type associated with the variant
+ * @param transID_Gencode The transcript ID associated with the variant
+ * @param transName_Gencode The transcript name associated with the variant
+ * @param transType_Gencode The transcript type associated with the variant
+ * @param exonID_Gencode The exon ID associated with the variant
+ * @param exonNum_Gencode The exon number associated with the variant
+ * @param level_Gencode The annotation level of the variant
  *
  * ---- HGVS ANNOTATION
  * @param HGVSDNA hgvs coding dna level
@@ -46,16 +46,17 @@ case class DnaVariant(
                   var varType: VariantType,
                   var proteinVarType: VariantType,   
                   val VQSR_score: Double,
-                  var geneID: String,
-                  var geneName: String,
-                  var geneType: String,
+                  var geneID_Gencode: String,
+                  var geneName_Gencode: String,
+                  var geneType_Gencode: String,
                   var NCBIBuild: String,
-                  var transID: String,
-                  var transName: String,
-                  var exonID: String,
-                  var exonNum: String,
-                  var transType: String,
-                  var level: String,
+                  var transID_Gencode: String,
+                  var transName_Gencode: String,
+                  var exonID_Gencode: String,
+                  var exonNum_Gencode: String,
+                  var transType_Gencode: String,
+                  var level_Gencode: String,
+                  var strandPlus_Gencode: String,
                   var HGVSDNA: String,
                   var HGVSRNA: String,
                   var HGVSProtein: String,
@@ -98,16 +99,17 @@ object DnaVariant{
         alleleSomatic = DnaVariant.isSomatic(variant),
         varType = VariantType.Other,
         VQSR_score = BigDecimal(variant.getPhredScaledQual).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble,
-        geneID = ".",
-        geneName = ".",
-        geneType =  ".",
         NCBIBuild = ".",
-        transID = ".",
-        transName =  ".",
-        transType =  ".",
-        level =  ".",
-        exonNum =  ".",
-        exonID =  ".",
+        geneID_Gencode = ".",
+        geneName_Gencode = ".",
+        geneType_Gencode =  ".",
+        transID_Gencode = ".",
+        transName_Gencode =  ".",
+        transType_Gencode =  ".",
+        level_Gencode =  ".",
+        strandPlus_Gencode = ".",
+        exonNum_Gencode =  ".",
+        exonID_Gencode =  ".",
         HGVSDNA = ".",
         HGVSRNA = ".",
         HGVSProtein = ".",

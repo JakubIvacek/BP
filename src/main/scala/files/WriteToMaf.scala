@@ -20,9 +20,9 @@ object WriteToMaf{
     if (!fileExists || !append) {
       // Write header only if file is new
       val mafHeaders = "Hugo_Symbol\tChrom\tStart_Pos\tEnd_Pos\tNCBI_Build\tRef_Allele\tAlt_Allele" +
-        "\tVSQR_Score\tVariant_Classification\tVariant_Type\tVariant_Type_Protein\tAllele_Freq\tGene_Type__Gencode\tHGVS_DNA\tHGVS_RNA\tHGVS_Protein\tPDB_ID__Uniprot" +
-         "\tAF_1000G\tAMR_AF_1000G\tAFR_AF_1000G\tEUR_AF_1000G\tSAS_AF_1000G\tEAS_AF_1000G" + "\tEntrez_Gene_Id__Gencode\tTranscript_id__Gencode" +
-        "\tTranscript_name__Gencode\tExon_id__Gencode\tExon_number__Gencode\tTranscript_type__Gencode\tLevel__Gencode"
+        "\tVSQR_Score\tVariant_Classification\tVariant_Type\tVariant_Type_Protein\tAllele_Freq\tGene_Type_Gencode\tHGVS_DNA\tHGVS_RNA\tHGVS_Protein\tPDB_ID_Uniprot" +
+         "\tAF_1000G\tAMR_AF_1000G\tAFR_AF_1000G\tEUR_AF_1000G\tSAS_AF_1000G\tEAS_AF_1000G" + "\tEntrez_Gene_Id_Gencode\tStrand_Plus_Gencode\tTranscript_id_Gencode" +
+        "\tTranscript_name_Gencode\tExon_id_Gencode\tExon_number_Gencode\tTranscript_type_Gencode\tLevel_Gencode"
       writer.println(mafHeaders)
     }
 
@@ -36,7 +36,7 @@ object WriteToMaf{
 
   def createMafEntry(dnaVariant: DnaVariant): String = {
     val fields = Seq(
-      dnaVariant.geneName,
+      dnaVariant.geneName_Gencode,
       dnaVariant.contig,
       dnaVariant.position,
       dnaVariant.positionEnd,
@@ -48,7 +48,7 @@ object WriteToMaf{
       dnaVariant.varType,
       dnaVariant.proteinVarType,
       dnaVariant.alleleFreq,
-      dnaVariant.geneType,
+      dnaVariant.geneType_Gencode,
       dnaVariant.HGVSDNA,
       dnaVariant.HGVSRNA,
       dnaVariant.HGVSProtein,
@@ -59,13 +59,14 @@ object WriteToMaf{
       dnaVariant.EUR_AF_1000G,
       dnaVariant.SAS_AF_1000G,
       dnaVariant.EAS_AF_1000G,
-      dnaVariant.geneID,
-      dnaVariant.transID,
-      dnaVariant.transName,
-      dnaVariant.exonID,
-      dnaVariant.exonNum,
-      dnaVariant.transType,
-      dnaVariant.level
+      dnaVariant.geneID_Gencode,
+      dnaVariant.strandPlus_Gencode,
+      dnaVariant.transID_Gencode,
+      dnaVariant.transName_Gencode,
+      dnaVariant.exonID_Gencode,
+      dnaVariant.exonNum_Gencode,
+      dnaVariant.transType_Gencode,
+      dnaVariant.level_Gencode
     )
 
     fields.mkString("\t")

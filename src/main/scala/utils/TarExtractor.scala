@@ -1,7 +1,6 @@
 package utils
 
 import java.io.{File, FileInputStream, FileOutputStream, BufferedOutputStream}
-import java.util.zip.GZIPInputStream
 import org.apache.commons.compress.archivers.tar.{TarArchiveInputStream, TarArchiveEntry}
 
 /**
@@ -9,10 +8,10 @@ import org.apache.commons.compress.archivers.tar.{TarArchiveInputStream, TarArch
  */
 object TarExtractor {
   /**
-   * Unzips a `.tar` file to the specified destination directory.
+   * Unzips .tar file to the destination directory.
    *
-   * @param tarFilePath    The path to the `.tar` file to be unzipped.
-   * @param destinationDir The directory where the contents of the `.tar` file will be extracted.
+   * @param tarFilePath    The path to the .tar file to be unzipped.
+   * @param destinationDir The directory where the contents will be extracted.
    */
   def unzipTar(tarFilePath: String, destinationDir: String): Unit = {
     val tarFile = new File(tarFilePath)

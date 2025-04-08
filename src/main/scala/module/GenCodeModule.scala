@@ -89,7 +89,7 @@ object GenCodeModule extends ModuleManager {
       LiftOverTool.liftOverGFF(s"$filePath/$fileName", outputPath, fileName)
     )
     val refPath = RefChainDirManager.getReferenceFileDir.getOrElse("")
-    FileStuff.copyFile(s"$refPath/chm13v2.0.fa", s"$outputPath/chm13v2.0.fa")
+    FileStuff.copyFile(s"$refPath/chm13.fa", s"$outputPath/chm13.fa")
     ServiceModules.addModuleToDatabase("gencode", releaseNumber, outputPath, downloadPath,  true, "t2t")
   }
 
@@ -132,6 +132,23 @@ object GenCodeModule extends ModuleManager {
     } else {
       println("ALL MODULES -")
       modules.foreach(_.print())
+    }
+  }
+
+  /**
+   * Function to check if a newer version exists
+   * @return true/false
+   */
+  def checkNewVersion(): Boolean = {
+    val newest = ServiceModules.getNewestModuleVersion("gencode")// retrieve newest from db
+    val ftpNewest = FtpClientGencode.findLatestVersionGencode().stripPrefix("release_")
+
+    if (ftpNewest.toInt > newest.toInt) {
+      println(s"Newer version of Gencode found - release_$ftpNewest .")
+      true
+    } else {
+      println(s"No newer version of Gencode found.")
+      false
     }
   }
 }

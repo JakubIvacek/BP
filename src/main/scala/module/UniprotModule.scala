@@ -1,7 +1,7 @@
 package module
 
 import database.modules.ServiceModules
-import ftp.FtpClient
+import ftp.{FtpClient, FtpUniProt}
 import pdb.ExtractPDB
 import utils.RepositoryManager
 
@@ -28,7 +28,7 @@ object UniprotModule extends ModuleManager {
       // Process the downloaded file
       val inputFilePath = s"$finalLocalPath/$fileName"
       val outputFilePath = s"$finalLocalPath/uniprot_pdb_mappings.txt"
-      ServiceModules.addModuleToDatabase("uniprot", "1", finalLocalPath, s"$server$directory", false, "")
+      ServiceModules.addModuleToDatabase("uniprot", System.currentTimeMillis().toString, finalLocalPath, s"$server$directory", false, "")
       if (Files.exists(Paths.get(inputFilePath))) {
         ExtractPDB.extractPdbMappings(inputFilePath, outputFilePath)
       } else {
@@ -107,6 +107,30 @@ object UniprotModule extends ModuleManager {
     path match {
       case Some(path) => path
       case None => ""
+    }
+  }
+
+  /**
+   * Function to check if a newer version exists
+   *
+   * @return true/false
+   */
+  def checkNewVersion(): Boolean = {
+    val timeStamp = ServiceModules.getUnitProtTimeStamp
+    val result = timeStamp match {
+      case Some(timeStamp) => {
+        // Timestamp found check if new version available
+        FtpUniProt.checkForNewerVersion(timeStamp)
+      }
+      // No Uniprot downloaded so download latest
+      case None => true
+    }
+    if result then {
+      println("Newer version of uniprot found .") 
+      true
+    } else {
+      println("No newer version of uniprot found .")
+      false
     }
   }
 }

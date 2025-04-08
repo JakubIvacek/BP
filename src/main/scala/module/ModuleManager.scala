@@ -52,5 +52,11 @@ abstract class ModuleManager {
      * @param fileNames      The List of the files to be overlifted.
      */
     def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String, fileNames: List[String]): Unit
+
+    /**
+     * Function to check if a newer version exists
+     * @return true/false
+     */
+    def checkNewVersion() : Boolean
 }
 

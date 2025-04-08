@@ -246,7 +246,7 @@ object ServiceModules {
       modules.maxByOption(_.version.toInt).map(_.version).getOrElse("0")
     } catch {
       case e: Exception =>
-        println(s"An error occurred while retrieving the newest gencode module: ${e.getMessage}")
+        println(s"An error occurred while retrieving the newest module: ${e.getMessage}")
         "0"
     } finally {
       DatabaseConnection.closeConnection()
@@ -260,6 +260,22 @@ object ServiceModules {
       val modules = RepositoryModules.findByName(connection, "uniprot")
       // Return the path if any modules are found
       modules.headOption.flatMap(_.locationPath)
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while retrieving the newest unitprot module: ${e.getMessage}")
+        None
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+
+  def getUnitProtTimeStamp: Option[Timestamp] = {
+    val connection = DatabaseConnection.getConnection
+    try {
+      // Retrieve all unitprot modules
+      val modules = RepositoryModules.findByName(connection, "uniprot")
+      // Return the path if any modules are found
+      modules.headOption.flatMap(_.created)
     } catch {
       case e: Exception =>
         println(s"An error occurred while retrieving the newest unitprot module: ${e.getMessage}")

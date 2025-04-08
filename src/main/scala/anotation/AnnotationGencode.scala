@@ -136,14 +136,15 @@ object AnnotationGencode {
    * Helper function to extract attributes and assign them to the variant
    */
   def assignAttributes(entry: GffEntry, variant: DnaVariant): Unit = {
-    variant.exonID = entry.attributes.getOrElse("exon_id", ".")
-    variant.exonNum = entry.attributes.getOrElse("exon_number", ".")
-    variant.geneID = entry.attributes.getOrElse("gene_id", ".")
-    variant.geneName = entry.attributes.getOrElse("gene_name", ".")
-    variant.geneType = entry.attributes.getOrElse("gene_type", ".")
-    variant.transID = entry.attributes.getOrElse("transcript_id", ".")
-    variant.transName = entry.attributes.getOrElse("transcript_name", ".")
-    variant.transType = entry.attributes.getOrElse("transcript_type", ".")
-    variant.level = entry.attributes.getOrElse("level", ".")
+    variant.exonID_Gencode = entry.attributes.getOrElse("exon_id", ".")
+    variant.exonNum_Gencode = entry.attributes.getOrElse("exon_number", ".")
+    variant.geneID_Gencode = entry.attributes.getOrElse("gene_id", ".")
+    variant.geneName_Gencode = entry.attributes.getOrElse("gene_name", ".")
+    variant.geneType_Gencode = entry.attributes.getOrElse("gene_type", ".")
+    variant.transID_Gencode = entry.attributes.getOrElse("transcript_id", ".")
+    variant.transName_Gencode = entry.attributes.getOrElse("transcript_name", ".")
+    variant.transType_Gencode = entry.attributes.getOrElse("transcript_type", ".")
+    variant.level_Gencode = entry.attributes.getOrElse("level", ".")
+    variant.strandPlus_Gencode = if entry.strandPlus then "+" else "-"
   }
 }

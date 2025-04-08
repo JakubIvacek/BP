@@ -162,4 +162,21 @@ object Genomes1000Module extends ModuleManager {
       modules.foreach(_.print())
     }
   }
+
+  /**
+   * Function to check if a newer version exists
+   * @return true/false
+   */
+  def checkNewVersion(): Boolean = {
+    val newest = ServiceModules.getNewestModuleVersion("1000genomes") // retrieve newest from db
+    val ftpNewest = FtpClient1000genomes.findLatestVersion1000Genomes()
+
+    if (ftpNewest.toInt > newest.toInt) {
+      println(s"Newer version of 1000genomes found - $ftpNewest .")
+      true
+    } else {
+      println(s"No newer version of 1000genomes found.")
+      false
+    }
+  }
 }

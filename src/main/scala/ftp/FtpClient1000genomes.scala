@@ -20,15 +20,14 @@ object FtpClient1000genomes {
       ftpClient.changeWorkingDirectory(directory)
       ftpClient.enterLocalPassiveMode()
 
-      // List files/directories and print them for debugging
       val files = ftpClient.listNames()
 
       if (files == null || files.isEmpty) {
         throw new IOException(s"No releases found in directory: $directory")
       }
 
-      // Filter directories that match the pattern (year_month or yyyyMMdd)
-      val releases = files.filter(file => file.matches("\\d{4}_\\d{2}") || file.matches("\\d{8}"))
+      // Filter directories that match the pattern (yyyyMMdd)
+      val releases = files.filter(file => file.matches("\\d{8}"))
 
       if (releases.isEmpty) {
         println("No valid release directories found.")
