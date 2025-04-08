@@ -94,7 +94,7 @@ object CosmicModule extends ModuleManager {
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_NonCodingVariants_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_NonCodingVariants_${releaseNumber}_Chm13.gff")
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_ResistanceMutations_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_ResistanceMutations_${releaseNumber}_Chm13.gff")
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_Genes_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_Genes_${releaseNumber}_Chm13.gff")
-      GFFtoFastaCosmic.convertToFasta(s"Cosmic_Genes_${releaseNumber}_Chm13.gff", s"$outputPath/Cosmic_Genes_${releaseNumber}_Chm13.fasta.gz")
+      GFFtoFastaCosmic.convertToFasta(s"$filePath/Cosmic_Genes_${releaseNumber}_GRCh38.gff", s"$outputPath/Cosmic_Genes_${releaseNumber}_Chm13.fasta")
       ServiceModules.addModuleToDatabase("cosmic", releaseNumber.substring(1), outputPath, downloadPath, true, "t2t")
 
     }

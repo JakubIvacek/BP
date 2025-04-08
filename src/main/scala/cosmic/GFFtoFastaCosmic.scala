@@ -2,6 +2,8 @@ package cosmic
 
 import data.GffEntry
 import files.FastaReaderSW
+import logfiles.RefChainDirManager
+import utils.Gunzip
 
 import java.io.*
 import java.util.zip.GZIPInputStream
@@ -49,14 +51,15 @@ object GFFtoFastaCosmic {
   def writeToFasta(gffEntries: List[GffEntry], fastaFilePath: String): Unit = {
     // Create a BufferedWriter to write to the FASTA file
     val writer = new BufferedWriter(new FileWriter(fastaFilePath))
-
+    val dirRef = RefChainDirManager.getReferenceFileDir.getOrElse("")
     // Iterate over each GFF entry and fetch the sequence
     for (entry <- gffEntries) {
       // Retrieve the sequence for the current GFF entry using the FastaReaderSW
-      var sequence = FastaReaderSW.getSequence("reference/t2t/chm13v2.0.fa", entry.contig, entry.start, entry.end, entry.strandPlus)
+
+      var sequence = FastaReaderSW.getSequence(s"$dirRef/chm13.fa", entry.contig, entry.start, entry.end, entry.strandPlus)
       sequence = sequence.toUpperCase
       // Format the header for the FASTA entry
-      val header = s">${entry.attributes.getOrElse("Gene_ID", "N/A")} ${entry.attributes.getOrElse("transcript_id", "N/A")} ${entry.contig}:${entry.start}-${entry.end}(${if (entry.strandPlus) "+" else "-"})"
+      val header = s">${entry.attributes.getOrElse("Gene_ID", "N/A")} ${entry.attributes.getOrElse("Transcript_ID", "N/A")} ${entry.contig}:${entry.start}-${entry.end}(${if (entry.strandPlus) "+" else "-"})"
 
       // Write the header to the file
       writer.write(header)
@@ -75,6 +78,8 @@ object GFFtoFastaCosmic {
   def convertToFasta(filePath: String, outputPath: String): Unit = {
     val gffEntries = readGFF(filePath)
     writeToFasta(gffEntries, outputPath)
+    println(s"Gff - $filePath converted to .fasta - $outputPath")
+    //Gunzip.zipFile(outputPath)
   }
   
   def parseAttributes(attributeString: String): Map[String, String] = {
@@ -82,8 +87,5 @@ object GFFtoFastaCosmic {
       val keyValue = attribute.split("=")
       if (keyValue.length == 2) keyValue(0) -> keyValue(1) else keyValue(0) -> ""
     }.toMap
-  }
-  def main(args: Array[String]): Unit = {
-    convertToFasta("cosmic_genes.gff", "new.fasta")
   }
 }
