@@ -24,12 +24,12 @@ object TarExtractor {
     val tarInputStream = new TarArchiveInputStream(new FileInputStream(tarFile))
 
     try {
-      var entry: TarArchiveEntry = tarInputStream.getNextTarEntry
+      var file: TarArchiveEntry = tarInputStream.getNextTarEntry
 
-      while (entry != null) {
-        val destFile = new File(destDir, entry.getName)
+      while (file != null) {
+        val destFile = new File(destDir, file.getName)
 
-        if (entry.isDirectory) {
+        if (file.isDirectory) {
           destFile.mkdirs()
         } else {
           val outputStream = new BufferedOutputStream(new FileOutputStream(destFile))
@@ -43,7 +43,7 @@ object TarExtractor {
           outputStream.close()
         }
 
-        entry = tarInputStream.getNextTarEntry
+        file = tarInputStream.getNextTarEntry
       }
     } finally {
       println(s"Extracted .tar file - $tarFilePath to $destinationDir")

@@ -3,15 +3,23 @@ package cosmic
 import data.GffEntry
 import files.FastaReaderSW
 import logfiles.RefChainDirManager
-import utils.Gunzip
 
 import java.io.*
 import java.util.zip.GZIPInputStream
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
+/**
+ * Object for creating back from .gff  cosmic .fasta file for annotation
+ */
 object GFFtoFastaCosmic {
 
+  /**
+   * Read cosmic fasta .gff file and return GffEntries list
+   *
+   * @param filePath    The path where the gff file is located
+   * @return            Returns list of loaded GffEntries from file
+   */
   def readGFF(filePath: String): List[GffEntry] = {
     val entries = ListBuffer[GffEntry]()
 
@@ -47,41 +55,52 @@ object GFFtoFastaCosmic {
     }
     entries.toList
   }
-  // Method to generate FASTA formatted sequence and write to file
+
+  /**
+   * Method to generate FASTA formatted sequence and write to fileRead fasta .gff file and return GffEntries list
+   *
+   * @param fastaFilePath The path where the .fasta file will be created
+   * @param gffEntries    List of GffEntries loaded from .gff file
+   */
   def writeToFasta(gffEntries: List[GffEntry], fastaFilePath: String): Unit = {
-    // Create a BufferedWriter to write to the FASTA file
     val writer = new BufferedWriter(new FileWriter(fastaFilePath))
     val dirRef = RefChainDirManager.getReferenceFileDir.getOrElse("")
-    // Iterate over each GFF entry and fetch the sequence
     for (entry <- gffEntries) {
-      // Retrieve the sequence for the current GFF entry using the FastaReaderSW
-
       var sequence = FastaReaderSW.getSequence(s"$dirRef/chm13.fa", entry.contig, entry.start, entry.end, entry.strandPlus)
       sequence = sequence.toUpperCase
-      // Format the header for the FASTA entry
+
       val header = s">${entry.attributes.getOrElse("Gene_ID", "N/A")} ${entry.attributes.getOrElse("Transcript_ID", "N/A")} ${entry.contig}:${entry.start}-${entry.end}(${if (entry.strandPlus) "+" else "-"})"
 
-      // Write the header to the file
       writer.write(header)
       writer.newLine()
 
-      // Write the sequence to the file, split into lines of 60 characters (optional)
       for (i <- sequence.grouped(60)) {
         writer.write(i.mkString)
         writer.newLine()
       }
     }
 
-    // Close the writer after writing all sequences
     writer.close()
   }
+
+  /**
+   * Method converts cosmic gff file to fasta file
+   *
+   * @param outputPath path where the .fasta file will be created
+   * @param filePath   path where the .gff file is located
+   */
   def convertToFasta(filePath: String, outputPath: String): Unit = {
     val gffEntries = readGFF(filePath)
     writeToFasta(gffEntries, outputPath)
     println(s"Gff - $filePath converted to .fasta - $outputPath")
     //Gunzip.zipFile(outputPath)
   }
-  
+
+  /**
+   * Helper method to parse attributes
+   *
+   * @param attributeString String with .fasta attributes to be parsed
+   */
   def parseAttributes(attributeString: String): Map[String, String] = {
     attributeString.split(";").map { attribute =>
       val keyValue = attribute.split("=")

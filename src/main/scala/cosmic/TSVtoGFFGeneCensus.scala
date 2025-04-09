@@ -5,16 +5,18 @@ import cosmic.dataCosmic.GeneCensusVariant
 
 import java.io.{BufferedReader, File, InputStreamReader, PrintWriter}
 import java.util.zip.GZIPInputStream
-import scala.io.Source
-import scala.util.Try
 
-
+/**
+ * Object for converting .tsv GeneCensus cosmic file into .gff file
+ */
 object TSVtoGFFGeneCensus {
 
-  def safeParseLong(str: String): Option[Long] = {
-    Try(str.toLong).toOption
-  }
-  // Read the TSV file and convert it to a list of GeneFeature objects
+  /**
+   * Read the TSV file and convert it to a list of GeneFeature objects
+   *
+   * @param filePath Path to input file .tsv
+   * @return Returns list of loaded entries from .tsv in GeneCensusVariant objects             
+   */
   def readTSVGeneCensus(filePath: String): Seq[GeneCensusVariant] = {
     val gzipStream = new GZIPInputStream(new java.io.FileInputStream(filePath))
     val reader = new BufferedReader(new InputStreamReader(gzipStream))
@@ -23,39 +25,37 @@ object TSVtoGFFGeneCensus {
     reader.lines().skip(1).toArray.map { line =>
       val cols = line.toString.split("\t")
       GeneCensusVariant(
-        cosmicGeneId = cols(2), // COSMIC_GENE_ID
-        chromosome = cols(3), // CHROMOSOME
-        genomeStart = safeParseLong(cols(4)).getOrElse(0L),
-        genomeStop = safeParseLong(cols(5)).getOrElse(0L),
-        tumourTypesSomatic = cols(9), // TUMOUR_TYPES_SOMATIC
-        tumourTypesGermline = cols(10), // TUMOUR_TYPES_GERMLINE
-        cancerSyndrome = cols(11), // CANCER_SYNDROME
-        tissueType = cols(12), // TISSUE_TYPE
-        molecularGenetics = cols(13), // MOLECULAR_GENETICS
-        roleInCancer = cols(14), // ROLE_IN_CANCER
-        mutationTypes = cols(15), // MUTATION_TYPES
+        cosmicGeneId = cols(2), 
+        chromosome = cols(3), 
+        genomeStart = Utils.safeParseLong(cols(4)).getOrElse(0L),
+        genomeStop = Utils.safeParseLong(cols(5)).getOrElse(0L),
+        tumourTypesSomatic = cols(9), 
+        tumourTypesGermline = cols(10), 
+        cancerSyndrome = cols(11), 
+        tissueType = cols(12), 
+        molecularGenetics = cols(13), 
+        roleInCancer = cols(14), 
+        mutationTypes = cols(15),
       )
     }.toList
   }
-  // Write GFF header
-  def writeGFFHeader(writer: PrintWriter): Unit = {
-    writer.println("##gff-version 3")
-  }
 
-  // Convert GeneFeature objects to GFF format and write to file
+  /**
+   * Convert GeneCensusVariant objects to GFF format and write to file
+   *
+   * @param filePath The path where the gff file will be created
+   * @param features Loaded GeneCensusVariant objects from .tsv file cosmic
+   */
   def writeGFF(filePath: String, features: Seq[GeneCensusVariant]): Unit = {
     val file = new File(filePath)
     if (!file.getParentFile.exists()) {
-      file.getParentFile.mkdirs() // Create the directory if it doesn't exist
+      file.getParentFile.mkdirs() 
     }
     val writer = new PrintWriter(filePath)
-
-    // Write header
-    writeGFFHeader(writer)
-
-    // Write each feature in GFF format
+    
+    Utils.writeGFFHeader(writer)
+    
     features.foreach { feature =>
-      // Combine all relevant attributes in the GFF format
       val attributes = s"ID=${feature.cosmicGeneId};" +
         s"TUMOUR_TYPES_SOMATIC=${feature.tumourTypesSomatic};" +
         s"TUMOUR_TYPES_GERMLINE=${feature.tumourTypesGermline};" +
@@ -64,26 +64,22 @@ object TSVtoGFFGeneCensus {
         s"MOLECULAR_GENETICS=${feature.molecularGenetics};" +
         s"ROLE_IN_CANCER=${feature.roleInCancer};" +
         s"MUTATION_TYPES=${feature.mutationTypes};"
-
-      // Write the feature line in GFF format
+      
       writer.println(s"${feature.chromosome}\tCosmic\tgene\t${feature.genomeStart}\t${feature.genomeStop}\t.\t+\t.\t$attributes")
     }
-
-    // Close the writer
     writer.close()
   }
 
-  // Main method to convert TSV to GFF
+  /**
+   * Main method to convert TSV to GFF
+   *
+   * @param inputTSV  Path to input file .tsv
+   * @param outputGFF Path where .gff file will be created                
+   */
   def convertTSVToGFF(inputTSV: String, outputGFF: String): Unit = {
     println(s"Converting - $inputTSV to $outputGFF")
     val features = readTSVGeneCensus(inputTSV)
     writeGFF(outputGFF, features)
   }
 }
-
-// Example usage
-//object Main extends App {
-  //TSVtoGFFGeneCensusCOSMIC.convertTSVToGFF("data/cosmic/v101/hg38/Cosmic_CancerGeneCensus_v101_GRCh38.tsv.gz", "output.gff")
-  //LiftOverTool.liftOverGFF("output.gff", "data", "output_t2t.gff")
-//}
 

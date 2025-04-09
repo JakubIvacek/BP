@@ -1,6 +1,6 @@
 package module
 
-import cosmic.{FAtoGFFaLoadCOSMIC, GFFtoFastaCosmic, TSVtoGFFGeneCensus, TSVtoGFFNonCoding, TSVtoGFFResistance}
+import cosmic.{FALoadCOSMIC, GFFtoFastaCosmic, TSVtoGFFGeneCensus, TSVtoGFFNonCoding, TSVtoGFFResistance, FAtoGFFCosmic}
 import database.modules.ServiceModules
 import downloader.CosmicDownload
 import logfiles.ConfigCredentials
@@ -57,12 +57,12 @@ object CosmicModule extends ModuleManager {
             }
             val localOverLiftPath = if localPath == "" then s"cosmic/$version/t2t" else s"$localPath/cosmic/$version/t2t"
             ServiceModules.addModuleToDatabase("cosmic", version.substring(1), finalLocalPath, s"$filePath", false, "hg38")
-            println("Converting to .tsv to .vcf")
+            println("Converting to .tsv , .fasta to .gff")
             TSVtoGFFGeneCensus.convertTSVToGFF(s"$finalLocalPath/Cosmic_CancerGeneCensus_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_CancerGeneCensus_${version}_GRCh38.gff")
             TSVtoGFFNonCoding.convertTSVToGFF(s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.gff")
             TSVtoGFFResistance.convertTSVToGFF(s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.gff")
-            FAtoGFFaLoadCOSMIC.loadFastaFromGzip(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.fasta.gz")
-            FAtoGFFaLoadCOSMIC.writeGFF(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.gff", FAtoGFFaLoadCOSMIC.loadedList.getOrElse(List()))
+            FALoadCOSMIC.loadFastaFromGzip(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.fasta.gz")
+            FAtoGFFCosmic.writeGFF(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.gff", FALoadCOSMIC.loadedList.getOrElse(List()))
             println("Liftovering to T2T.")
             overLiftToT2T(localOverLiftPath, version, filePath, finalLocalPath, List(""))
             println("Liftover DONE module downloaded.")

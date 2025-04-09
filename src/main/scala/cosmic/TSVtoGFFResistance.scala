@@ -7,13 +7,17 @@ import java.util.zip.GZIPInputStream
 import scala.io.Source
 import scala.util.Try
 
+/**
+ * Object for converting .tsv Resistance cosmic file into .gff file
+ */
 object TSVtoGFFResistance {
 
-  def safeParseLong(str: String): Option[Long] = {
-    Try(str.toLong).toOption
-  }
-
-  // Read the TSV file and convert it to a list of ResistanceMutation objects
+  /**
+   * Read the TSV file and convert it to a list of ResistanceMutation objects
+   *
+   * @param filePath  Path to input file .tsv
+   * @return          Returns list of loaded entries from .tsv in ResistanceMutation objects             
+   */
   def readTSVResistanceMutations(filePath: String): Seq[ResistanceMutation] = {
     val gzipStream = new GZIPInputStream(new java.io.FileInputStream(filePath))
     val reader = new BufferedReader(new InputStreamReader(gzipStream))
@@ -21,26 +25,26 @@ object TSVtoGFFResistance {
     reader.lines().skip(1).toArray.map { line =>
       val cols = line.toString.split("\t")
       ResistanceMutation(
-        cosmicGeneId = cols(3), // COSMIC_GENE_ID
-        transcriptAccession = cols(4), // TRANSCRIPT_ACCESSION
-        censusGene = cols(5), // CENSUS_GENE
-        drugName = cols(6), // DRUG_NAME
-        drugResponse = cols(7), // DRUG_RESPONSE
-        chromosome = cols(19), // CHROMOSOME
-        genomeStart = safeParseLong(cols(20)).getOrElse(0L), // GENOME_START
-        genomeStop = safeParseLong(cols(21)).getOrElse(0L), // GENOME_STOP
-        strand = cols(22), // STRAND
-        mutationZygosity = cols(23) // MUTATION_ZYGOSITY
+        cosmicGeneId = cols(3), 
+        transcriptAccession = cols(4), 
+        censusGene = cols(5),
+        drugName = cols(6),
+        drugResponse = cols(7), 
+        chromosome = cols(19), 
+        genomeStart = Utils.safeParseLong(cols(20)).getOrElse(0L),
+        genomeStop = Utils.safeParseLong(cols(21)).getOrElse(0L), 
+        strand = cols(22), 
+        mutationZygosity = cols(23) 
       )
     }.toList
   }
 
-  // Write GFF header
-  def writeGFFHeader(writer: PrintWriter): Unit = {
-    writer.println("##gff-version 3")
-  }
-
-  // Convert ResistanceMutation objects to GFF format and write to file
+  /**
+   * Convert ResistanceMutation objects to GFF format and write to file
+   *
+   * @param filePath The path where the gff file will be created
+   * @param features Loaded GeneCensusVariant objects from .tsv file cosmic
+   */
   def writeGFF(filePath: String, mutations: Seq[ResistanceMutation]): Unit = {
     val file = new File(filePath)
     if (!file.getParentFile.exists()) {
@@ -48,8 +52,8 @@ object TSVtoGFFResistance {
     }
     val writer = new PrintWriter(filePath)
 
-    // Write header
-    writeGFFHeader(writer)
+    
+    Utils.writeGFFHeader(writer)
 
     // Write each mutation in GFF format
     mutations.foreach { mutation =>
@@ -69,7 +73,12 @@ object TSVtoGFFResistance {
     writer.close()
   }
 
-  // Main method to convert TSV to GFF
+  /**
+   * Main method to convert TSV to GFF
+   *
+   * @param inputTSV  Path to input file .tsv
+   * @param outputGFF Path where .gff file will be created                
+   */
   def convertTSVToGFF(inputTSV: String, outputGFF: String): Unit = {
     println(s"Converting - $inputTSV to $outputGFF")
     val mutations = readTSVResistanceMutations(inputTSV)
