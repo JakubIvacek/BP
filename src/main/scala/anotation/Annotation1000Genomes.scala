@@ -1,6 +1,7 @@
 package anotation
 
 import data.DnaVariant
+import database.modules.ServiceModules
 import files.VcfReaderSW
 
 import scala.util.Try
@@ -16,7 +17,7 @@ object Annotation1000Genomes {
    */
   def annotateVariant1000Genomes(variant: DnaVariant, referenceGenome: String): Unit = {
     // if not installed return
-    directory = directory.orElse(database.modules.ServiceModules.get1000GenomesPath)
+    directory = directory.orElse(ServiceModules.getNewestModulePath("1000genomes", referenceGenome))
     if directory.isEmpty then return // means 1000genomes is not installed so cant annotate
 
     if activeConting == "" || activeConting != variant.contig then {

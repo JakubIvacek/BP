@@ -1,6 +1,6 @@
-package cosmic.dataCosmic
+package data
 
-case class GeneCensusVariant(
+case class GeneCensusCosmic(
                               cosmicGeneId: String,
                               chromosome: String,
                               genomeStart: Long,

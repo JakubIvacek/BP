@@ -1,8 +1,9 @@
 package module
 
-import cosmic.{FALoadCOSMIC, GFFtoFastaCosmic, TSVtoGFFGeneCensus, TSVtoGFFNonCoding, TSVtoGFFResistance, FAtoGFFCosmic}
+import cosmic.{GFFtoFastaCosmic, TSVtoGFFGeneCensus, TSVtoGFFNonCoding, TSVtoGFFResistance, FAtoGFFCosmic}
 import database.modules.ServiceModules
 import downloader.CosmicDownload
+import files.FastaLoadCOSMIC
 import logfiles.ConfigCredentials
 import utils.{LiftOverTool, RepositoryManager, TarExtractor}
 
@@ -61,8 +62,8 @@ object CosmicModule extends ModuleManager {
             TSVtoGFFGeneCensus.convertTSVToGFF(s"$finalLocalPath/Cosmic_CancerGeneCensus_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_CancerGeneCensus_${version}_GRCh38.gff")
             TSVtoGFFNonCoding.convertTSVToGFF(s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.gff")
             TSVtoGFFResistance.convertTSVToGFF(s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.gff")
-            FALoadCOSMIC.loadFastaFromGzip(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.fasta.gz")
-            FAtoGFFCosmic.writeGFF(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.gff", FALoadCOSMIC.loadedList.getOrElse(List()))
+            FastaLoadCOSMIC.loadFastaFromGzip(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.fasta.gz", "hg38")
+            FAtoGFFCosmic.writeGFF(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.gff", FastaLoadCOSMIC.loadedList.getOrElse(List()))
             println("Liftovering to T2T.")
             overLiftToT2T(localOverLiftPath, version, filePath, finalLocalPath, List(""))
             println("Liftover DONE module downloaded.")

@@ -1,4 +1,4 @@
-package cosmic.dataCosmic
+package data
 
 case class FaEntryCosmic(
                           geneSymbol: String,

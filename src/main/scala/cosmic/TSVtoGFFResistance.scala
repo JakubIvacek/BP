@@ -1,7 +1,6 @@
 package cosmic
 
-import cosmic.dataCosmic.ResistanceMutation
-
+import data.ResMutationCosmic
 import java.io.{BufferedReader, File, InputStreamReader, PrintWriter}
 import java.util.zip.GZIPInputStream
 import scala.io.Source
@@ -18,13 +17,13 @@ object TSVtoGFFResistance {
    * @param filePath  Path to input file .tsv
    * @return          Returns list of loaded entries from .tsv in ResistanceMutation objects             
    */
-  def readTSVResistanceMutations(filePath: String): Seq[ResistanceMutation] = {
+  def readTSVResistanceMutations(filePath: String): Seq[ResMutationCosmic] = {
     val gzipStream = new GZIPInputStream(new java.io.FileInputStream(filePath))
     val reader = new BufferedReader(new InputStreamReader(gzipStream))
 
     reader.lines().skip(1).toArray.map { line =>
       val cols = line.toString.split("\t")
-      ResistanceMutation(
+      ResMutationCosmic(
         cosmicGeneId = cols(3), 
         transcriptAccession = cols(4), 
         censusGene = cols(5),
@@ -45,7 +44,7 @@ object TSVtoGFFResistance {
    * @param filePath The path where the gff file will be created
    * @param features Loaded GeneCensusVariant objects from .tsv file cosmic
    */
-  def writeGFF(filePath: String, mutations: Seq[ResistanceMutation]): Unit = {
+  def writeGFF(filePath: String, mutations: Seq[ResMutationCosmic]): Unit = {
     val file = new File(filePath)
     if (!file.getParentFile.exists()) {
       file.getParentFile.mkdirs() // Create the directory if it doesn't exist

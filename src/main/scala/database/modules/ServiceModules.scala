@@ -285,16 +285,16 @@ object ServiceModules {
     }
   }
 
-  def get1000GenomesPath: Option[String] = {
+  def getNewestModulePath(moduleName: String, refGenome: String): Option[String] = {
     val connection = DatabaseConnection.getConnection
     try {
       // Retrieve all unitprot modules
-      val modules = RepositoryModules.findByName(connection, "1000genomes")
+      val modules = RepositoryModules.findByNameAndReference(connection, moduleName, refGenome)
       // Return the path if any modules are found
       modules.headOption.flatMap(_.locationPath)
     } catch {
       case e: Exception =>
-        println(s"An error occurred while retrieving the newest 1000 genomes module path: ${e.getMessage}")
+        println(s"An error occurred while retrieving the newest $moduleName $refGenome module path: ${e.getMessage}")
         None
     } finally {
       DatabaseConnection.closeConnection()

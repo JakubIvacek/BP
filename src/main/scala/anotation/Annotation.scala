@@ -56,6 +56,7 @@ object Annotation {
     dnaVariants.foreach(
       variant => Annotation1000Genomes.annotateVariant1000Genomes(variant, referenceGenome)   //1000GENOMES))
     )
+    
     dnaVariants.foreach(
       variant => AnnotationCosmic.annotateVariantCosmic(variant, referenceGenome) // COSMIC
     )

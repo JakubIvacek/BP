@@ -1,8 +1,7 @@
 package cosmic
 
 
-import cosmic.dataCosmic.GeneCensusVariant
-
+import data.GeneCensusCosmic
 import java.io.{BufferedReader, File, InputStreamReader, PrintWriter}
 import java.util.zip.GZIPInputStream
 
@@ -17,14 +16,14 @@ object TSVtoGFFGeneCensus {
    * @param filePath Path to input file .tsv
    * @return Returns list of loaded entries from .tsv in GeneCensusVariant objects             
    */
-  def readTSVGeneCensus(filePath: String): Seq[GeneCensusVariant] = {
+  def readTSVGeneCensus(filePath: String): Seq[GeneCensusCosmic] = {
     val gzipStream = new GZIPInputStream(new java.io.FileInputStream(filePath))
     val reader = new BufferedReader(new InputStreamReader(gzipStream))
 
 
     reader.lines().skip(1).toArray.map { line =>
       val cols = line.toString.split("\t")
-      GeneCensusVariant(
+      GeneCensusCosmic(
         cosmicGeneId = cols(2), 
         chromosome = cols(3), 
         genomeStart = Utils.safeParseLong(cols(4)).getOrElse(0L),
@@ -46,7 +45,7 @@ object TSVtoGFFGeneCensus {
    * @param filePath The path where the gff file will be created
    * @param features Loaded GeneCensusVariant objects from .tsv file cosmic
    */
-  def writeGFF(filePath: String, features: Seq[GeneCensusVariant]): Unit = {
+  def writeGFF(filePath: String, features: Seq[GeneCensusCosmic]): Unit = {
     val file = new File(filePath)
     if (!file.getParentFile.exists()) {
       file.getParentFile.mkdirs() 

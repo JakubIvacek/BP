@@ -1,7 +1,7 @@
 package cosmic
 
+import data.FaEntryCosmic
 import java.io.{File, PrintWriter}
-import dataCosmic.FaEntryCosmic
 
 /**
  * Object for creating .gff file for .fasta cosmic entries

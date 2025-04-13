@@ -1,7 +1,6 @@
 package cosmic
 
-import cosmic.dataCosmic.NonCodingVariant
-
+import data.NonCodingCosmic
 import java.io._
 import java.util.zip.GZIPInputStream
 import scala.collection.mutable
@@ -18,14 +17,14 @@ object TSVtoGFFNonCoding {
    * @param batchSize NonCoding needs to be converted in batches because file is too big 
    * @return Returns seq of NonCodingVariants loaded from .tsv file           
    */
-  def readTSVNonCodingVariantsInBatches(filePath: String, batchSize: Int): Iterator[Seq[NonCodingVariant]] = {
+  def readTSVNonCodingVariantsInBatches(filePath: String, batchSize: Int): Iterator[Seq[NonCodingCosmic]] = {
     val gzipStream = new GZIPInputStream(new FileInputStream(filePath))
     val reader = new BufferedReader(new InputStreamReader(gzipStream))
 
     // Skip header line
     reader.readLine()
 
-    new Iterator[Seq[NonCodingVariant]] {
+    new Iterator[Seq[NonCodingCosmic]] {
       var lineBuffer = mutable.Buffer[String]()
       var done = false
 
@@ -45,10 +44,10 @@ object TSVtoGFFNonCoding {
         lineBuffer.nonEmpty
       }
 
-      def next(): Seq[NonCodingVariant] = {
+      def next(): Seq[NonCodingCosmic] = {
         val currentBatch = lineBuffer.take(batchSize).map { line =>
           val cols = line.split("\t")
-          NonCodingVariant(
+          NonCodingCosmic(
             cosmicGeneId = cols(1),
             transcriptAccession = cols(2),
             cosmicPhenotypeId = cols(6),

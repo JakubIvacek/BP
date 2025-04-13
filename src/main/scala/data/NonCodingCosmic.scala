@@ -1,6 +1,6 @@
-package cosmic.dataCosmic
+package data
 
-case class NonCodingVariant(
+case class NonCodingCosmic(
                              cosmicGeneId: String,
                              transcriptAccession: String,
                              cosmicPhenotypeId: String,

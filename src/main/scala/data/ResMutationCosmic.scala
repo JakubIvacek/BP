@@ -1,6 +1,6 @@
-package cosmic.dataCosmic
+package data
 
-case class ResistanceMutation(
+case class ResMutationCosmic(
                                cosmicGeneId: String,
                                transcriptAccession: String,
                                censusGene: String,

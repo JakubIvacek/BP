@@ -1,25 +1,25 @@
-package cosmic
+package files
 
-import scala.io.Source
-import scala.collection.mutable.ListBuffer
-import java.util.zip.GZIPInputStream
+import data.FaEntryCosmic
 import java.io.FileInputStream
-import dataCosmic.FaEntryCosmic
+import java.util.zip.GZIPInputStream
+import scala.collection.mutable.ListBuffer
+import scala.io.Source
 
 /**
  * Object for loading .fasta cosmic file to loadedList[FaEntryCosmic]
  */
-object FALoadCOSMIC {
+object FastaLoadCOSMIC {
   
   var loadedList: Option[List[FaEntryCosmic]] = None
-
+  var loadedGenome: String = ""
   /**
    * Load .fasta cosmic file to loadedList
    *
    * @param filePath The path to .fasta file which should be loaded
    */
-  def loadFastaFromGzip(filePath: String): Unit = {
-    if loadedList.nonEmpty then return // already loaded dont want to load again
+  def loadFastaFromGzip(filePath: String, refGenome: String): Unit = {
+    if loadedList.nonEmpty && refGenome == loadedGenome then return // already loaded dont want to load again
     val inputStream = {
       val fileStream = new FileInputStream(filePath)
       if (filePath.endsWith(".gz")) new GZIPInputStream(fileStream)
@@ -48,7 +48,7 @@ object FALoadCOSMIC {
       val headerParts = parseHeader(currentHeader)
       geneDataList += FaEntryCosmic(headerParts._1, headerParts._2, headerParts._3, headerParts._4, headerParts._5, headerParts._6, currentSequence.toString)
     }
-
+    loadedGenome = refGenome
     loadedList = Some(geneDataList.toList)
   }
 

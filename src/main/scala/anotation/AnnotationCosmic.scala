@@ -1,7 +1,8 @@
 package anotation
 
-import cosmic.FALoadCOSMIC
 import data.DnaVariant
+import database.modules.ServiceModules
+import files.FastaLoadCOSMIC
 
 object AnnotationCosmic {
   /**
@@ -11,8 +12,12 @@ object AnnotationCosmic {
    * @param referenceGenome The reference genome to use for annotation.
    */
   def annotateVariantCosmic(variant: DnaVariant, referenceGenome: String): Unit = {
-    
-    if FALoadCOSMIC.loadedList.isEmpty then FALoadCOSMIC.loadFastaFromGzip("data/cosmic/v101/hg38/Cosmic_Genes_v101_GRCh38.fasta.gz")
-    
+    if FastaLoadCOSMIC.loadedList.isEmpty || FastaLoadCOSMIC.loadedGenome != referenceGenome then {
+      val path = ServiceModules.getNewestModulePath("cosmic", referenceGenome)
+      val genome = if referenceGenome == "hg38" then "GRCh38" else "Chm13"
+      val version = ServiceModules.getNewestModuleVersion("cosmic")
+      FastaLoadCOSMIC.loadFastaFromGzip(s"$path/Cosmic_Genes_v${version}_$genome.fasta.gz", referenceGenome)
+    }
+    //teraz asi matchnem rovno s genmi vsetkymi
   }
 }
