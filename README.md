@@ -14,8 +14,6 @@ This tool provides annotation of structural DNA variants using standardized form
   - UniProt
 - Modular system with SQLite storage
 - Command-line interface with Scallop
-- Deterministic output for reproducibility
-- Ready for containerization (Docker-ready architecture)
 
 ## ⚙️ Requirements
 
