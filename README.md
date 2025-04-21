@@ -47,7 +47,7 @@ sbt run -i
 
 sbt run -c /path/to/chains -a /path/to/reference
 
-### 🔍 Annotate a VCF file (requires modules and reference set)
+### 🔍 Annotate a VCF file (requires modules download first)
 
 sbt run -f sample.vcf -a t2t -o output.maf
 
