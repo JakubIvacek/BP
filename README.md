@@ -24,6 +24,7 @@ This tool provides annotation of structural DNA variants using standardized form
 ## 🚀 Running the Tool
 
 You can run the tool using `sbt run` with various commands:
+TO RUN COSMIC DATABASE SETUP YOUR ACCOUNT INFO IN : cred.log
 
 ### 🆘 Help
 
