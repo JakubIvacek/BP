@@ -3,7 +3,6 @@ package commandLine
 import anotation.Annotation
 import logfiles.{PathSaver, RefChainDirManager}
 
-import java.io.PrintWriter
 import module.{CosmicModule, GenCodeModule, Genomes1000Module, UniprotModule}
 import org.rogach.scallop.*
 import utils.ModuleNewerVersionChecker
@@ -18,7 +17,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val referenceVersion = opt[String]("a", required = false, descr = "Reference version for annotation (hg38, t2t) or path to reference dir (/path/)")
   val chainFiles = opt[String]("c", required = false, descr = "Chain files directory path (/path/dir)")
   val path = opt[String]("p", required = false, descr = "File path for download (/path/dir) (optional path saves to .log file)")
-  val outPath = opt[String]("o", required = false, descr = "File path for output (/path/file_name.maf)")
+  val outPath = opt[String]("o", required = false, descr = "File path for output (/path/dir)")
   val checkNew = opt[Boolean]("n", required = false, descr = "Download latest version modules if not on device. Usage to check new versions or download all.")
   // Call verify after defining all options
   verify()
@@ -34,74 +33,71 @@ object Main {
     }
 
     val conf = new Conf(args) // Pass args to Conf
-    // sbt run -h
-    if (conf.help()) {
-      conf.printHelp()
-    }// sbt run -n
-    else if (conf.checkNew()) {
-      println("Checking if new version available for modules")
-      ModuleNewerVersionChecker.checkNewVersions()
-    }
-    //sbt run -c dir -a dir SET UP CHAIN AND REF DIRECTORY
-    else if (conf.chainFiles.isDefined && conf.referenceVersion.isDefined) {
-      println(s"Saving dir paths chain - ${conf.chainFiles()} ref - ${conf.referenceVersion()}")
-      RefChainDirManager.savePathsToLogFile(conf.referenceVersion(), conf.chainFiles())
-    }
-    else if RefChainDirManager.getPaths.isEmpty then {
-      println("Before using COMMANDS set up CHAIN , REFERENCE files directory path")
-      println("By using commnad - sbt run -c CHAIN/DIR -a REFERENCE/DIR")
-      println("reference dir should contain : chm13.fa , hg38.fa ")
-      println("chain dir should contain : chm13-hg38.over.chain , hg38-chm13.over.chain")
-      return
-    }
-    // sbt run -d name  optional -p tries to retrieve from .log file
-    else if (conf.download.isDefined) {
-      val path = PathSaver.getPath
-      path match{
-        case Some(path) => downloadModuleLatest(conf.download(), path)
-        case None =>  println("No path found enter command with -p dir/save")
-      }
-    }
-    // sbt run -d name -v version optional -p tries to retrieve from .log file
-    else if (conf.download.isDefined && conf.version.isDefined) {
-      val path = PathSaver.getPath
-      path match {
-        case Some(path) => downloadModule(conf.download(), path, conf.version())
-        case None => println("No path found enter command with -p dir/save")
-      }
-    }
-    // sbt run -d name -p path
-    else if (conf.download.isDefined && conf.path.isDefined) {
-      PathSaver.savePathToLogFile(conf.path())
-      println(s"Download latest module: ${conf.download()} with path: ${conf.path()}")
-      downloadModuleLatest(conf.download(), conf.path())
-    }
-    // sbt run -d name -v version -p path
-    else if (conf.download.isDefined && conf.path.isDefined && conf.version.isDefined) {
-      PathSaver.savePathToLogFile(conf.path())
-      println(s"Download latest module: ${conf.download()} with path: ${conf.path()} version : ${conf.version()}")
-      downloadModule(conf.download(), conf.path(), conf.version())
-    }
-    // sbt run -r id
-    else if (conf.remove.isDefined) {
-      println(s"Remove module with ID: ${conf.remove()}")
-      GenCodeModule.removeModuleById(conf.remove())
-    }
-    //sbt run -i name
-    else if (conf.info.isDefined) {
-      println(s"Print: ${conf.info()}")
-      printInformation(conf.info())
-    }
-    // sbt run -f filename -a referenceVersion -o path
-    else if (conf.filename.isDefined && conf.referenceVersion.isDefined && conf.outPath.isDefined) {
-      val file = conf.filename()
-      val version = conf.referenceVersion()
-      val outPath = conf.outPath()
-      if (version != "hg38" && version != "t2t") println("Enter referenceVersion : hg38 or t2t")
-      else{
-        println(s"Annotate with file: $file and reference version: $version out path: ${outPath}")
-        Annotation.annotateInBatches(file,  outPath, version)
-      }
+    conf match {
+      case c if c.help() =>
+        c.printHelp()
+
+      case c if c.checkNew() =>
+        println("Checking if new version available for modules")
+        ModuleNewerVersionChecker.checkNewVersions()
+
+      case c if c.chainFiles.isDefined && c.referenceVersion.isDefined =>
+        println(s"Saving dir paths chain - ${c.chainFiles()} ref - ${c.referenceVersion()}")
+        RefChainDirManager.savePathsToLogFile(c.referenceVersion(), c.chainFiles())
+
+      case c if RefChainDirManager.getPaths.isEmpty =>
+        println(
+          """|Before using COMMANDS set up CHAIN , REFERENCE files directory path
+             |By using command - sbt run -c CHAIN/DIR -a REFERENCE/DIR
+             |reference dir should contain : chm13.fa , hg38.fa
+             |chain dir should contain : chm13-hg38.over.chain , hg38-chm13.over.chain
+           """.stripMargin)
+        sys.exit(1)
+
+      case c if c.download.isDefined && c.path.isEmpty && c.version.isEmpty =>
+        PathSaver.getPath match {
+          case Some(path) => downloadModuleLatest(c.download(), path)
+          case None => println("No path found; use -p to specify save directory")
+        }
+
+      case c if c.download.isDefined && c.version.isDefined =>
+        PathSaver.getPath match {
+          case Some(path) => downloadModule(c.download(), path, c.version())
+          case None => println("No path found; use -p to specify save directory")
+        }
+
+      case c if c.download.isDefined && c.path.isDefined && c.version.isEmpty =>
+        PathSaver.savePathToLogFile(c.path())
+        println(s"Download latest module ${c.download()} to ${c.path()}")
+        downloadModuleLatest(c.download(), c.path())
+
+      case c if c.download.isDefined && c.path.isDefined && c.version.isDefined =>
+        PathSaver.savePathToLogFile(c.path())
+        println(s"Download module ${c.download()} version ${c.version()} to ${c.path()}")
+        downloadModule(c.download(), c.path(), c.version())
+
+      case c if c.remove.isDefined =>
+        println(s"Remove module with ID: ${c.remove()}")
+        GenCodeModule.removeModuleById(c.remove())
+
+      case c if c.info.isDefined =>
+        println(s"Print: ${c.info()}")
+        printInformation(c.info())
+
+      case c if c.filename.isDefined && c.referenceVersion.isDefined && c.outPath.isDefined =>
+        val file = c.filename()
+        val version = c.referenceVersion()
+        val outPath = c.outPath()
+        version match {
+          case v@("hg38" | "t2t") =>
+            println(s"Annotate $file against $v → output: $outPath")
+            Annotation.annotateInBatches(file, outPath, v)
+          case _ =>
+            println("Enter referenceVersion: hg38 or t2t")
+        }
+
+      case _ =>
+        println("Unknown command or missing arguments; try `-h` for help.")
     }
   }
 

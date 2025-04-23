@@ -140,7 +140,7 @@ object RepositoryModules {
     val resultSet: ResultSet = preparedStatement.executeQuery()
     val modules = mapResultSetToModules(resultSet)
 
-    println(s"Modules with name '$moduleName' and versionReference '$versionReference' retrieved successfully!")
+    //println(s"Modules with name '$moduleName' and versionReference '$versionReference' retrieved successfully!")
     modules
   }
 

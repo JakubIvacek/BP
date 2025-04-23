@@ -243,7 +243,7 @@ object ServiceModules {
       val modules = RepositoryModules.findByName(connection, moduleName)
 
       // Find the module with the highest version number
-      modules.maxByOption(_.version.toInt).map(_.version).getOrElse("0")
+      modules.maxByOption(_.version.toLong).map(_.version).getOrElse("0")
     } catch {
       case e: Exception =>
         println(s"An error occurred while retrieving the newest module: ${e.getMessage}")
@@ -288,10 +288,26 @@ object ServiceModules {
   def getNewestModulePath(moduleName: String, refGenome: String): Option[String] = {
     val connection = DatabaseConnection.getConnection
     try {
+      // Retrieve all
+      val modules = RepositoryModules.findByNameAndReference(connection, moduleName, refGenome)
+      // Return the path if any modules are found
+      modules.maxByOption(_.version.toLong).flatMap(_.locationPath)
+    } catch {
+      case e: Exception =>
+        println(s"An error occurred while retrieving the newest $moduleName $refGenome module path: ${e.getMessage}")
+        None
+    } finally {
+      DatabaseConnection.closeConnection()
+    }
+  }
+
+  def getNewestModule(moduleName: String, refGenome: String): Option[Module] = {
+    val connection = DatabaseConnection.getConnection
+    try {
       // Retrieve all unitprot modules
       val modules = RepositoryModules.findByNameAndReference(connection, moduleName, refGenome)
       // Return the path if any modules are found
-      modules.headOption.flatMap(_.locationPath)
+      modules.maxByOption(_.version.toLong)
     } catch {
       case e: Exception =>
         println(s"An error occurred while retrieving the newest $moduleName $refGenome module path: ${e.getMessage}")

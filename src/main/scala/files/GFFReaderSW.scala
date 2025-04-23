@@ -5,7 +5,7 @@ import data.GffEntry
 import scala.io.Source
 import scala.util.Try
 import scala.collection.mutable
-import java.io.{FileInputStream, InputStream, File}
+import java.io.{File, FileInputStream, InputStream, PushbackInputStream}
 import java.util.zip.GZIPInputStream
 
 /**
@@ -25,17 +25,31 @@ object GFFReaderSW {
    */
   def loadGffFile(filename: String): Unit = {
     val file = new File(filename)
+    println(s"Loading GFF from: $filename")
 
-    // Check if the file is GZIP-compressed
+    // Open a FileInputStream wrapped in Pushback so we can peek at the first two bytes
+    val fis = new FileInputStream(file)
+    val pb = new PushbackInputStream(fis, 2)
+    
+    val magic = {
+      new Array[Byte](2)
+    }
+    val bytesRead = pb.read(magic)
+    if (bytesRead > 0) pb.unread(magic, 0, bytesRead)
+
+    // Check for GZIP magic: 0x1f, 0x8b
     val inputStream: InputStream =
-      if (filename.endsWith(".gz")) new GZIPInputStream(new FileInputStream(file))
-      else new FileInputStream(file) // Regular text file
+      if (bytesRead == 2 && magic(0) == 0x1f.toByte && magic(1) == 0x8b.toByte) {
+        new GZIPInputStream(pb)
+      } else {
+        pb
+      }
 
+    // Build the Scala.io.Source and iterator
     source = Some(Source.fromInputStream(inputStream))
     iterator = source.get.getLines().filterNot(_.startsWith("#"))
     loadNextBatch(initialLoadSize)
   }
-
   /**
    * Loads the next batch of genes into memory.
    *
