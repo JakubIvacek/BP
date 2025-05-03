@@ -42,6 +42,10 @@ You can run the tool using `sbt run` with various commands:
 
 sbt run -h
 
+### 📄 List all annotations runs
+
+sbt run -z
+
 ### 📥 Download a scientific module
 
 sbt run -d gencode -v v42

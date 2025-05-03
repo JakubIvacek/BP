@@ -1,6 +1,7 @@
 package commandLine
 
 import anotation.Annotation
+import database.annotationruns.ServiceAnnotationRuns
 import logfiles.{ConfigCredentials, PathSaver, RefChainDirManager}
 import module.{CosmicModule, GenCodeModule, Genomes1000Module, UniprotModule}
 import org.rogach.scallop.*
@@ -20,6 +21,7 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val checkNew = opt[Boolean]("n", required = false, descr = "Download latest version modules if not on device. Usage to check new versions or download all.")
   val email =  opt[String]("e", required = false, descr = "Credentials email set up to Cosmic")
   val password =  opt[String]("w", required = false, descr = "Credentials password set up to Cosmic")
+  val annotationRuns = opt[Boolean]("z", required = false, descr = "Print from database all annotation runs")
   // Call verify after defining all options
   verify()
 }
@@ -41,7 +43,10 @@ object Main {
       case c if c.checkNew() =>
         println("Checking if new version available for modules")
         ModuleNewerVersionChecker.checkNewVersions()
-
+      case c if c.annotationRuns() =>
+        println("Printing all annotation runs")
+        val annotationRuns = ServiceAnnotationRuns.getAllAnnotationRuns
+        if annotationRuns.nonEmpty then annotationRuns.foreach(_.print()) else println("No annotation runs found.")
       case c if c.chainFiles.isDefined && c.referenceVersion.isDefined =>
         println(s"Saving dir paths chain - ${c.chainFiles()} ref - ${c.referenceVersion()}")
         RefChainDirManager.savePathsToLogFile(c.referenceVersion(), c.chainFiles())

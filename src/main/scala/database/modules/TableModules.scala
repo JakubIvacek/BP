@@ -1,7 +1,5 @@
 package database.modules
 
-import database.DatabaseConnection
-
 import java.sql.Connection
 
 object TableModules {

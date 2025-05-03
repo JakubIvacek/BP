@@ -1,9 +1,11 @@
 package anotation
 
 import data.DnaVariant
+import database.annotationruns.ServiceAnnotationRuns
 import database.modules.ServiceModules
 import files.{FileReaderVcf, GFFReaderSW, WriteToMaf}
 import logfiles.PathSaver
+
 import java.io.File
 import utils.{LiftOverTool, VcfCleaner}
 
@@ -45,8 +47,9 @@ object Annotation {
     logWriter.println(s"Output MAF file     : $fileOutputPath")
     logWriter.println(s"Reference genome    : $newGenome")
     logWriter.println(s"Batch size          : $batchSize")
-    addModuleInformations(newGenome, logWriter)
-
+    val (gencodeInfo, cosmicInfo, genomes1000Info, uniprotInfo) = addModuleInformations(newGenome, logWriter)
+    //ADD ANNOTATIONS FREEZE TO DATABASE
+    ServiceAnnotationRuns.addAnnotationRun(newPath, fileOutputPath, gencodeInfo, uniprotInfo, cosmicInfo, genomes1000Info, newGenome)
     FileReaderVcf.open(newPath)
     var batchCount = 1
     var hasMoreVariants = true
@@ -98,22 +101,28 @@ object Annotation {
    *
    * @param referenceGenome The reference genome to use for annotation (e.g., "hg38").
    * @param logWriter       Logwriter to .log file
+   * @return                (gencodeInfo, cosmicInfo, genomes1000Info, uniprotInfo)
    */
-  private def addModuleInformations(referenceGenome: String, logWriter: java.io.PrintWriter): Unit = {
+  private def addModuleInformations(referenceGenome: String, logWriter: java.io.PrintWriter): (String, String, String, String) = {
     logWriter.println(s"--------USED DATABASES INFORMATIONS-----------")
     val gencode = ServiceModules.getNewestModule("gencode", referenceGenome)
+    val gencodeInfo = gencode.map(m => s"gencode ${m.version}").getOrElse("")
     if gencode.nonEmpty then logWriter.println(s"Gencode module version: v${gencode.get.version}, downloaded: ${gencode.get.created.get}, path: ${gencode.get.locationPath}")
 
     val cosmic = ServiceModules.getNewestModule("cosmic", referenceGenome)
+    val cosmicInfo = cosmic.map(m => s"cosmic ${m.version}").getOrElse("")
     if cosmic.nonEmpty then logWriter.println(s"Cosmic module version: ${cosmic.get.version}, downloaded: ${cosmic.get.created.get}, path:  ${cosmic.get.locationPath}")
 
     val genomes1000 = ServiceModules.getNewestModule("1000genomes", referenceGenome)
+    val genomes1000Info = genomes1000.map(m => s"1000genomes ${m.version}").getOrElse("")
     if genomes1000.nonEmpty then logWriter.println(s"1000genomes module version: ${genomes1000.get.version}, downloaded: ${genomes1000.get.created.get}, path: ${genomes1000.get.locationPath}")
 
     val uniprot = ServiceModules.getNewestModule("uniprot", "")
+    val uniprotInfo = uniprot.map(m => s"uniprot ${m.version}").getOrElse("")
     if uniprot.nonEmpty then logWriter.println(s"Uniprot module version: ${uniprot.get.version}, downloaded: ${uniprot.get.created.get}, path: ${uniprot.get.locationPath}")
     logWriter.println(s"------------ANNOTATION START---------------")
     logWriter.flush()
+    (gencodeInfo, cosmicInfo, genomes1000Info, uniprotInfo)
   }
 
   private def overliftToT2T(filePath: String): String = {

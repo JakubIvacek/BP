@@ -14,7 +14,9 @@ object DatabaseConnection {
       connection = DriverManager.getConnection(url)
       //println("Connection to SQLite database established: " + url)
     }
+    // CREATE TABLES IF THEY DON'T EXIST
     modules.TableModules.createTableModules(connection)
+    annotationruns.TableAnnotationRuns.createTableAnnotationRuns(connection)
     connection
   }
 
