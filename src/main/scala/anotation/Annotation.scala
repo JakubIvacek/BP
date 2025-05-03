@@ -102,16 +102,16 @@ object Annotation {
   private def addModuleInformations(referenceGenome: String, logWriter: java.io.PrintWriter): Unit = {
     logWriter.println(s"--------USED DATABASES INFORMATIONS-----------")
     val gencode = ServiceModules.getNewestModule("gencode", referenceGenome)
-    if gencode.nonEmpty then logWriter.println(s"Gencode module version: v${gencode.get.version}, downloaded: ${gencode.get.created.get}, refVer: ${gencode.get.versionReference}")
+    if gencode.nonEmpty then logWriter.println(s"Gencode module version: v${gencode.get.version}, downloaded: ${gencode.get.created.get}, path: ${gencode.get.locationPath}")
 
     val cosmic = ServiceModules.getNewestModule("cosmic", referenceGenome)
-    if cosmic.nonEmpty then logWriter.println(s"Cosmic module version: ${cosmic.get.version}, downloaded: ${cosmic.get.created.get}, refVer: ${cosmic.get.versionReference}")
+    if cosmic.nonEmpty then logWriter.println(s"Cosmic module version: ${cosmic.get.version}, downloaded: ${cosmic.get.created.get}, path:  ${cosmic.get.locationPath}")
 
     val genomes1000 = ServiceModules.getNewestModule("1000genomes", referenceGenome)
-    if genomes1000.nonEmpty then logWriter.println(s"1000genomes module version: ${genomes1000.get.version}, downloaded: ${genomes1000.get.created.get}, refVer: ${genomes1000.get.versionReference}")
+    if genomes1000.nonEmpty then logWriter.println(s"1000genomes module version: ${genomes1000.get.version}, downloaded: ${genomes1000.get.created.get}, path: ${genomes1000.get.locationPath}")
 
     val uniprot = ServiceModules.getNewestModule("uniprot", "")
-    if uniprot.nonEmpty then logWriter.println(s"Uniprot module version: ${uniprot.get.version}, downloaded: ${uniprot.get.created.get}")
+    if uniprot.nonEmpty then logWriter.println(s"Uniprot module version: ${uniprot.get.version}, downloaded: ${uniprot.get.created.get}, path: ${uniprot.get.locationPath}")
     logWriter.println(s"------------ANNOTATION START---------------")
     logWriter.flush()
   }

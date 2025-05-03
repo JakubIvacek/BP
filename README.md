@@ -4,7 +4,7 @@ This tool provides annotation of structural DNA variants using standardized form
 
 ## ✨ Features
 
-- Supports the latest human reference genome **Chm13 (T2T)**, as well as **GRCh38**
+- Supports the latest human reference genome **Chm13 (T2T)**
 - Coordinate lifting (overlift) between genome versions using **CrossMap** automatic download 
 - Standard input/output formats: **VCF (input)** → **MAF (output)**
 - Built-in support for scientific databases:
@@ -15,6 +15,19 @@ This tool provides annotation of structural DNA variants using standardized form
 - Modular system with SQLite storage
 - Command-line interface with Scallop
 
+# !!! BEFORE RUNNING !!!
+
+To USE COSMIC DB setup your credentials first in : cred.log
+
+- login or create your account at : https://cancer.sanger.ac.uk/cosmic/register
+- USE : sbt run -e email -w password
+
+Set paths for chain and reference files (used for overlift)
+
+- REFERENCE dir should contain : chm13.fa , hg38.fa.
+- CHAIN dir should contain : chm13-hg38.over.chain , hg38-chm13.over.chain
+- USE: sbt run -c /path/to/chains -a /path/to/reference
+
 ## ⚙️ Requirements
 
 - Linux OS
@@ -24,7 +37,6 @@ This tool provides annotation of structural DNA variants using standardized form
 ## 🚀 Running the Tool
 
 You can run the tool using `sbt run` with various commands:
-TO RUN COSMIC DATABASE SETUP YOUR ACCOUNT INFO IN : cred.log
 
 ### 🆘 Help
 
@@ -47,6 +59,10 @@ sbt run -i
 ### 📦 Set paths for chain and reference files (used for overlift)
 
 sbt run -c /path/to/chains -a /path/to/reference
+
+### 📦 Set up credentials for COSMIC module
+
+sbt run -e email -w password
 
 ### 🔍 Annotate a VCF file (requires modules download first)
 

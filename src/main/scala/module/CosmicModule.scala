@@ -68,7 +68,8 @@ object CosmicModule extends ModuleManager {
             overLiftToT2T(localOverLiftPath, version, filePath, finalLocalPath, List(""))
             println("Liftover DONE module downloaded.")
           case None =>
-            println("Config not found. cred.config with email and password")
+            println("Cred conf not found : cred.config, or wrong credentials")
+            println("Try updating with  sbt run -e email -w password")
 
         }
       }else{
@@ -76,8 +77,14 @@ object CosmicModule extends ModuleManager {
       }
     }
     def downloadModuleLatest(localPath: String): Unit = {
-      latestVersionNum = if ServiceModules.getNewestModuleVersion("cosmic") != "0" then ServiceModules.getNewestModuleVersion("cosmic").toInt else defaultVersion
-      if checkNewVersion() then downloadModule(localPath, latestVersion) else println("Already downloaded latest cosmic.")
+      ConfigCredentials.loadConfig() match {
+        case Some((email, password)) =>
+          latestVersionNum = if ServiceModules.getNewestModuleVersion("cosmic") != "0" then ServiceModules.getNewestModuleVersion("cosmic").toInt else defaultVersion
+          if checkNewVersion() then downloadModule(localPath, latestVersion) else println("Already downloaded latest cosmic.")
+        case None =>
+          println("Cred conf not found : cred.config, or wrong credentials")
+          println("Try updating with  sbt run -e email -w password")
+      }
     }
 
   /**

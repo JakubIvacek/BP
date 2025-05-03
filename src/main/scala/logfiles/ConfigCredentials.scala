@@ -34,12 +34,21 @@ object ConfigCredentials {
 
       val email = properties.getProperty("email")
       val password = properties.getProperty("password")
-
-      if (email != null && password != null) {
-        Some(email, password)
-      } else {
+      if (email == null || password == null) {
         println("Email or password not found in the config.")
         None
+      }
+      else {
+        val emailTrimmed = email.trim
+        val passwordTrimmed = password.trim
+
+        if (emailTrimmed.isEmpty || passwordTrimmed.isEmpty) {
+          println("Empty credentials – please set both email and password.")
+          None
+        }
+        else {
+          Some(emailTrimmed, passwordTrimmed)
+        }
       }
     } catch {
       case e: IOException =>

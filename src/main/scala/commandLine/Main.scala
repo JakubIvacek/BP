@@ -1,8 +1,7 @@
 package commandLine
 
 import anotation.Annotation
-import logfiles.{PathSaver, RefChainDirManager}
-
+import logfiles.{ConfigCredentials, PathSaver, RefChainDirManager}
 import module.{CosmicModule, GenCodeModule, Genomes1000Module, UniprotModule}
 import org.rogach.scallop.*
 import utils.ModuleNewerVersionChecker
@@ -19,6 +18,8 @@ class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
   val path = opt[String]("p", required = false, descr = "File path for download (/path/dir) (optional path saves to .log file)")
   val outPath = opt[String]("o", required = false, descr = "File path for output (/path/dir)")
   val checkNew = opt[Boolean]("n", required = false, descr = "Download latest version modules if not on device. Usage to check new versions or download all.")
+  val email =  opt[String]("e", required = false, descr = "Credentials email set up to Cosmic")
+  val password =  opt[String]("w", required = false, descr = "Credentials password set up to Cosmic")
   // Call verify after defining all options
   verify()
 }
@@ -53,7 +54,9 @@ object Main {
              |chain dir should contain : chm13-hg38.over.chain , hg38-chm13.over.chain
            """.stripMargin)
         sys.exit(1)
-
+      case c if c.email.isDefined && c.password.isDefined =>
+        println(s"Saving credentials to cred.config : ${c.email()}  ${c.password()}")
+        ConfigCredentials.saveConfig(c.email(), c.password())
       case c if c.download.isDefined && c.path.isEmpty && c.version.isEmpty =>
         PathSaver.getPath match {
           case Some(path) => downloadModuleLatest(c.download(), path)
