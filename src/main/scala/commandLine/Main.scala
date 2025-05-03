@@ -8,20 +8,56 @@ import org.rogach.scallop.*
 import utils.ModuleNewerVersionChecker
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
-  val remove = opt[Int]("r", required = false, descr = "Remove module by ID (1,2)")
-  val download = opt[String]("d", required = false, descr = "Download module name (gencode, gnomad ...)")
-  val version = opt[String]("v", required = false, descr = "Module version (13,20)")
-  val info = opt[String]("i", required = false, descr = "Print info module name (genocde, gnomad ...)")
-  val help = opt[Boolean]("h", noshort = true, descr = "Show help message")
-  val filename = opt[String]("f", required = false, descr = "Filename for annotation (Lynch.vcf)")
-  val referenceVersion = opt[String]("a", required = false, descr = "Reference version for annotation (hg38, t2t) or path to reference dir (/path/)")
-  val chainFiles = opt[String]("c", required = false, descr = "Chain files directory path (/path/dir)")
-  val path = opt[String]("p", required = false, descr = "File path for download (/path/dir) (optional path saves to .log file)")
-  val outPath = opt[String]("o", required = false, descr = "File path for output (/path/dir)")
-  val checkNew = opt[Boolean]("n", required = false, descr = "Download latest version modules if not on device. Usage to check new versions or download all.")
-  val email =  opt[String]("e", required = false, descr = "Credentials email set up to Cosmic")
-  val password =  opt[String]("w", required = false, descr = "Credentials password set up to Cosmic")
-  val annotationRuns = opt[Boolean]("z", required = false, descr = "Print from database all annotation runs")
+
+  banner(
+    """|Usage: sbt run [options]
+       |
+       |  -h / --help
+       |      displays help
+       |
+       |  -n / --newer
+       |      checks for newer versions of scientific databases and downloads them if needed
+       |
+       |  -c <folder> / --chain <folder>  -a <folder> / --reference <folder>
+       |      sets and saves paths to:
+       |        • chain files (for “overlift” coordinate mapping between genome builds)
+       |        • reference files (DNA sequences for the chosen build, e.g. hg38, chm13)
+       |      if not set, prints guidance on required directory structure
+       |
+       |  -d <module> / --download <module>  -v <version> / --version <version>?
+       |      downloads a specified scientific module; version is optional (defaults to latest)
+       |
+       |  -r <id> / --remove <id>
+       |      removes a scientific database by its ID
+       |
+       |  -z / --annotations
+       |      lists all annotation runs stored in the SQLite database
+       |
+       |  -e <email> / --email <email>  -w <password> / --password <password>
+       |      saves COSMIC login credentials into cred.config
+       |
+       |  -i [<module>] / --info [<module>]
+       |      prints info about downloaded modules; if none specified, shows all
+       |
+       |  -f <input.vcf> / --filename <input.vcf>  -a <genome> / --reference <genome>  -o <output.maf> / --out_path <output.maf>
+       |      annotates the input VCF with the chosen reference genome and produces a MAF output
+       |""".stripMargin
+  )
+
+  val remove = opt[Int](short = 'r', name = "remove", required = false, descr = "Remove module by ID (1,2)")
+  val download = opt[String](short = 'd', name = "download", required = false, descr = "Download module name (gencode, gnomad ...)")
+  val version = opt[String](short = 'v', name="version", required = false, descr = "Module version (13,20)")
+  val info = opt[String](short = 'i', name = "info", required = false, descr = "Print info module name (gencode, gnomad ...)")
+  val help = opt[Boolean](short = 'h', name = "help", descr = "Show help message")
+  val filename = opt[String](short = 'f', name = "filename", required = false, descr = "Filename for annotation (Lynch.vcf)")
+  val referenceVersion = opt[String](short = 'a', name = "reference", required = false, descr = "Reference version for annotation (hg38, t2t) or path to reference dir (/path/)")
+  val chainFiles = opt[String](short = 'c', name= "chain", required = false, descr = "Chain files directory path (/path/dir)")
+  val path = opt[String](short = 'p', name = "d_path", required = false, descr = "File path for download (/path/dir) (optional path saves to .log file)")
+  val outPath = opt[String](short = 'o', name = "out_path", required = false, descr = "File path for output (/path/dir)")
+  val checkNew = opt[Boolean](short = 'n', name = "newer", required = false, descr = "Download latest version modules if not on device. Usage to check new versions or download all.")
+  val email =  opt[String](short = 'e', name = "email", required = false, descr = "Credentials email set up to Cosmic")
+  val password =  opt[String](short = 'w', name = "password", required = false, descr = "Credentials password set up to Cosmic")
+  val annotationRuns = opt[Boolean](short = 'z', name = "annotations", required = false, descr = "Print from database all annotation runs")
   // Call verify after defining all options
   verify()
 }
@@ -38,7 +74,7 @@ object Main {
     val conf = new Conf(args) // Pass args to Conf
     conf match {
       case c if c.help() =>
-        c.printHelp()
+        sys.exit(0)
 
       case c if c.checkNew() =>
         println("Checking if new version available for modules")
@@ -98,7 +134,7 @@ object Main {
         val outPath = c.outPath()
         version match {
           case v@("hg38" | "t2t") =>
-            println(s"Annotate $file against $v → output: $outPath")
+            println(s"Annotate file : $file reference : $v → output dir : $outPath")
             Annotation.annotateInBatches(file, outPath, v)
           case _ =>
             println("Enter referenceVersion: hg38 or t2t")

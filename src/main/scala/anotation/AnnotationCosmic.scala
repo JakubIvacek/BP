@@ -18,6 +18,9 @@ object AnnotationCosmic {
       val version = ServiceModules.getNewestModuleVersion("cosmic")
       FastaLoadCOSMIC.loadFastaFromGzip(s"$path/Cosmic_Genes_v${version}_$genome.fasta.gz", referenceGenome)
     }
-    //teraz asi matchnem rovno s genmi vsetkymi
+    //teraz asi matchnem rovno s genmi vsetkymi v tom FA file
+    //potom len nacitam prejdem tie 3 mensie subory a ked najdem tie matchnute tam pridam info 
+    
+    //potom ked tak este ten dlhy nejak sliding budem musiet urobit pre to
   }
 }

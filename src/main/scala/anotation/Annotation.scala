@@ -6,7 +6,7 @@ import database.modules.ServiceModules
 import files.{FileReaderVcf, GFFReaderSW, WriteToMaf}
 import logfiles.PathSaver
 
-import java.io.File
+import java.io.{File, FileNotFoundException}
 import utils.{LiftOverTool, VcfCleaner}
 
 
@@ -31,13 +31,20 @@ object Annotation {
                          referenceGenome: String,
                          batchSize: Int = 1000): Unit = {
 
+
+    //check if input vcf exits
+    val inFile = new File(inputFile)
+    if (!inFile.exists() || !inFile.isFile) {
+      println(s"Input VCF not found or not a file path: $inputFile")
+      return
+    }
     // overlift to T2T if hg38
     val (newPath, newGenome) = (inputFile, referenceGenome)//if referenceGenome == "hg38" then (overliftToT2T(inputFile),"t2t") else (inputFile,"t2t")
-
     val fileOutputPath = s"$outputPath/${inputFile.split("/").last.dropRight(4)}.maf"
     val logFilePath = s"$outputPath/annotation.log"
     val outFile = new File(fileOutputPath)
     outFile.getParentFile.mkdirs()
+    FileReaderVcf.open(newPath)
 
     val logWriter = new java.io.PrintWriter(new java.io.FileOutputStream(logFilePath, true))
     var timestamp = java.time.LocalDateTime.now()
@@ -50,7 +57,6 @@ object Annotation {
     val (gencodeInfo, cosmicInfo, genomes1000Info, uniprotInfo) = addModuleInformations(newGenome, logWriter)
     //ADD ANNOTATIONS FREEZE TO DATABASE
     ServiceAnnotationRuns.addAnnotationRun(newPath, fileOutputPath, gencodeInfo, uniprotInfo, cosmicInfo, genomes1000Info, newGenome)
-    FileReaderVcf.open(newPath)
     var batchCount = 1
     var hasMoreVariants = true
 

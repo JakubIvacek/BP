@@ -9,18 +9,6 @@ object TableAnnotationRuns {
 
   /**
    * Creates the annotationruns table in the database if it does not exist.
-   *
-   * Columns:
-   *   id                - Auto-incremented primary key
-   *   input_file        - Path to the input VCF file
-   *   output_file       - Path to the generated MAF output file
-   *   gencode_used      - Version or identifier of Gencode module used
-   *   uniprot_used      - Version or identifier of UniProt module used
-   *   cosmic_used       - Version or identifier of COSMIC module used
-   *   genomes1000_used  - Version or identifier of 1000 Genomes module used
-   *   reference_genome  - Reference genome identifier (e.g., CHM13)
-   *   created           - Timestamp of record creation
-   *   updated           - Timestamp of last update
    */
   def createTableAnnotationRuns(connection: Connection): Unit = {
     val createTableQuery =
