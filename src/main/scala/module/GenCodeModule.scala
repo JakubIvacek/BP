@@ -35,8 +35,11 @@ object GenCodeModule extends ModuleManager {
     var release = s"release_$releaseNumber"
 
     // If a release higher than the latest is entered, default to the latest release
-    release = if releaseNumber > latestRelease.stripPrefix("release_") then latestRelease else release
-    val newReleaseNumber = if releaseNumber > latestRelease.stripPrefix("release_") then latestRelease.stripPrefix("release_") else releaseNumber
+    release = if releaseNumber < latestRelease.stripPrefix("release_") then {
+      println(s"Entered bigger version then latest, using latest $latestRelease")
+      latestRelease
+    } else release
+    val newReleaseNumber = if releaseNumber < latestRelease.stripPrefix("release_") then latestRelease.stripPrefix("release_") else releaseNumber
 
     val directory = s"/pub/databases/gencode/Gencode_human/$release/"
     val fileName = s"gencode.v${release.stripPrefix("release_")}.annotation.gff3.gz"
@@ -56,7 +59,8 @@ object GenCodeModule extends ModuleManager {
       val finalOverLiftPath = if localPath == "" then s"gencode/$newReleaseNumber/t2t" else s"$localPath/gencode/$newReleaseNumber/t2t"
       overLiftToT2T(finalOverLiftPath, newReleaseNumber, server + directory, finalLocalPath, List(fileName))
     } else {
-      println("Could not determine the latest Gencode release or version installed already.")
+      if versionInstalledCheck.nonEmpty then
+        println(s"Gencode ${release} version installed already.")
     }
   }
 

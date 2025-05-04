@@ -5,7 +5,7 @@ import database.annotationruns.ServiceAnnotationRuns
 import logfiles.{ConfigCredentials, PathSaver, RefChainDirManager}
 import module.{CosmicModule, GenCodeModule, Genomes1000Module, UniprotModule}
 import org.rogach.scallop.*
-import utils.ModuleNewerVersionChecker
+import utils.{ChainReferenceDownload, ModuleNewerVersionChecker}
 
 class Conf(arguments: Seq[String]) extends ScallopConf(arguments) {
 
@@ -68,66 +68,67 @@ object Main {
     // Ensure args are passed from the command line
     if (args == null || args.isEmpty) {
       println("No arguments provided! Please provide some arguments.")
-      sys.exit(1) // Exit if no args are provided
+      sys.exit(1)
     }
-
-    val conf = new Conf(args) // Pass args to Conf
+    val conf = new Conf(args)
+    if conf.path.isDefined then {
+      println(s"Saving path to log file : ${conf.path()}")
+      PathSaver.savePathToLogFile(conf.path())
+    }
+    // default setup for chain & reference if none configured
+    if RefChainDirManager.getPaths.isEmpty then chainReferenceSetUp()
     conf match {
+      // -h, --help: Show help message
       case c if c.help() =>
         sys.exit(0)
-
+      // -n, --newer: Download latest version modules if not on device
       case c if c.checkNew() =>
-        println("Checking if new version available for modules")
+        println("Checking if new version available for modules and download if so.")
         ModuleNewerVersionChecker.checkNewVersions()
+      // -z, --annotations: Print all annotation runs
       case c if c.annotationRuns() =>
         println("Printing all annotation runs")
         val annotationRuns = ServiceAnnotationRuns.getAllAnnotationRuns
         if annotationRuns.nonEmpty then annotationRuns.foreach(_.print()) else println("No annotation runs found.")
+
+      // -c, --chain & -a, --reference: Save chain and reference paths
       case c if c.chainFiles.isDefined && c.referenceVersion.isDefined =>
         println(s"Saving dir paths chain - ${c.chainFiles()} ref - ${c.referenceVersion()}")
         RefChainDirManager.savePathsToLogFile(c.referenceVersion(), c.chainFiles())
 
-      case c if RefChainDirManager.getPaths.isEmpty =>
-        println(
-          """|Before using COMMANDS set up CHAIN , REFERENCE files directory path
-             |By using command - sbt run -c CHAIN/DIR -a REFERENCE/DIR
-             |reference dir should contain : chm13.fa , hg38.fa
-             |chain dir should contain : chm13-hg38.over.chain , hg38-chm13.over.chain
-           """.stripMargin)
-        sys.exit(1)
+      // -e, --email & -w, --password: Save credentials
       case c if c.email.isDefined && c.password.isDefined =>
         println(s"Saving credentials to cred.config : ${c.email()}  ${c.password()}")
         ConfigCredentials.saveConfig(c.email(), c.password())
-      case c if c.download.isDefined && c.path.isEmpty && c.version.isEmpty =>
+
+      // -d, --download (no version): Download latest module to default path
+      case c if c.download.isDefined && c.version.isEmpty =>
         PathSaver.getPath match {
-          case Some(path) => downloadModuleLatest(c.download(), path)
+          case Some(path) =>
+            println(s"Download latest module ${c.download()} to ${path}")
+            downloadModuleLatest(c.download(), path)
           case None => println("No path found; use -p to specify save directory")
         }
 
+      // -d, --download & -v, --version: Download specified version to default path
       case c if c.download.isDefined && c.version.isDefined =>
         PathSaver.getPath match {
-          case Some(path) => downloadModule(c.download(), path, c.version())
+          case Some(path) =>
+            println(s"Download module ${c.download()} version ${c.version()} to ${path}")
+            downloadModule(c.download(), path, c.version())
           case None => println("No path found; use -p to specify save directory")
         }
-
-      case c if c.download.isDefined && c.path.isDefined && c.version.isEmpty =>
-        PathSaver.savePathToLogFile(c.path())
-        println(s"Download latest module ${c.download()} to ${c.path()}")
-        downloadModuleLatest(c.download(), c.path())
-
-      case c if c.download.isDefined && c.path.isDefined && c.version.isDefined =>
-        PathSaver.savePathToLogFile(c.path())
-        println(s"Download module ${c.download()} version ${c.version()} to ${c.path()}")
-        downloadModule(c.download(), c.path(), c.version())
-
+      // -r, --remove: Remove module by ID
       case c if c.remove.isDefined =>
         println(s"Remove module with ID: ${c.remove()}")
         GenCodeModule.removeModuleById(c.remove())
 
+      // -i, --info: Print module information
       case c if c.info.isDefined =>
         println(s"Print: ${c.info()}")
         printInformation(c.info())
 
+      // -f, --filename & -a, --reference & -o, --out_path: Annotate file with specified reference
       case c if c.filename.isDefined && c.referenceVersion.isDefined && c.outPath.isDefined =>
         val file = c.filename()
         val version = c.referenceVersion()
@@ -139,13 +140,13 @@ object Main {
           case _ =>
             println("Enter referenceVersion: hg38 or t2t")
         }
-
+      // Fallback: Unknown command or missing args
       case _ =>
         println("Unknown command or missing arguments; try `-h` for help.")
     }
   }
 
-  def printInformation(name: String): Unit = {
+  private def printInformation(name: String): Unit = {
     if (name == "gencode"){
       GenCodeModule.printAllClassModules()
     }
@@ -196,6 +197,34 @@ object Main {
     }
     else {
       println("Wrong module name Try again (Gencode, ...)")
+    }
+  }
+
+  private def chainReferenceSetUp(): Unit = {
+
+    PathSaver.getPath match {
+      case Some(path) =>
+        val finalPath = s"$path/refChain"
+        println(s"Downloading DEFAULT REFERENCE, CHAIN files T2T to : $finalPath")
+        ChainReferenceDownload.downloadChain(finalPath)
+        ChainReferenceDownload.downloadFasta(finalPath)
+        RefChainDirManager.savePathsToLogFile(finalPath, finalPath)
+        println("Download completed. \n")
+        println(
+          """|You can still set up your own paths by
+             |using command - sbt run -c CHAIN/DIR -a REFERENCE/DIR
+             |reference dir should contain : chm13.fa
+             |chain dir should contain : hg38-chm13.over.chain
+             """.stripMargin)
+      case None =>
+        println(
+          """|Before using COMMANDS set up CHAIN , REFERENCE files directory path
+             |By using command - sbt run -c CHAIN/DIR -a REFERENCE/DIR
+             |reference dir should contain : chm13.fa
+             |chain dir should contain : hg38-chm13.over.chain
+             """.stripMargin)
+        println("\n|OR to download default REFERENCE, CHAIN T2T \n |1. use sbt run -p to specify save dir \n|2. run your command again")
+        sys.exit(1)
     }
   }
 }

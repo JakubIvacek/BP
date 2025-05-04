@@ -27,19 +27,15 @@ object GFFReaderSW {
     val file = new File(filename)
     println(s"Loading GFF from: $filename")
 
-    // Open a FileInputStream wrapped in Pushback so we can peek at the first two bytes
+    // Detect GZIP by peeking at the first two bytes
     val fis = new FileInputStream(file)
     val pb = new PushbackInputStream(fis, 2)
-    
-    val magic = {
-      new Array[Byte](2)
-    }
-    val bytesRead = pb.read(magic)
-    if (bytesRead > 0) pb.unread(magic, 0, bytesRead)
+    val signature = new Array[Byte](2)
+    val bytesRead = pb.read(signature)
+    if (bytesRead > 0) pb.unread(signature, 0, bytesRead)
 
-    // Check for GZIP magic: 0x1f, 0x8b
     val inputStream: InputStream =
-      if (bytesRead == 2 && magic(0) == 0x1f.toByte && magic(1) == 0x8b.toByte) {
+      if (bytesRead == 2 && signature(0) == 0x1f.toByte && signature(1) == 0x8b.toByte) {
         new GZIPInputStream(pb)
       } else {
         pb
