@@ -66,7 +66,19 @@ case class DnaVariant(
                   var EUR_AF_1000G: String,
                   var SAS_AF_1000G: String,
                   var EAS_AF_1000G: String,
-                  var AF_1000G: String   
+                  var AF_1000G: String,
+                  var geneID_COSMIC: String,
+                  var transcriptID_COSMIC: String,   
+                  var censusGene_COSMIC: String,
+                  var drugName_COSMIC: String,
+                  var mutZygosity_COSMIC: String,
+                  var cancerSyndrome_COSMIC: String,
+                  var tissueType_COSMIC: String,
+                  var roleInCancer_COSMIC: String,
+                  var mutationTypes_COSMIC: String,
+                  var molecularGenetics_COSMIC: String,
+                  var tumTypeSomatic_COSMIC: String,
+                  var tumTypeGermline_COSMIC: String,   
                      ){
 }
 
@@ -120,7 +132,19 @@ object DnaVariant{
         EUR_AF_1000G = ".",
         SAS_AF_1000G = ".",
         EAS_AF_1000G = ".",
-        AF_1000G = "."
+        AF_1000G = ".",
+        geneID_COSMIC = ".",
+        transcriptID_COSMIC = ".",
+        censusGene_COSMIC = ".",
+        drugName_COSMIC = ".",
+        mutZygosity_COSMIC = ".",
+        cancerSyndrome_COSMIC = ".",
+        tissueType_COSMIC = ".",
+        roleInCancer_COSMIC = ".",
+        mutationTypes_COSMIC = ".",
+        molecularGenetics_COSMIC  = ".",
+        tumTypeSomatic_COSMIC =  ".",
+        tumTypeGermline_COSMIC = "."
       )
     }
     // Return the list as an immutable List

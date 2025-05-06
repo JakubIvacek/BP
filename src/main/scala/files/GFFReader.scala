@@ -45,6 +45,31 @@ object GFFReader {
       .toVector
   }
 
+  def loadGffFileReturnList(filename: String): List[GffEntry] = {
+    val file = new File(filename)
+    println(s"Loading entire GFF from: $filename")
+    // Detect GZIP by peeking at the first two bytes
+    val fis = new FileInputStream(file)
+    val pb = new PushbackInputStream(fis, 2)
+    val signature = new Array[Byte](2)
+    val bytesRead = pb.read(signature)
+    if (bytesRead > 0) pb.unread(signature, 0, bytesRead)
+
+    val inputStream: InputStream =
+      if (bytesRead == 2 && signature(0) == 0x1f.toByte && signature(1) == 0x8b.toByte) {
+        new GZIPInputStream(pb)
+      } else {
+        pb
+      }
+
+    val src = Source.fromInputStream(inputStream)
+    try {
+      src.getLines()
+        .filterNot(_.startsWith("#"))
+        .flatMap(parseLine)
+        .toList
+    } finally src.close()
+  }
   /**
    * Parses a single line of GFF3 text into an Option[GffEntry].
    */
@@ -52,18 +77,26 @@ object GFFReader {
     val fields = line.split("\t", -1)
     if (fields.length < 9) return None
 
-    val contig = fields(0)
-    val start = Try(fields(3).toInt).getOrElse(0)
-    val end = Try(fields(4).toInt).getOrElse(0)
+    val contig      = fields(0)
     val featureType = fields(2)
-    val strandPlus = fields(6) == "+"
-    val attributes = fields(8)
-      .split(";")
-      .map { attr =>
-        val Array(key, value) = attr.split("=", 2) ++ Array("")
-        key -> value
-      }
-      .toMap
+    val start       = Try(fields(3).toInt).getOrElse(0)
+    val end         = Try(fields(4).toInt).getOrElse(0)
+    val strandPlus  = fields(6) == "+"
+
+    val attributes: Map[String,String] =
+      fields(8)
+        .split(";")
+        .iterator
+        .map(_.trim)
+        .filter(_.nonEmpty)
+        .map { attr =>
+          val parts = attr.split("=", 2)
+          val key   = parts(0)
+          val value = if (parts.length > 1) parts(1) else ""
+          key -> value
+        }
+        .toMap
+    // ---------------------------------
 
     Some(GffEntry(contig, start, end, strandPlus, featureType, attributes))
   }

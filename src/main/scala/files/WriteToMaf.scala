@@ -22,7 +22,9 @@ object WriteToMaf{
       val mafHeaders = "Hugo_Symbol\tChrom\tStart_Pos\tEnd_Pos\tNCBI_Build\tRef_Allele\tAlt_Allele" +
         "\tVSQR_Score\tVariant_Classification\tVariant_Type\tVariant_Type_Protein\tAllele_Freq\tGene_Type_Gencode\tHGVS_DNA\tHGVS_RNA\tHGVS_Protein\tPDB_ID_Uniprot" +
          "\tAF_1000G\tAMR_AF_1000G\tAFR_AF_1000G\tEUR_AF_1000G\tSAS_AF_1000G\tEAS_AF_1000G" + "\tEntrez_Gene_Id_Gencode\tStrand_Plus_Gencode\tTranscript_id_Gencode" +
-        "\tTranscript_name_Gencode\tExon_id_Gencode\tExon_number_Gencode\tTranscript_type_Gencode\tLevel_Gencode"
+        "\tTranscript_name_Gencode\tExon_id_Gencode\tExon_number_Gencode\tTranscript_type_Gencode\tLevel_Gencode" +
+        "\tGeneID_COSMIC\tTranscriptID_COSMIC\tCensusGene_COSMIC\tDrugName_COSMIC" + "\tMutZygosity_COSMIC\tCancerSyndrome_COSMIC\tTissueType_COSMIC" +
+        "\tRoleInCancer_COSMIC\tMutationTypes_COSMIC\tMolecularGenetics_COSMIC" + "\tTumorTypeSomatic_COSMIC\tTumorTypeGermline_COSMIC"
       writer.println(mafHeaders)
     }
 
@@ -66,7 +68,20 @@ object WriteToMaf{
       dnaVariant.exonID_Gencode,
       dnaVariant.exonNum_Gencode,
       dnaVariant.transType_Gencode,
-      dnaVariant.level_Gencode
+      dnaVariant.level_Gencode,
+      dnaVariant.geneID_COSMIC,
+      dnaVariant.transcriptID_COSMIC,
+      dnaVariant.censusGene_COSMIC,
+      dnaVariant.drugName_COSMIC,
+      dnaVariant.mutZygosity_COSMIC,
+      dnaVariant.cancerSyndrome_COSMIC,
+      dnaVariant.tissueType_COSMIC,
+      dnaVariant.roleInCancer_COSMIC,
+      dnaVariant.mutationTypes_COSMIC,
+      dnaVariant.molecularGenetics_COSMIC,
+      dnaVariant.tumTypeSomatic_COSMIC,
+      dnaVariant.tumTypeGermline_COSMIC
+      
     )
 
     fields.mkString("\t")

@@ -63,7 +63,7 @@ object CosmicModule extends ModuleManager {
             TSVtoGFFNonCoding.convertTSVToGFF(s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.gff")
             TSVtoGFFResistance.convertTSVToGFF(s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.gff")
             FastaLoadCOSMIC.loadFastaFromGzip(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.fasta.gz", "hg38")
-            FAtoGFFCosmic.writeGFF(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.gff", FastaLoadCOSMIC.loadedList.getOrElse(List()))
+            FAtoGFFCosmic.writeGFF(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.gff", FastaLoadCOSMIC.getLoadedList)
             println("Liftovering to T2T.")
             overLiftToT2T(localOverLiftPath, version, filePath, finalLocalPath, List(""))
             println("Liftover DONE module downloaded.")

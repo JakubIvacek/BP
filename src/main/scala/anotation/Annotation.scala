@@ -97,9 +97,9 @@ object Annotation {
       variant => Annotation1000Genomes.annotateVariant1000Genomes(variant, referenceGenome)   //1000GENOMES))
     )
     
-    //dnaVariants.foreach(
-      //variant => AnnotationCosmic.annotateVariantCosmic(variant, referenceGenome) // COSMIC
-    //)
+    dnaVariants.foreach(
+      variant => AnnotationCosmic.annotateVariantCosmic(variant, referenceGenome) // COSMIC
+    )
   }
 
   /**
@@ -113,19 +113,19 @@ object Annotation {
     logWriter.println(s"--------USED DATABASES INFORMATIONS-----------")
     val gencode = ServiceModules.getNewestModule("gencode", referenceGenome)
     val gencodeInfo = gencode.map(m => s"gencode ${m.version}").getOrElse("")
-    if gencode.nonEmpty then logWriter.println(s"Gencode module version: v${gencode.get.version}, downloaded: ${gencode.get.created.get}, path: ${gencode.get.locationPath}")
+    if gencode.nonEmpty then logWriter.println(s"Gencode module version: v${gencode.get.version}, downloaded: ${gencode.get.created.get}, path: ${gencode.get.locationPath.get}")
 
     val cosmic = ServiceModules.getNewestModule("cosmic", referenceGenome)
     val cosmicInfo = cosmic.map(m => s"cosmic ${m.version}").getOrElse("")
-    if cosmic.nonEmpty then logWriter.println(s"Cosmic module version: ${cosmic.get.version}, downloaded: ${cosmic.get.created.get}, path:  ${cosmic.get.locationPath}")
+    if cosmic.nonEmpty then logWriter.println(s"Cosmic module version: ${cosmic.get.version}, downloaded: ${cosmic.get.created.get}, path:  ${cosmic.get.locationPath.get}")
 
     val genomes1000 = ServiceModules.getNewestModule("1000genomes", referenceGenome)
     val genomes1000Info = genomes1000.map(m => s"1000genomes ${m.version}").getOrElse("")
-    if genomes1000.nonEmpty then logWriter.println(s"1000genomes module version: ${genomes1000.get.version}, downloaded: ${genomes1000.get.created.get}, path: ${genomes1000.get.locationPath}")
+    if genomes1000.nonEmpty then logWriter.println(s"1000genomes module version: ${genomes1000.get.version}, downloaded: ${genomes1000.get.created.get}, path: ${genomes1000.get.locationPath.get}")
 
     val uniprot = ServiceModules.getNewestModule("uniprot", "")
     val uniprotInfo = uniprot.map(m => s"uniprot ${m.version}").getOrElse("")
-    if uniprot.nonEmpty then logWriter.println(s"Uniprot module version: ${uniprot.get.version}, downloaded: ${uniprot.get.created.get}, path: ${uniprot.get.locationPath}")
+    if uniprot.nonEmpty then logWriter.println(s"Uniprot module version: ${uniprot.get.version}, downloaded: ${uniprot.get.created.get}, path: ${uniprot.get.locationPath.get}")
     logWriter.println(s"------------ANNOTATION START---------------")
     logWriter.flush()
     (gencodeInfo, cosmicInfo, genomes1000Info, uniprotInfo)

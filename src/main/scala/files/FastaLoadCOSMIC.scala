@@ -11,8 +11,16 @@ import scala.io.Source
  */
 object FastaLoadCOSMIC {
   
-  var loadedList: Option[List[FaEntryCosmic]] = None
+  private var loadedList: Option[List[FaEntryCosmic]] = None
   var loadedGenome: String = ""
+
+  /**
+   * Returns the currently loaded list of FaEntryCosmic,
+   * or an empty list if nothing has been loaded yet.
+   */
+  def getLoadedList: List[FaEntryCosmic] =
+    loadedList.getOrElse(List.empty[FaEntryCosmic])
+    
   /**
    * Load .fasta cosmic file to loadedList
    *
