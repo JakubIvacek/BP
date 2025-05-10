@@ -14,14 +14,16 @@ case class FaEntryCosmic(
    * Returns None if the requested interval lies outside this entry.
    */
   def getSequencePart(subStart: Int, subEnd: Int): String = {
-    // convert genome coords to 0‐based sequence indices
-    val offsetStart = subStart - genomeStart
-    val offsetEnd = subEnd - genomeStart + 1
+    val (sRaw, eRaw) =
+      if (subStart <= subEnd) (subStart, subEnd)
+      else (subEnd, subStart)
 
-    // check against string bounds
-    if (offsetStart < 0 || offsetEnd > sequence.length)
+    val offsetStart = sRaw - genomeStart
+    val offsetEnd   = eRaw - genomeStart + 1
+
+    if (offsetStart < 0 || offsetEnd > sequence.length || offsetStart >= offsetEnd) {
       ""
-    else {
+    } else {
       val raw = sequence.substring(offsetStart, offsetEnd)
       if (strand == "-") reverseComplement(raw) else raw
     }

@@ -1,5 +1,10 @@
 package anotation
 
+import anotation.AnnotationGencode.{annotateGencodeSetup, faPathSaved}
+
+import scala.concurrent.*
+import scala.concurrent.duration.*
+import ExecutionContext.Implicits.global
 import data.DnaVariant
 import database.annotationruns.ServiceAnnotationRuns
 import database.modules.ServiceModules
@@ -90,16 +95,50 @@ object Annotation {
    * @param referenceGenome The reference genome to use for annotation (e.g., "hg38").
    */
   def annotateVariants(dnaVariants: List[DnaVariant], referenceGenome: String): Unit = {
-    dnaVariants.foreach(variant =>
-      AnnotationGencode.annotateVariantGencode(variant, referenceGenome) //GENCODE
-    )
-    dnaVariants.foreach(
-      variant => Annotation1000Genomes.annotateVariant1000Genomes(variant, referenceGenome)   //1000GENOMES))
-    )
-    
-    dnaVariants.foreach(
-      variant => AnnotationCosmic.annotateVariantCosmic(variant, referenceGenome) // COSMIC
-    )
+    // 1) Prvá pipeline: GENCODE, batchy po 3 vars, 3 paralelné futures v každom kroku
+    val f1: Future[Unit] = Future {
+      for (batch <- dnaVariants.grouped(3)) {
+        val faPath = faPathSaved.getOrElse {
+          faPathSaved = annotateGencodeSetup(referenceGenome)
+          faPathSaved.getOrElse("")
+        }
+        if (faPath.nonEmpty) {
+          val v1 = batch.head // "variant1"
+          val vLast = batch.last // posledný variant v batchi
+
+          vLast.positionEnd = VariantTypeAnnotation.calculateEndPosition(vLast)
+          GFFReaderSW.ensureVariantInWindow(
+            vLast.positionEnd.toInt,
+            v1.position.toInt,
+            vLast.contig,
+            v1.contig
+          )
+          // ------------------------------------------------------
+          val tasks: Seq[Future[Unit]] = batch.map { v =>
+            Future {
+              AnnotationGencode.annotateVariantGencode(v, referenceGenome)
+            }
+          }
+
+          Await.result(Future.sequence(tasks), Duration.Inf)
+        }
+      }
+    }
+
+
+    val f2: Future[Unit] = Future {
+      dnaVariants.foreach(v =>
+        Annotation1000Genomes.annotateVariant1000Genomes(v, referenceGenome)
+      )
+    }
+
+    val f3: Future[Unit] = Future {
+      dnaVariants.foreach(v =>
+        AnnotationCosmic.annotateVariantCosmic(v, referenceGenome)
+      )
+    }
+
+    Await.result(Future.sequence(Seq(f1, f2, f3)), Duration.Inf)
   }
 
   /**

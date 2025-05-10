@@ -9,7 +9,7 @@ import downloader.HttpDownload
  */
 object ChainReferenceDownload {
   // URLs for the resources
-  private val chainUrl = "http://hgdownload.soe.ucsc.edu/hubs/GCA/009/914/755/GCA_009914755.4/liftOver/chm13v2-hg38.over.chain.gz"
+  private val chainUrl = "http://hgdownload.soe.ucsc.edu/hubs/GCA/009/914/755/GCA_009914755.4/liftOver/hg38-chm13v2.over.chain.gz"
   private val fastaUrl = "http://hgdownload.soe.ucsc.edu/hubs/GCA/009/914/755/GCA_009914755.4/GCA_009914755.4.fa.gz"
 
   /**

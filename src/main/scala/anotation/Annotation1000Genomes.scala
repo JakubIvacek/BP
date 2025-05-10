@@ -22,9 +22,12 @@ object Annotation1000Genomes {
 
     if activeConting == "" || activeConting != variant.contig then {
       activeConting = variant.contig
-      VcfReaderSW.loadVcfFile(s"${directory.getOrElse("")}/${getVcfFile(activeConting)}")
+      val file = getVcfFile(activeConting)
+      if file.nonEmpty then {
+        VcfReaderSW.loadVcfFile(s"${directory.getOrElse("")}/${file}")
 
-      println("Loaded file " + s"${directory.getOrElse("")}/${getVcfFile(activeConting)}" )
+        println("Loaded file " + s"${directory.getOrElse("")}/${file}")
+      }else return
     }
     // SLIDE WINDOW VCF
     VcfReaderSW.ensureVariantInWindow(variant.position.toInt)
@@ -72,31 +75,33 @@ object Annotation1000Genomes {
   }
 
   private val Genomes1000Files: Map[String, String] = Map(
-    "chr1" -> "ALL.chr1.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr2" -> "ALL.chr2.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr3" -> "ALL.chr3.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr4" -> "ALL.chr4.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr5" -> "ALL.chr5.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr6" -> "ALL.chr6.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr7" -> "ALL.chr7.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr8" -> "ALL.chr8.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr9" -> "ALL.chr9.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr10" -> "ALL.chr10.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr11" -> "ALL.chr11.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr12" -> "ALL.chr12.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr13" -> "ALL.chr13.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr14" -> "ALL.chr14.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr15" -> "ALL.chr15.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr16" -> "ALL.chr16.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr17" -> "ALL.chr17.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr18" -> "ALL.chr18.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr19" -> "ALL.chr19.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr20" -> "ALL.chr20.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr21" -> "ALL.chr21.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chr22" -> "ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
-    "chrMT" -> "ALL.chrMT.phase3_callmom-v0_4.20130502.genotypes.vcf.gz",
-    "chrX" -> "ALL.chrX.phase3_shapeit2_mvncall_integrated_v1c.20130502.genotypes.vcf.gz",
-    "chrY" -> "ALL.chrY.phase3_integrated_v2b.20130502.genotypes.vcf.gz"
+    "chr1" -> "ALL.chr1.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr2" -> "ALL.chr2.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr3" -> "ALL.chr3.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr4" -> "ALL.chr4.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr5" -> "ALL.chr5.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr6" -> "ALL.chr6.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr7" -> "ALL.chr7.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr8" -> "ALL.chr8.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr9" -> "ALL.chr9.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr10" -> "ALL.chr10.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr11" -> "ALL.chr11.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr12" -> "ALL.chr12.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr13" -> "ALL.chr13.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr14" -> "ALL.chr14.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr15" -> "ALL.chr15.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr16" -> "ALL.chr16.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr17" -> "ALL.chr17.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr18" -> "ALL.chr18.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr19" -> "ALL.chr19.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr20" -> "ALL.chr20.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr21" -> "ALL.chr21.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chr22" -> "ALL.chr22.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chrX" -> "ALL.chrX.shapeit2_integrated_snvindels_v2a_27022019.GRCh38.phased.vcf.gz",
+    "chrMT" -> "",
+    "chrY" -> ""
+    // chrMT and chrY are not available in this GRCh38 release directory
   )
+
 
 }

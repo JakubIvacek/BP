@@ -7,7 +7,7 @@ import hgvs.HGVS
 import utils.Gunzip
 
 object AnnotationGencode {
-  private var faPathSaved: Option[String] = None
+  var faPathSaved: Option[String] = None
 
   def annotateGencodeSetup(referenceGenome: String): Option[String] = {
     // SET UP GENCODE
@@ -15,7 +15,7 @@ object AnnotationGencode {
     val (pathGencode, faPathGencode) = modulePaths match {
       case Some((p, f)) => (p, f)
       case None =>
-        println("Gencode module not found. Please download Gencode first.")
+        //println("Gencode module not found. Please download Gencode first.")
         return None 
     }
     GFFReaderSW.loadGffFile(pathGencode)
@@ -29,15 +29,18 @@ object AnnotationGencode {
    * @param referenceGenome The reference genome to use for annotation.
    */
   def annotateVariantGencode(variant: DnaVariant, referenceGenome: String): Unit = {
-    val faPath = faPathSaved.getOrElse {
-      faPathSaved = annotateGencodeSetup(referenceGenome)
-      faPathSaved.getOrElse("") // Return empty string if faPathSaved is still None
-    }
-    if faPath.isEmpty then return // means gencode is not installed so cant annotate
+    /*
+      val faPath = faPathSaved.getOrElse {
+        faPathSaved = annotateGencodeSetup(referenceGenome)
+        faPathSaved.getOrElse("") // Return empty string if faPathSaved is still None
+      }
+      if faPath.isEmpty then return // means gencode is not installed so cant annotate
+      
+      variant.positionEnd = VariantTypeAnnotation.calculateEndPosition(variant)
+      GFFReaderSW.ensureVariantInWindow(variant.positionEnd.toInt, variant.position.toInt, variant.contig) //load more if needed
+    */
+    if faPathSaved.isEmpty then return
     
-    variant.positionEnd = VariantTypeAnnotation.calculateEndPosition(variant)
-    GFFReaderSW.ensureVariantInWindow(variant.positionEnd.toInt, variant.contig) //load more if needed
-
     var overlappingEntries = {
       val overlaps = GFFReaderSW.loadedEntries.filter(gene =>
         gene.contig == variant.contig &&
@@ -52,7 +55,7 @@ object AnnotationGencode {
       }
     }
     val matchingEntries = overlappingEntries.filter { entry =>
-      val refSequence = FastaReaderSW.getSequence(faPath, entry.contig, entry.start, entry.end, entry.strandPlus)
+      val refSequence = FastaReaderSW.getSequence(faPathSaved.getOrElse(""), entry.contig, entry.start, entry.end, entry.strandPlus)
 
       // Calculate offset of variant position within the entry
       val offset = (variant.position - entry.start).toInt
@@ -98,10 +101,10 @@ object AnnotationGencode {
     if (cdsEntryOpt.isDefined) {
       //If the variant is within a CDS, perform protein-level annotation
       val cdsEntry = cdsEntryOpt.get
-      variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, cdsEntry, faPath)
+      variant.proteinVarType = VariantTypeAnnotation.returnVariantTypeProtein(variant, variant.refAllele, variant.altAllele, cdsEntry, faPathSaved.getOrElse(""))
     }
 
-    HGVS.variantAddHGVS(variant, matchingEntries, faPath)
+    HGVS.variantAddHGVS(variant, matchingEntries, faPathSaved.getOrElse(""))
 
   }
 
