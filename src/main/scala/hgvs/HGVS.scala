@@ -1,4 +1,5 @@
 package hgvs
+import anotation.AnnotationUniprot
 import anotation.VariantTypeAnnotation.getProteinSequence
 import data.VariantType.{DEL, DUP, INDEL, INS, INV, Other, RPT, SNP}
 import data.{DnaVariant, GffEntry, VariantType}
@@ -129,6 +130,9 @@ object HGVS {
       s"$proteinId:p.?" // ? if pos or altAA cant be calculated
     }
     variant.HGVSProtein = hgvs
-    variant.pdbID = anotation.pdbID.getPdbID(hgvs, pos)
+
+    // Add Uniprot
+    AnnotationUniprot.addUniprotAnnotation(variant, hgvs, pos)
+    //variant.pdbID = anotation.AnnotationUniprot.getPdbID(hgvs, pos)
   }
 }

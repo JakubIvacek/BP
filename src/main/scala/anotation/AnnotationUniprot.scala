@@ -1,10 +1,10 @@
 package anotation
-import data.UniProtEntry
-import pdb.{UniProtSequenceLoader, PdbFastaReader}
+import data.{DnaVariant, UniProtEntry}
+import pdb.{PdbFastaReader, UniProtSequenceLoader}
 
 import scala.util.matching.Regex
 
-object pdbID {
+object AnnotationUniprot {
   // Define regex patterns for single position and range
   val singlePosPattern: Regex = """([A-Za-z]+)(\d+)""".r
   val rangePattern: Regex = """([A-Za-z]+)(\d+)_([A-Za-z]+)(\d+)""".r
@@ -33,6 +33,16 @@ object pdbID {
     }
   }
 
+  /**
+   * Adds the UniProt PDB ID annotation to the given DNA variant based on HGVS notation.
+   *
+   * @param variant the DnaVariant to annotate
+   * @param HGVS    the HGVS protein‐level notation string (e.g. “p.Gly12Asp”)
+   * @param HGVSPos the HGVS position notation string (e.g. “Gly12Asp”)
+   */
+  def addUniprotAnnotation(variant: DnaVariant, HGVS: String, HGVSPos: String): Unit = {
+    variant.pdbID = getPdbID(HGVS, HGVSPos)
+  }
   /**
    * Extracts positions from HGVS notation.
    *
@@ -80,9 +90,9 @@ object pdbID {
 
     hgvsPos match {
       //  Single Position Check (e.g., p.Arg100His)
-      case pdbID.singlePosPattern(refAA3, posStr) =>
+      case AnnotationUniprot.singlePosPattern(refAA3, posStr) =>
         val pos = posStr.toInt
-        val refAA1 = pdbID.threeLetterToOneLetter(refAA3)
+        val refAA1 = AnnotationUniprot.threeLetterToOneLetter(refAA3)
 
         if (pos > seqLen) {
           //println(s"$hgvsPos ERROR: Position $pos exceeds sequence length ($seqLen).")
@@ -93,11 +103,11 @@ object pdbID {
         sequence.charAt(pos - 1).toString == refAA1
 
       // Range Check (e.g., p.Gly35_Glu45)
-      case pdbID.rangePattern(refAA3, startPosStr, refAA4, endPosStr) =>
+      case AnnotationUniprot.rangePattern(refAA3, startPosStr, refAA4, endPosStr) =>
         val startPos = startPosStr.toInt
         val endPos = endPosStr.toInt
-        val refAA1 = pdbID.threeLetterToOneLetter(refAA3)
-        val refAA2 = pdbID.threeLetterToOneLetter(refAA4)
+        val refAA1 = AnnotationUniprot.threeLetterToOneLetter(refAA3)
+        val refAA2 = AnnotationUniprot.threeLetterToOneLetter(refAA4)
 
         if (startPos > seqLen || endPos > seqLen) {
           //println(s"$hgvsPos ERROR: Start ($startPos) or End ($endPos) exceeds sequence length ($seqLen).")
@@ -111,9 +121,9 @@ object pdbID {
           sequence.charAt(endPos - 1).toString == refAA2
 
       // Extension Check (e.g., p.Met1ext or p.Ter56extTer)
-      case pdbID.extPattern(refAA3, posStr) =>
+      case AnnotationUniprot.extPattern(refAA3, posStr) =>
         val pos = posStr.toInt
-        val refAA1 = pdbID.threeLetterToOneLetter(refAA3)
+        val refAA1 = AnnotationUniprot.threeLetterToOneLetter(refAA3)
 
         if (pos > seqLen) {
           //println(s"$hgvsPos INFO: Position $pos extends beyond sequence length ($seqLen), considered valid extension.")

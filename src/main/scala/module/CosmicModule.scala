@@ -1,11 +1,11 @@
 package module
 
-import cosmic.{GFFtoFastaCosmic, TSVtoGFFGeneCensus, TSVtoGFFNonCoding, TSVtoGFFResistance, FAtoGFFCosmic}
+import cosmic.{FAtoGFFCosmic, GFFtoFastaCosmic, TSVtoGFFGeneCensus, TSVtoGFFNonCoding, TSVtoGFFResistance}
 import database.modules.ServiceModules
 import downloader.CosmicDownload
 import files.FastaLoadCOSMIC
 import logfiles.ConfigCredentials
-import utils.{LiftOverTool, RepositoryManager, TarExtractor}
+import utils.{Gunzip, LiftOverTool, RepositoryManager, TarExtractor}
 
 import scala.util.control.Breaks.*
 
@@ -103,6 +103,7 @@ object CosmicModule extends ModuleManager {
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_ResistanceMutations_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_ResistanceMutations_${releaseNumber}_Chm13.gff")
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_Genes_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_Genes_${releaseNumber}_Chm13.gff")
       GFFtoFastaCosmic.convertToFasta(s"$filePath/Cosmic_Genes_${releaseNumber}_GRCh38.gff", s"$outputPath/Cosmic_Genes_${releaseNumber}_Chm13.fasta")
+      Gunzip.zipFile(s"$outputPath/Cosmic_Genes_${releaseNumber}_Chm13.fasta")
       ServiceModules.addModuleToDatabase("cosmic", releaseNumber.substring(1), outputPath, downloadPath, true, "t2t")
 
     }

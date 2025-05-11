@@ -1,6 +1,12 @@
 package utils
 
 import java.io.File
+import scala.sys.process._
+import scala.jdk.CollectionConverters._
+import htsjdk.tribble.TribbleException
+import htsjdk.variant.variantcontext.VariantContext
+import htsjdk.variant.vcf.{VCFFileReader, VCFHeader}
+import htsjdk.variant.variantcontext.writer.{VariantContextWriterBuilder, Options}
 import scala.language.postfixOps
 import scala.sys.process.*
 
@@ -30,6 +36,9 @@ object VcfCleaner {
       throw new RuntimeException(s"VCF cleaning failed (exit code $exitCode)")
     }
   }
-  
+
+
+
+
 }
 

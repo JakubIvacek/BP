@@ -20,11 +20,6 @@ object FastaReaderSW {
   // Window size for loading data in chunks
   val windowSize = 2000000  // Adjust based on memory capacity
   var faPathLoaded = ""
-  /**
-   * Loads the FASTA file for the specified genome build and initializes the iterator.
-   *
-   * @param fastaPath Path to .fa file
-   */
 
   /**
    * Loads the FASTA file for the specified genome build and initializes the iterator.
@@ -53,6 +48,7 @@ object FastaReaderSW {
     source = Some(Source.fromFile(faPathLoaded))
     iterator = source.get.getLines()
   }
+
   /**
    * Loads the next batch of the FASTA sequence into memory.
    */
@@ -120,20 +116,18 @@ object FastaReaderSW {
    * Retrieves a specific sequence from the loaded reference genome.
    */
   def getSequence(faPath: String, contig: String, start: Int, end: Int, strandPlus: Boolean): String = {
-    // Ensure the genome build is loaded
-    loadFastaFile(faPath)
-
+    
     // Retrieve cached sequence if available
     val (cachedStart, sequence) = fastaCache.getOrElse(contig, (0, ""))
 
     // If requested region isn't in cache, load more data
     if (sequence.isEmpty || end > cachedStart + sequence.length) {
-      loadNextBatch(contig, start, end)
+      //loadNextBatch(contig, start, end)
     }
     // Get the updated cached sequence
     val (newStart, newSequence) = fastaCache.getOrElse(contig, {
       // Try force-loading again if not found yet
-      loadNextBatch(contig, start, end)
+      //loadNextBatch(contig, start, end)
       fastaCache.getOrElse(contig, (0, ""))
     })
 

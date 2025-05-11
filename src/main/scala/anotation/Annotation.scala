@@ -9,8 +9,9 @@ import ExecutionContext.Implicits.global
 import data.DnaVariant
 import database.annotationruns.ServiceAnnotationRuns
 import database.modules.ServiceModules
-import files.{FastaLoadCOSMIC, FileReaderVcf, GFFReader, GFFReaderSW, VcfReaderSW, WriteToMaf}
-import logfiles.PathSaver
+import files.{FastaLoadCOSMIC, FastaReaderSW, FileReaderVcf, GFFReader, GFFReaderSW, VcfReaderSW, WriteToMaf}
+import logfiles.{PathSaver, RefChainDirManager}
+import utils.LiftOverTool.T2TRefName
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
@@ -48,7 +49,8 @@ object Annotation {
       return
     }
     // overlift to T2T if hg38
-    val (newPath, newGenome) = (inputFile, referenceGenome)//if referenceGenome == "hg38" then (overliftToT2T(inputFile),"t2t") else (inputFile,"t2t")
+    val (newPath, newGenome) = (inputFile, referenceGenome) // NOT AUTO OVERLIFT TO T2T
+    //val (newPath, newGenome) = if referenceGenome == "hg38" then (overliftToT2T(inputFile),"t2t") else (inputFile,"t2t") // AUTO OVERLIFT TO T2T
     val fileOutputPath = s"$outputPath/${inputFile.split("/").last.dropRight(4)}.maf"
     val logFilePath = s"$outputPath/annotation.log"
     val outFile = new File(fileOutputPath)
@@ -78,7 +80,12 @@ object Annotation {
         println(s"Processing batch $batchCount... ${dnaVariants.toList.head.contig}")
         timestamp = java.time.LocalDateTime.now()
         logWriter.println(s"Processing batch $batchCount with ${dnaVariants.size} variants [$timestamp]")
-        annotateVariants(dnaVariants.toList, newGenome)
+        val variants = dnaVariants.toList
+        variants.foreach{
+          variant => variant.positionEnd = VariantTypeAnnotation.calculateEndPosition(variant)
+        }
+        annotateVariantsThreads(variants, newGenome)
+        //annotateVariants(variants, newGenome)
         WriteToMaf.writeMafFile(dnaVariants, fileOutputPath, append = batchCount > 1)
         batchCount += 1
       }
@@ -93,13 +100,13 @@ object Annotation {
     logWriter.close()
   }
   /**
-   * Annotate a list of DNA variants
+   * Annotate a list of DNA variants with threads
    *
    * @param dnaVariants     A list of DNA variants to annotate.
    * @param referenceGenome The reference genome to use for annotation (e.g., "hg38").
    */
-  def annotateVariants(dnaVariants: List[DnaVariant], referenceGenome: String): Unit = {
-    // 1) Prvá pipeline: GENCODE, batchy po 3 vars, 3 paralelné futures v každom kroku
+  def annotateVariantsThreads(dnaVariants: List[DnaVariant], referenceGenome: String): Unit = {
+    // 1) Prvá: GENCODE, batchy po 3 vars, 3 paralelné futures v každom kroku
     val f1: Future[Unit] = Future {
       for (batch <- dnaVariants.grouped(3)) {
         val faPath = faPathSaved.getOrElse {
@@ -107,15 +114,20 @@ object Annotation {
           faPathSaved.getOrElse("")
         }
         if (faPath.nonEmpty) {
+          // Ensure the genome build is loaded
+          FastaReaderSW.loadFastaFile(faPath)
           val v1 = batch.head // "variant1"
           val vLast = batch.last // posledný variant v batchi
 
-          vLast.positionEnd = VariantTypeAnnotation.calculateEndPosition(vLast)
+          //vLast.positionEnd = VariantTypeAnnotation.calculateEndPosition(vLast)
           GFFReaderSW.ensureVariantInWindow(
             vLast.positionEnd.toInt,
             v1.position.toInt,
             vLast.contig
           )
+          FastaReaderSW.loadNextBatch(vLast.contig, v1.position.toInt, vLast.positionEnd.toInt)
+
+
           // ------------------------------------------------------
           val tasks: Seq[Future[Unit]] = batch.map { v =>
             Future {
@@ -147,6 +159,7 @@ object Annotation {
         val fPath = path.getOrElse("")
         val fReference = reference.getOrElse("")
         val fVersion = version.getOrElse("")
+        //val fFormat = if referenceGenome == "hg38" then "fasta.gz" else "fasta"
         FastaLoadCOSMIC.loadFastaFromGzip(s"$fPath/Cosmic_Genes_v${fVersion}_$fReference.fasta.gz", referenceGenome)
         AnnotationCosmic.geneCensusEntries = Some(GFFReader.loadGffFileReturnList(s"$fPath/Cosmic_CancerGeneCensus_v${fVersion}_$fReference.gff"))
         AnnotationCosmic.resistanceMutationsEntries = Some(GFFReader.loadGffFileReturnList(s"$fPath/Cosmic_ResistanceMutations_v${fVersion}_$fReference.gff"))
@@ -175,6 +188,23 @@ object Annotation {
     Await.result(Future.sequence(Seq(f1, f2, f3)), Duration.Inf)
   }
 
+  /**
+   * Annotate a list of DNA variants without threads
+   *
+   * @param dnaVariants     A list of DNA variants to annotate.
+   * @param referenceGenome The reference genome to use for annotation (e.g., "hg38").
+   */
+  def annotateVariants(dnaVariants: List[DnaVariant], referenceGenome: String): Unit = {
+    dnaVariants.foreach {
+      variant => AnnotationGencode.annotateVariantGencode(variant, referenceGenome)
+    }
+    dnaVariants.foreach {
+      variant => AnnotationCosmic.annotateVariantCosmic(variant, referenceGenome)
+    }
+    dnaVariants.foreach {
+      variant => Annotation1000Genomes.annotateVariant1000Genomes(variant, referenceGenome)
+    }
+  }
   /**
    * Adds used scientific databases relevant information used to annotate into .log file
    *
@@ -209,8 +239,9 @@ object Annotation {
     val outName = filePath.split("/").last
     LiftOverTool.liftOverVcf(filePath, outPath, outName)
     val wholePath = s"$outPath/$outName"
-    val resultPath = s"$outPath/T2T_$outName"
+    val resultPath = s"$outPath/T2Tnonempty_$outName"
     VcfCleaner.filterEmptyAlleles(wholePath, resultPath)
-    resultPath
+    //VcfCleaner.dropMultiAllelic(resultPath, s"${outPath}T2T_$outName")
+    s"${outPath}T2T_$outName"
   }
 }

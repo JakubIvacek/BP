@@ -9,23 +9,12 @@ object FileReaderVcf {
   private var vcfReader: Option[VCFFileReader] = None
   private var iterator: Option[java.util.Iterator[htsjdk.variant.variantcontext.VariantContext]] = None
 
-  /**
-   * Initializes the VCF reader and iterator.
-   *
-   * @param inputFile Path to the VCF file.
-   */
   def open(inputFile: String): Unit = {
-    close() // Ensure any existing reader is closed before opening a new one
+    close()
     vcfReader = Some(new VCFFileReader(new File(inputFile), false))
-    iterator = Some(vcfReader.get.iterator())
+    iterator  = Some(vcfReader.get.iterator())
   }
 
-  /**
-   * Reads the next batch of DNA variants from the VCF file.
-   *
-   * @param batchSize Number of variants to read per batch.
-   * @return A ListBuffer of DnaVariants.
-   */
   def readBatch(batchSize: Int): ListBuffer[DnaVariant] = {
     val variantList = ListBuffer[DnaVariant]()
     var count = 0
@@ -33,10 +22,19 @@ object FileReaderVcf {
     iterator match {
       case Some(it) =>
         while (it.hasNext && count < batchSize) {
-          val variant = it.next()
-          val dnaVariants = DnaVariant.createDnaVariants(variant)
-          variantList ++= dnaVariants
-          count += 1
+          val vc = it.next()
+          try {
+            val dnaVars = DnaVariant.createDnaVariants(vc)
+            variantList ++= dnaVars
+            count       += dnaVars.size
+          } catch {
+            case e: htsjdk.tribble.TribbleException.InternalCodecException =>
+              // log and skip
+              System.err.println(
+                //s"Skipping ${vc.getContig}:${vc.getStart} – ${e.getMessage}"
+              )
+            // you could catch Throwable if you want to be extra-robust
+          }
         }
       case None =>
         throw new IllegalStateException("VCF reader not initialized. Call open() first.")
@@ -45,14 +43,12 @@ object FileReaderVcf {
     variantList
   }
 
-  /**
-   * Closes the VCF reader.
-   */
   def close(): Unit = {
     vcfReader.foreach(_.close())
     vcfReader = None
-    iterator = None
+    iterator  = None
   }
 }
+
 
 
