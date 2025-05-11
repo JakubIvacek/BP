@@ -90,7 +90,7 @@ object GFFReaderSW {
    *
    * @param variantEnd The end position of the variant.
    */
-  def ensureVariantInWindow(variantEnd: Int, variantStart: Int, variantContig: String, v1Contig: String): Unit = {
+  def ensureVariantInWindow(variantEnd: Int, variantStart: Int, variantContig: String): Unit = {
     while (iterator.hasNext && (loadedEntries.isEmpty || loadedEntries.last.contig < variantContig || (loadedEntries.last.contig == variantContig && loadedEntries.last.end < variantEnd))
     ) {
       loadNextBatch(batchSize)
@@ -101,11 +101,11 @@ object GFFReaderSW {
         return
       }
 
-      cleanUpWindow(variantStart, variantContig, v1Contig)
+      cleanUpWindow(variantStart, variantContig)
       //println(s"$variantContig $variantEnd new load length - ${loadedEntries.length} start - ${loadedEntries.head.contig} - ${loadedEntries.head.start} , end - ${loadedEntries.last.contig} ${loadedEntries.last.end}")
     }
 
-    cleanUpWindow(variantStart, variantContig, v1Contig)
+    cleanUpWindow(variantStart, variantContig)
   }
 
 
@@ -115,8 +115,8 @@ object GFFReaderSW {
    *
    * @param variantStart The start position of the variant.
    */
-  private def cleanUpWindow(variantStart: Int, variantContig: String, v1Contig: String): Unit = {
-    while (loadedEntries.size > 1 && (loadedEntries(1).end < variantStart || (loadedEntries(1).contig != v1Contig))) {
+  private def cleanUpWindow(variantStart: Int, variantContig: String): Unit = {
+    while (loadedEntries.size > 1 && (loadedEntries(1).end < variantStart || (loadedEntries(1).contig != variantContig))) {
       loadedEntries.dequeue()
       loadedCount -= 1
     }

@@ -49,7 +49,7 @@ object ServiceModules {
     } finally {
       //val allModules = RepositoryModules.getAllModules(connection)
       //allModules.foreach(_.print())
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -78,7 +78,7 @@ object ServiceModules {
         println(s"An error occurred while retrieving the module: ${e.getMessage}")
         None
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -104,7 +104,7 @@ object ServiceModules {
         println(s"An error occurred while retrieving the module: ${e.getMessage}")
         None
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
   /**
@@ -137,7 +137,7 @@ object ServiceModules {
     } finally {
       //val allModules = RepositoryModules.getAllModules(connection)
       //allModules.foreach(_.print())
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -161,7 +161,7 @@ object ServiceModules {
       case e: Exception =>
         println(s"An error occurred while deleting the module: ${e.getMessage}")
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
   /**
@@ -178,7 +178,7 @@ object ServiceModules {
         List()
     } finally {
 
-        DatabaseConnection.closeConnection()
+        DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -196,7 +196,7 @@ object ServiceModules {
         List()
     } finally {
 
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
   
@@ -227,7 +227,7 @@ object ServiceModules {
         println(s"An error occurred while retrieving the newest gencode module: ${e.getMessage}")
         None
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
   /**
@@ -249,7 +249,7 @@ object ServiceModules {
         println(s"An error occurred while retrieving the newest module: ${e.getMessage}")
         "0"
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -265,7 +265,7 @@ object ServiceModules {
         println(s"An error occurred while retrieving the newest unitprot module: ${e.getMessage}")
         None
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -281,7 +281,7 @@ object ServiceModules {
         println(s"An error occurred while retrieving the newest unitprot module: ${e.getMessage}")
         None
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -297,7 +297,7 @@ object ServiceModules {
         println(s"An error occurred while retrieving the newest $moduleName $refGenome module path: ${e.getMessage}")
         None
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -313,7 +313,7 @@ object ServiceModules {
         println(s"An error occurred while retrieving the newest $moduleName $refGenome module path: ${e.getMessage}")
         None
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -321,17 +321,17 @@ object ServiceModules {
    * Create tables to create table for Modules
    */
   def createTables(): Unit = {
-    DatabaseConnection.getConnection
-    TableModules.createTableModules(DatabaseConnection.connection)
-    DatabaseConnection.closeConnection()
+    val connection = DatabaseConnection.getConnection
+    TableModules.createTableModules(connection)
+    DatabaseConnection.closeConnection(connection)
   }
 
   /**
    * Drop tables to create drop for Modules
    */
   def dropTables(): Unit = {
-    DatabaseConnection.getConnection
-    TableModules.dropTableModules(DatabaseConnection.connection)
-    DatabaseConnection.closeConnection()
+    val connection = DatabaseConnection.getConnection
+    TableModules.dropTableModules(connection)
+    DatabaseConnection.closeConnection(connection)
   }
 }

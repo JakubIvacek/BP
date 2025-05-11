@@ -49,7 +49,7 @@ object ServiceAnnotationRuns {
         println(s"Error adding annotation run: ${e.getMessage}")
         e.printStackTrace()
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 
@@ -65,7 +65,7 @@ object ServiceAnnotationRuns {
         println(s"Error retrieving annotation runs: ${e.getMessage}")
         List.empty
     } finally {
-      DatabaseConnection.closeConnection()
+      DatabaseConnection.closeConnection(connection)
     }
   }
 }

@@ -30,7 +30,7 @@ object Annotation1000Genomes {
       }else return
     }
     // SLIDE WINDOW VCF
-    VcfReaderSW.ensureVariantInWindow(variant.position.toInt)
+    VcfReaderSW.ensureVariantInWindow(variant.positionEnd.toInt)
     // FIND MATCHING ENTRIES
     var matchingEntries = {
       val overlaps = VcfReaderSW.loadedEntries.filter(entry =>

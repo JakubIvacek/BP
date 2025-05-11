@@ -7,9 +7,6 @@ import files.{FastaLoadCOSMIC, GFFReader}
 object AnnotationCosmic {
   var geneCensusEntries: Option[List[GffEntry]] = None
   var resistanceMutationsEntries: Option[List[GffEntry]] = None
-  var path: Option[String] = None
-  var reference: Option[String] = None
-  var version: Option[String] = None
   /**
    * Annotate a single DNA variant using the COSMIC annotation information
    *
@@ -17,19 +14,6 @@ object AnnotationCosmic {
    * @param referenceGenome The reference genome to use for annotation.
    */
   def annotateVariantCosmic(variant: DnaVariant, referenceGenome: String): Unit = {
-    // Reload annotation data if none loaded or new reference Genome
-    if FastaLoadCOSMIC.getLoadedList.isEmpty || FastaLoadCOSMIC.loadedGenome != referenceGenome then {
-
-      path = ServiceModules.getNewestModulePath("cosmic", referenceGenome)
-      reference = if referenceGenome == "hg38" then Some("GRCh38") else Some("Chm13")
-      version = Some(ServiceModules.getNewestModuleVersion("cosmic"))
-      val fPath = path.getOrElse("")
-      val fReference = reference.getOrElse("")
-      val fVersion = version.getOrElse("")
-      FastaLoadCOSMIC.loadFastaFromGzip(s"$fPath/Cosmic_Genes_v${fVersion}_$fReference.fasta.gz", referenceGenome)
-      geneCensusEntries = Some(GFFReader.loadGffFileReturnList(s"$fPath/Cosmic_CancerGeneCensus_v${fVersion}_$fReference.gff"))
-      resistanceMutationsEntries = Some(GFFReader.loadGffFileReturnList(s"$fPath/Cosmic_ResistanceMutations_v${fVersion}_$fReference.gff"))
-    }
     //GET MATCHING COSMIC FA ENTRIES
     val matchingEntriesFa = FastaLoadCOSMIC.getLoadedList.filter(entry =>
       entry.chromosome == variant.contig.stripPrefix("chr") &&

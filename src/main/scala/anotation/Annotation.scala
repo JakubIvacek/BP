@@ -1,5 +1,6 @@
 package anotation
 
+import anotation.Annotation1000Genomes.getVcfFile
 import anotation.AnnotationGencode.{annotateGencodeSetup, faPathSaved}
 
 import scala.concurrent.*
@@ -8,9 +9,12 @@ import ExecutionContext.Implicits.global
 import data.DnaVariant
 import database.annotationruns.ServiceAnnotationRuns
 import database.modules.ServiceModules
-import files.{FileReaderVcf, GFFReaderSW, WriteToMaf}
+import files.{FastaLoadCOSMIC, FileReaderVcf, GFFReader, GFFReaderSW, VcfReaderSW, WriteToMaf}
 import logfiles.PathSaver
 
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success}
 import java.io.{File, FileNotFoundException}
 import utils.{LiftOverTool, VcfCleaner}
 
@@ -20,13 +24,13 @@ import utils.{LiftOverTool, VcfCleaner}
  * data sources and outputting the results in the MAF format.
  */
 object Annotation {
-
+  var currentContig1000Genomes: String = ""
 
   /**
    * Main method to process the input VCF file, annotate the variants, and write the result to an output MAF file.
    * Also creates log file where annotation process + entries and relevant information will be added
    * @param inputFile       The path to the input VCF file containing DNA variants.
-   * @param outputPath      The path to the output MAF file where the annotated variants will be written.
+   * @param outputPath      The path to the output dir where MAF file will be and annotation.log
    * @param referenceGenome The reference genome used for annotation (e.g., "hg38").
    * @param batchSize       Size of vcf batch to annotate at once
    */
@@ -110,8 +114,7 @@ object Annotation {
           GFFReaderSW.ensureVariantInWindow(
             vLast.positionEnd.toInt,
             v1.position.toInt,
-            vLast.contig,
-            v1.contig
+            vLast.contig
           )
           // ------------------------------------------------------
           val tasks: Seq[Future[Unit]] = batch.map { v =>
@@ -127,17 +130,48 @@ object Annotation {
 
 
     val f2: Future[Unit] = Future {
-      dnaVariants.foreach(v =>
-        Annotation1000Genomes.annotateVariant1000Genomes(v, referenceGenome)
-      )
+      dnaVariants.foreach{
+        variant => Annotation1000Genomes.annotateVariant1000Genomes(variant, referenceGenome)
+      }
+      
     }
+
 
     val f3: Future[Unit] = Future {
-      dnaVariants.foreach(v =>
-        AnnotationCosmic.annotateVariantCosmic(v, referenceGenome)
-      )
-    }
+      // Reload annotation data if none loaded or new reference Genome
+      if FastaLoadCOSMIC.getLoadedList.isEmpty || FastaLoadCOSMIC.loadedGenome != referenceGenome then {
 
+        val path = ServiceModules.getNewestModulePath("cosmic", referenceGenome)
+        val reference = if referenceGenome == "hg38" then Some("GRCh38") else Some("Chm13")
+        val version = Some(ServiceModules.getNewestModuleVersion("cosmic"))
+        val fPath = path.getOrElse("")
+        val fReference = reference.getOrElse("")
+        val fVersion = version.getOrElse("")
+        FastaLoadCOSMIC.loadFastaFromGzip(s"$fPath/Cosmic_Genes_v${fVersion}_$fReference.fasta.gz", referenceGenome)
+        AnnotationCosmic.geneCensusEntries = Some(GFFReader.loadGffFileReturnList(s"$fPath/Cosmic_CancerGeneCensus_v${fVersion}_$fReference.gff"))
+        AnnotationCosmic.resistanceMutationsEntries = Some(GFFReader.loadGffFileReturnList(s"$fPath/Cosmic_ResistanceMutations_v${fVersion}_$fReference.gff"))
+      }
+      for (batch <- dnaVariants.grouped(3)) {
+        val tasks = batch.map { v =>
+          Future {
+            AnnotationCosmic.annotateVariantCosmic(v, referenceGenome)
+          }
+        }
+        Await.result(Future.sequence(tasks), Duration.Inf)
+      }
+    }
+    f1.onComplete {
+      case Success(_) => println("🟢 f1 (GENCODE) dokončené")
+      case Failure(error) => println(s"❌ f1 zlyhalo: ${error.getMessage}")
+    }
+    f2.onComplete {
+      case Success(_) => println("🟢 f2 (1000Genomes) dokončené")
+      case Failure(error) => println(s"❌ f2 zlyhalo: ${error.getMessage}")
+    }
+    f3.onComplete {
+      case Success(_) => println("🟢 f3 (Cosmic) dokončené")
+      case Failure(error) => println(s"❌ f3 zlyhalo: ${error.getMessage}")
+    }
     Await.result(Future.sequence(Seq(f1, f2, f3)), Duration.Inf)
   }
 

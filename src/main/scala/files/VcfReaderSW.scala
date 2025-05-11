@@ -12,8 +12,8 @@ object VcfReaderSW {
   var loadedEntries: mutable.Queue[VCFEntry] = mutable.Queue()
   private var source: Option[Source] = None
   private var iterator: Iterator[String] = Iterator.empty
-  private val batchSize = 50000
-  private val initialLoadSize = 100000
+  private val batchSize = 20000
+  private val initialLoadSize = 70000
   private var loadedCount = 0
 
   /**
