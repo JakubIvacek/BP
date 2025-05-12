@@ -160,7 +160,7 @@ object Main {
       CosmicModule.printAllClassModules()
     }
     else{
-      println("Wrong module Printing all. (Gencode, ...)")
+      println("Wrong module Printing all. (gencode, 1000genomes, uniprot, cosmic)")
       GenCodeModule.printAllModules()
     }
   }
@@ -178,7 +178,7 @@ object Main {
       CosmicModule.downloadModuleLatest(path)
     }
     else{
-      println("Wrong module name Try again (Gencode, ...)")
+      println("Wrong module name Try again (gencode, 1000genomes, uniprot, cosmic)")
     }
   }
 
@@ -196,7 +196,7 @@ object Main {
       CosmicModule.downloadModule(path, version)
     }
     else {
-      println("Wrong module name Try again (Gencode, ...)")
+      println("Wrong module name Try again (gencode, 1000genomes, uniprot, cosmic)")
     }
   }
 
