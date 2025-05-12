@@ -154,6 +154,7 @@ object Annotation {
       if FastaLoadCOSMIC.getLoadedList.isEmpty || FastaLoadCOSMIC.loadedGenome != referenceGenome then {
 
         val path = ServiceModules.getNewestModulePath("cosmic", referenceGenome)
+        if path.isEmpty then return 
         val reference = if referenceGenome == "hg38" then Some("GRCh38") else Some("Chm13")
         val version = Some(ServiceModules.getNewestModuleVersion("cosmic"))
         val fPath = path.getOrElse("")
