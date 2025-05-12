@@ -66,7 +66,7 @@ object GFFtoFastaCosmic {
     val writer = new BufferedWriter(new FileWriter(fastaFilePath))
     val dirRef = RefChainDirManager.getReferenceFileDir.getOrElse("")
     for (entry <- gffEntries) {
-      var sequence = FastaReaderSW.getSequence(s"$dirRef/chm13.fa", entry.contig, entry.start, entry.end, entry.strandPlus)
+      var sequence = FastaReaderSW.getSequence(s"$dirRef/chm13.fa", s"chr${entry.contig}", entry.start, entry.end, entry.strandPlus)
       sequence = sequence.toUpperCase
 
       val header = s">${entry.attributes.getOrElse("Gene_ID", "N/A")} ${entry.attributes.getOrElse("Transcript_ID", "N/A")} ${entry.contig}:${entry.start}-${entry.end}(${if (entry.strandPlus) "+" else "-"})"

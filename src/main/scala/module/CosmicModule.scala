@@ -60,7 +60,7 @@ object CosmicModule extends ModuleManager {
             ServiceModules.addModuleToDatabase("cosmic", version.substring(1), finalLocalPath, s"$filePath", false, "hg38")
             println("Converting to .tsv , .fasta to .gff")
             TSVtoGFFGeneCensus.convertTSVToGFF(s"$finalLocalPath/Cosmic_CancerGeneCensus_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_CancerGeneCensus_${version}_GRCh38.gff")
-            TSVtoGFFNonCoding.convertTSVToGFF(s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.gff")
+            //TSVtoGFFNonCoding.convertTSVToGFF(s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_NonCodingVariants_${version}_GRCh38.gff")
             TSVtoGFFResistance.convertTSVToGFF(s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.tsv.gz", s"$finalLocalPath/Cosmic_ResistanceMutations_${version}_GRCh38.gff")
             FastaLoadCOSMIC.loadFastaFromGzip(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.fasta.gz", "hg38")
             FAtoGFFCosmic.writeGFF(s"$finalLocalPath/Cosmic_Genes_${version}_GRCh38.gff", FastaLoadCOSMIC.getLoadedList)
@@ -88,7 +88,7 @@ object CosmicModule extends ModuleManager {
     }
 
   /**
-   * Overlifts Gencode annotation files from hg38 to the T2T reference version.
+   * Overlifts Cosmic annotation files from hg38 to the T2T reference version.
    *
    * @param outputPath    The local directory where the files should be saved.
    * @param releaseNumber The Gencode release number.
@@ -99,7 +99,7 @@ object CosmicModule extends ModuleManager {
     def overLiftToT2T(outputPath: String, releaseNumber: String, downloadPath: String, filePath: String,
                                fileNames: List[String]): Unit = {
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_CancerGeneCensus_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_CancerGeneCensus_${releaseNumber}_Chm13.gff")
-      LiftOverTool.liftOverGFF(s"$filePath/Cosmic_NonCodingVariants_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_NonCodingVariants_${releaseNumber}_Chm13.gff")
+      //LiftOverTool.liftOverGFF(s"$filePath/Cosmic_NonCodingVariants_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_NonCodingVariants_${releaseNumber}_Chm13.gff")
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_ResistanceMutations_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_ResistanceMutations_${releaseNumber}_Chm13.gff")
       LiftOverTool.liftOverGFF(s"$filePath/Cosmic_Genes_${releaseNumber}_GRCh38.gff", outputPath, s"Cosmic_Genes_${releaseNumber}_Chm13.gff")
       GFFtoFastaCosmic.convertToFasta(s"$filePath/Cosmic_Genes_${releaseNumber}_GRCh38.gff", s"$outputPath/Cosmic_Genes_${releaseNumber}_Chm13.fasta")

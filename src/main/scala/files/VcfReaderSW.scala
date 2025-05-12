@@ -1,6 +1,7 @@
 package files
 
 import data.VCFEntry
+import htsjdk.tribble.TribbleException
 
 import scala.io.Source
 import scala.collection.mutable
@@ -43,11 +44,14 @@ object VcfReaderSW {
     var loaded = 0
     while (iterator.hasNext && loaded < count) {
       val line = iterator.next()
-      val fields = line.split("\t", -1)
+      try {
+        val fields = line.split("\t", -1)
+        if (fields.length < 10)
+          throw new IllegalArgumentException(s"Expected ≥10 fields but got ${fields.length}")
 
-      if (fields.length >= 10) { // Ensure it's a valid VCF line
+        // parse fields, letting malformed numbers throw
         val chrom = fields(0)
-        val pos = Try(fields(1).toInt).getOrElse(0)
+        val pos = fields(1).toInt
         val id = fields(2)
         val ref = fields(3)
         val alt = fields(4)
@@ -55,11 +59,19 @@ object VcfReaderSW {
         val filter = fields(6)
         val info = fields(7)
 
-        // Create a VCFEntry object
+        // create and enqueue
         val vcfEntry = VCFEntry(chrom, pos, id, ref, alt, qual, filter, info)
         loadedEntries.enqueue(vcfEntry)
         loaded += 1
         loadedCount += 1
+
+      } catch {
+        case e: NumberFormatException =>
+          System.err.println(s"Skipping line due to invalid integer: ${e.getMessage}")
+        case e: IllegalArgumentException =>
+          System.err.println(s"Skipping line due to bad format: ${e.getMessage}")
+        case e: TribbleException.InternalCodecException =>
+          System.err.println(s"Skipping entry due to codec error: ${e.getMessage}")
       }
     }
     //println("Loaded new " + loaded)

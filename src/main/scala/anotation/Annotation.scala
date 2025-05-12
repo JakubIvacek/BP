@@ -49,8 +49,8 @@ object Annotation {
       return
     }
     // overlift to T2T if hg38
-    val (newPath, newGenome) = (inputFile, referenceGenome) // NOT AUTO OVERLIFT TO T2T
-    //val (newPath, newGenome) = if referenceGenome == "hg38" then (overliftToT2T(inputFile),"t2t") else (inputFile,"t2t") // AUTO OVERLIFT TO T2T
+    //val (newPath, newGenome) = (inputFile, referenceGenome) // NOT AUTO OVERLIFT TO T2T
+    val (newPath, newGenome) = if referenceGenome == "hg38" then (overliftToT2T(inputFile),"t2t") else (inputFile,"t2t") // AUTO OVERLIFT TO T2T
     val fileOutputPath = s"$outputPath/${inputFile.split("/").last.dropRight(4)}.maf"
     val logFilePath = s"$outputPath/annotation.log"
     val outFile = new File(fileOutputPath)
@@ -106,7 +106,7 @@ object Annotation {
    * @param referenceGenome The reference genome to use for annotation (e.g., "hg38").
    */
   def annotateVariantsThreads(dnaVariants: List[DnaVariant], referenceGenome: String): Unit = {
-    // 1) Prvá: GENCODE, batchy po 3 vars, 3 paralelné futures v každom kroku
+    // 1) GENCODE, batchy po 3, 3 paralelné futures
     val f1: Future[Unit] = Future {
       for (batch <- dnaVariants.grouped(3)) {
         val faPath = faPathSaved.getOrElse {
@@ -173,7 +173,7 @@ object Annotation {
         Await.result(Future.sequence(tasks), Duration.Inf)
       }
     }
-    f1.onComplete {
+    /*f1.onComplete {
       case Success(_) => println("🟢 f1 (GENCODE) dokončené")
       case Failure(error) => println(s"❌ f1 zlyhalo: ${error.getMessage}")
     }
@@ -184,26 +184,8 @@ object Annotation {
     f3.onComplete {
       case Success(_) => println("🟢 f3 (Cosmic) dokončené")
       case Failure(error) => println(s"❌ f3 zlyhalo: ${error.getMessage}")
-    }
+    }*/
     Await.result(Future.sequence(Seq(f1, f2, f3)), Duration.Inf)
-  }
-
-  /**
-   * Annotate a list of DNA variants without threads
-   *
-   * @param dnaVariants     A list of DNA variants to annotate.
-   * @param referenceGenome The reference genome to use for annotation (e.g., "hg38").
-   */
-  def annotateVariants(dnaVariants: List[DnaVariant], referenceGenome: String): Unit = {
-    dnaVariants.foreach {
-      variant => AnnotationGencode.annotateVariantGencode(variant, referenceGenome)
-    }
-    dnaVariants.foreach {
-      variant => AnnotationCosmic.annotateVariantCosmic(variant, referenceGenome)
-    }
-    dnaVariants.foreach {
-      variant => Annotation1000Genomes.annotateVariant1000Genomes(variant, referenceGenome)
-    }
   }
   /**
    * Adds used scientific databases relevant information used to annotate into .log file

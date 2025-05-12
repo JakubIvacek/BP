@@ -132,7 +132,8 @@ object FastaReaderSW {
     })
 
     if (newSequence.isEmpty) {
-      throw new IllegalArgumentException(s"Contig $contig not found in the FASTA file.")
+      //println(s"Contig $contig not found in the FASTA file.")
+      return ""
     }
 
 
